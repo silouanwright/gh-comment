@@ -13,7 +13,6 @@ var (
 	// Global flags
 	prNumber     int
 	repo         string
-	tone         string
 	validateDiff bool
 	dryRun       bool
 	verbose      bool
@@ -26,7 +25,7 @@ var rootCmd = &cobra.Command{
 	Long: `gh-comment is the first GitHub CLI extension for strategic, line-specific PR commenting workflows.
 
 Add targeted comments to specific lines in pull requests, create professional reviews,
-and streamline your code review process with batch operations and smart tone transformation.
+and streamline your code review process with batch operations.
 
 Examples:
   # Add a single line comment
@@ -51,7 +50,7 @@ func init() {
 	// Global flags
 	rootCmd.PersistentFlags().IntVarP(&prNumber, "pr", "p", 0, "PR number (auto-detect from branch if omitted)")
 	rootCmd.PersistentFlags().StringVarP(&repo, "repo", "R", "", "Repository (owner/repo format)")
-	rootCmd.PersistentFlags().StringVar(&tone, "tone", "casual", "Comment tone: casual|formal|technical")
+
 	rootCmd.PersistentFlags().BoolVar(&validateDiff, "validate", true, "Validate line exists in diff before commenting")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Show what would be commented without executing")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show detailed API interactions")

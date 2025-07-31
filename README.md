@@ -9,7 +9,7 @@ Strategic line-specific PR commenting for GitHub CLI
 ## Features
 
 - **Line-specific comments**: Add comments to individual lines or line ranges
-- **Smart tone transformation**: Automatic casual/formal/technical tone adjustment
+- **List all comments**: View all PR comments with author, file, and line info
 - **Dry-run mode**: Preview comments before posting
 - **Auto-detection**: Automatically detect current repository and PR
 - **Verbose mode**: Detailed API interaction logging
@@ -35,20 +35,20 @@ gh comment add 123 src/auth.js 15:20 "updated auth flow for better security"
 gh comment add src/api.js 42 "this fixes the jest scoping issue"
 ```
 
-### Tone Transformation
+### List Comments
 
 ```bash
-# Casual tone (default) - transforms formal language to casual
-gh comment add 123 src/api.js 42 "This implements error fingerprinting" --tone casual
-# → "this implements error fingerprinting - much cleaner approach"
+# List all comments on a PR
+gh comment list 123
 
-# Formal tone - keeps professional language
-gh comment add 123 src/api.js 42 "This implements error fingerprinting" --tone formal
-# → "This implements error fingerprinting"
+# List comments from specific author
+gh comment list 123 --author octocat
 
-# Technical tone - adds technical precision
-gh comment add 123 src/api.js 42 "This implements error fingerprinting" --tone technical
-# → "This implements error fingerprinting."
+# Auto-detect PR from current branch
+gh comment list
+
+# Show verbose output with URLs
+gh comment list 123 --verbose
 ```
 
 ### Options
@@ -78,11 +78,18 @@ gh comment add 998 packages/knit/package.json 74 "switched from bugsnag to datad
 gh comment add 998 src/api/client.js 120:135 "centralized error handling - replaces scattered try-catch blocks"
 ```
 
-### Review Workflow
+### Complete Review Workflow
 ```bash
-# Quick explanatory comments during review
+# 1. Someone reviews your PR and adds comments
+# 2. List all feedback to see what needs to be addressed
+gh comment list 998
+
+# 3. Add explanatory comments during your review
 gh comment add src/auth.js 42 "this handles the oauth callback edge case we discussed"
 gh comment add src/utils/validation.js 15 "regex pattern updated for new email format requirements"
+
+# 4. List comments again to verify everything is addressed
+gh comment list 998 --author reviewer-username
 ```
 
 ## Roadmap

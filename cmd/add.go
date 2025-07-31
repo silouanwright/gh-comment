@@ -26,9 +26,8 @@ Examples:
   # Add comment to line range 15-20
   gh comment add 123 src/auth.js 15:20 "updated auth flow for better security"
   
-  # Use casual tone (default)
-  gh comment add 123 src/api.js 42 "This implements error fingerprinting" --tone casual
-  # → "this implements error fingerprinting - much cleaner approach"`,
+  # Simple, direct commenting
+  gh comment add 123 src/api.js 42 "This implements error fingerprinting"`,
 	Args: cobra.RangeArgs(3, 4),
 	RunE: runAdd,
 }
@@ -75,8 +74,8 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Transform comment based on tone
-	transformedComment := transformTone(comment, tone)
+	// Use comment as-is
+	transformedComment := comment
 
 	if verbose {
 		fmt.Printf("Repository: %s\n", repository)
@@ -136,38 +135,7 @@ func parseLineSpec(lineSpec string) (int, int, error) {
 	}
 }
 
-func transformTone(comment, tone string) string {
-	switch tone {
-	case "casual":
-		return transformToCasual(comment)
-	case "formal":
-		return comment // Keep formal as-is
-	case "technical":
-		return transformToTechnical(comment)
-	default:
-		return transformToCasual(comment) // Default to casual
-	}
-}
 
-func transformToCasual(comment string) string {
-	// Simple casual transformations
-	comment = strings.ToLower(comment[:1]) + comment[1:] // Lowercase first letter
-	
-	// Add casual connectors
-	if !strings.Contains(comment, " - ") && !strings.HasSuffix(comment, ".") {
-		comment += " - much cleaner approach"
-	}
-	
-	return comment
-}
-
-func transformToTechnical(comment string) string {
-	// Keep technical comments more structured
-	if !strings.HasSuffix(comment, ".") {
-		comment += "."
-	}
-	return comment
-}
 
 func addLineComment(repo string, pr int, file string, startLine, endLine int, comment string) error {
 	client, err := api.DefaultRESTClient()
