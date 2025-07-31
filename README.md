@@ -204,15 +204,6 @@ gh comment list 998 --author reviewer-username
 
 While `gh-comment` supports both individual comments and batch review creation, it **does not support incremental review comments** (adding comments one-by-one to a pending review). This is a **GitHub API limitation**, not a design choice.
 
-**What Works:**
-- ✅ **Individual comments**: `gh comment add` posts comments immediately
-- ✅ **Batch reviews**: `gh comment add-review` creates complete reviews with multiple comments in one API call
-- ✅ **Submit pending reviews**: `gh comment submit-review` submits existing pending reviews
-
-**What Doesn't Work:**
-- ❌ **Incremental review building**: Cannot add comments one-by-one to a pending review
-- ❌ **Mixed workflow**: Cannot combine individual comments with pending review comments
-
 **Technical Explanation:**
 
 GitHub's API has a fundamental constraint: **only one pending review per user per PR** is allowed. When a pending review exists, the API rejects attempts to:
