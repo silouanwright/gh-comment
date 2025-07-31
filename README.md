@@ -20,6 +20,8 @@ Strategic line-specific PR commenting for GitHub CLI
 gh extension install silouanwright/gh-comment
 ```
 
+## Typo Usage
+
 ## Usage
 
 ### Basic Line Comments
