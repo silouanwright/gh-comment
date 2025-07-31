@@ -49,8 +49,8 @@ gh comment list 123 --author octocat
 # Auto-detect PR from current branch
 gh comment list
 
-# Show verbose output with URLs and comment IDs
-gh comment list 123 --verbose
+# Clean output for human reading (hides URLs/IDs)
+gh comment list 123 --quiet
 ```
 
 ### Reply to Comments
@@ -92,13 +92,15 @@ Unlike other tools, `gh comment list` shows the **exact code context** that comm
 
 This makes it **perfect for AI-assisted code reviews** - no guessing what code the comment refers to!
 
+> **🤖 AI-First Design**: By default, `gh comment list` shows URLs and comment IDs that AI needs to reply to comments. Use `--quiet` for human-only reading.
+
 ### Options
 
 ```bash
 # Dry run - preview without posting
 gh comment add --dry-run 123 src/api.js 42 "test comment"
 
-# Verbose mode - show API details and comment IDs
+# Verbose mode - show detailed API interactions
 gh comment add --verbose 123 src/api.js 42 "test comment"
 
 # Specify repository explicitly

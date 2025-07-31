@@ -14,6 +14,7 @@ var (
 	showResolved bool
 	onlyUnresolved bool
 	author string
+	quiet bool
 )
 
 var listCmd = &cobra.Command{
@@ -34,11 +35,11 @@ Shows key information for each comment:
 - Resolution status
 
 Examples:
-  # List all comments on PR 123
+  # List all comments on PR 123 (shows URLs and IDs by default)
   gh comment list 123
   
-  # List only unresolved comments
-  gh comment list 123 --unresolved
+  # Minimal output for human reading
+  gh comment list 123 --quiet
   
   # List comments from specific author
   gh comment list 123 --author octocat
@@ -55,6 +56,7 @@ func init() {
 	listCmd.Flags().BoolVar(&showResolved, "resolved", false, "Include resolved comments")
 	listCmd.Flags().BoolVar(&onlyUnresolved, "unresolved", false, "Show only unresolved comments")
 	listCmd.Flags().StringVar(&author, "author", "", "Filter comments by author")
+	listCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Minimal output without URLs and IDs (default shows full context for AI)")
 }
 
 func runList(cmd *cobra.Command, args []string) error {
@@ -86,6 +88,7 @@ func runList(cmd *cobra.Command, args []string) error {
 		fmt.Printf("PR: %d\n", pr)
 		fmt.Printf("Show resolved: %v\n", showResolved)
 		fmt.Printf("Only unresolved: %v\n", onlyUnresolved)
+		fmt.Printf("Quiet mode: %v\n", quiet)
 		if author != "" {
 			fmt.Printf("Filter by author: %s\n", author)
 		}
@@ -354,7 +357,8 @@ func displayComment(comment Comment, index int) {
 		fmt.Printf("   %s\n", line)
 	}
 
-	if verbose {
+	// Show URLs by default (AI-friendly), hide only in quiet mode
+	if !quiet {
 		fmt.Printf("   🔗 %s\n", comment.HTMLURL)
 	}
 
