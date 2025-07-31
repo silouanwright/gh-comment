@@ -8,30 +8,30 @@ Strategic line-specific PR commenting for GitHub CLI (optimized for AI)
 
 ## Features
 
-- **AI-optimized design**: Specifically built for usage with AI assistants and automated workflows
-- **Line-specific comments**: Add comments to individual lines or line ranges
-- **Multi-line comment support**: Shell native and --message flags for complex comments
-- **List all comments**: View all PR comments with diff context and author info
-- **Reply to comments**: Respond to specific comments with threaded replies
-- **Edit existing comments**: Update comment text to fix mistakes or add context
-- **Emoji reactions**: Quick acknowledgments with GitHub reactions
-- **Dry-run mode**: Preview comments before posting
-- **Auto-detection**: Automatically detect current repository and PR
-- **Verbose mode**: Detailed API interaction logging
+- 🤖 **AI-optimized design**: Specifically built for usage with AI assistants and automated workflows
+- 📍 **Line-specific comments**: Add comments to individual lines or line ranges
+- 📝 **Multi-line comment support**: Shell native and --message flags for complex comments
+- 📋 **List all comments**: View all PR comments with diff context and author info
+- 💬 **Reply to comments**: Respond to specific comments with threaded replies
+- ✏️ **Edit existing comments**: Update comment text to fix mistakes or add context
+- 😀 **Emoji reactions**: Quick acknowledgments with GitHub reactions
+- 🧪 **Dry-run mode**: Preview comments before posting
+- 🔍 **Auto-detection**: Automatically detect current repository and PR
+- 🔊 **Verbose mode**: Detailed API interaction logging
 
-## AI Workflows (Optimized for AI)
+## 🤖 AI Workflows (Optimized for AI)
 
 `gh-comment` was specifically designed for AI assistants like Claude, ChatGPT, and other automated workflows. Here's why AI tools work exceptionally well with this extension:
 
-### **Why AI Loves gh-comment**
+### **💝 Why AI Loves gh-comment**
 
-- **Immediate feedback**: Every command provides instant results, allowing AI to adjust strategy in real-time
-- **Rich documentation**: Comprehensive `--help` text enables rapid AI learning of command patterns
-- **Structured output**: Verbose mode provides detailed context for AI decision-making
-- **Explicit operations**: Clear, predictable commands reduce AI interpretation overhead
-- **Safety features**: Dry-run mode allows AI to preview actions before execution
+- ⚡ **Immediate feedback**: Every command provides instant results, allowing AI to adjust strategy in real-time
+- 📚 **Rich documentation**: Comprehensive `--help` text enables rapid AI learning of command patterns
+- 📊 **Structured output**: Verbose mode provides detailed context for AI decision-making
+- 🎯 **Explicit operations**: Clear, predictable commands reduce AI interpretation overhead
+- 🛡️ **Safety features**: Dry-run mode allows AI to preview actions before execution
 
-### **Built for Speed**
+### **🚀 Built for Speed**
 
 Unlike complex MCP servers or API wrappers, `gh-comment` gives AI direct access to GitHub's PR commenting system with zero interpretation layers. This means faster execution and more reliable results.
 
