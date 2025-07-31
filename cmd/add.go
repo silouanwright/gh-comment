@@ -11,29 +11,39 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	messages []string
+)
+
 var addCmd = &cobra.Command{
 	Use:   "add [pr] <file> <line> <comment>",
 	Short: "Add a single line comment to a PR",
 	Long: `Add a targeted comment to a specific line in a pull request.
 
 The line can be specified as a single line number or a range (start:end).
-The comment will be transformed based on the specified tone.
+Supports both inline comments and multi-line comments using --message flags.
+
+Comments are posted immediately to the PR.
 
 Examples:
-  # Add comment to line 42 in src/api.js
+  # Add single-line comment (posts immediately)
   gh comment add 123 src/api.js 42 "this handles the rate limiting edge case"
   
-  # Add comment to line range 15-20
-  gh comment add 123 src/auth.js 15:20 "updated auth flow for better security"
+  # Add range comment
+  gh comment add 123 src/api.js 42:45 "this entire block needs review"
   
-  # Simple, direct commenting
-  gh comment add 123 src/api.js 42 "This implements error fingerprinting"`,
-	Args: cobra.RangeArgs(3, 4),
+  # Add multi-line comment using --message flags (AI-friendly)
+  gh comment add 123 src/api.js 42 --message "First paragraph" --message "Second paragraph"
+  
+  # Auto-detect PR with --message flags
+  gh comment add src/api.js 42 -m "Line 1" -m "Line 2"`,
+	Args: cobra.RangeArgs(2, 4),
 	RunE: runAdd,
 }
 
 func init() {
 	rootCmd.AddCommand(addCmd)
+	addCmd.Flags().StringArrayVarP(&messages, "message", "m", []string{}, "Add message (can be used multiple times for multi-line comments)")
 }
 
 func runAdd(cmd *cobra.Command, args []string) error {
@@ -41,17 +51,17 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	var file, lineSpec, comment string
 	var err error
 
-	// Parse arguments - handle both 3 and 4 arg cases
+	// Parse arguments - handle both 3 and 4 arg cases, plus --message flags
 	if len(args) == 4 {
 		// PR number provided
 		pr, err = strconv.Atoi(args[0])
 		if err != nil {
-			return fmt.Errorf("invalid PR number: %s", args[0])
+			return formatValidationError("PR number", args[0], "must be a valid integer")
 		}
 		file = args[1]
 		lineSpec = args[2]
 		comment = args[3]
-	} else {
+	} else if len(args) == 3 {
 		// PR number not provided, auto-detect
 		pr, err = getCurrentPR()
 		if err != nil {
@@ -60,6 +70,26 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		file = args[0]
 		lineSpec = args[1]
 		comment = args[2]
+	} else if len(args) == 2 && len(messages) > 0 {
+		// Using --message flags instead of positional comment
+		pr, err = getCurrentPR()
+		if err != nil {
+			return err
+		}
+		file = args[0]
+		lineSpec = args[1]
+		comment = strings.Join(messages, "\n")
+	} else if len(args) == 3 && len(messages) > 0 {
+		// PR provided + --message flags
+		pr, err = strconv.Atoi(args[0])
+		if err != nil {
+			return formatValidationError("PR number", args[0], "must be a valid integer")
+		}
+		file = args[1]
+		lineSpec = args[2]
+		comment = strings.Join(messages, "\n")
+	} else {
+		return fmt.Errorf("invalid arguments. Use: gh comment add [pr] <file> <line> <comment> OR gh comment add [pr] <file> <line> --message \"line1\" --message \"line2\"")
 	}
 
 	// Get repository
@@ -180,7 +210,7 @@ func addLineComment(repo string, pr int, file string, startLine, endLine int, co
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	// Make the API call
+	// Make the immediate API call
 	var response map[string]interface{}
 	err = client.Post(fmt.Sprintf("repos/%s/pulls/%d/comments", repo, pr), bytes.NewReader(payloadJSON), &response)
 	if err != nil {
@@ -201,3 +231,5 @@ func addLineComment(repo string, pr int, file string, startLine, endLine int, co
 
 	return nil
 }
+
+

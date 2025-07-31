@@ -13,6 +13,8 @@ import (
 
 var (
 	reaction string
+	removeReaction string
+	resolveConversation bool
 )
 
 var replyCmd = &cobra.Command{
@@ -20,24 +22,32 @@ var replyCmd = &cobra.Command{
 	Short: "Reply to a specific comment on a PR",
 	Long: `Reply to a specific comment on a pull request review.
 
-You can reply with a message, add a reaction, or both. Use the comment ID from the URL 
-shown in 'gh comment list --verbose' output.
+You can reply with a message, add/remove reactions, or both. Use the comment ID from the URL 
+shown in 'gh comment list' output.
 
 Common use cases:
 - Acknowledge feedback: "Good point, thanks!"
 - Ask for clarification: "What do you mean by this?"
 - Confirm fix: "Fixed in latest commit"
 - Show appreciation with reactions
+- Remove accidental or outdated reactions
+- Resolve conversations after addressing feedback
 
 Examples:
   # Reply with a message
   gh comment reply 2246362251 "Good catch, fixed this!"
   
+  # Reply and resolve conversation (common workflow)
+  gh comment reply 2246362251 "Fixed in latest commit" --resolve
+  
   # Add a thumbs up reaction
   gh comment reply 2246362251 --reaction +1
   
-  # Reply with message and reaction
-  gh comment reply 2246362251 "Thanks for the feedback!" --reaction heart
+  # Remove a reaction
+  gh comment reply 2246362251 --remove-reaction +1
+  
+  # Reply with message, reaction, and resolve
+  gh comment reply 2246362251 "Thanks for the feedback!" --reaction heart --resolve
   
   # Quick acknowledgment
   gh comment reply 2246362251 "👍 Fixed"`,
@@ -49,6 +59,8 @@ func init() {
 	rootCmd.AddCommand(replyCmd)
 	
 	replyCmd.Flags().StringVar(&reaction, "reaction", "", "Add reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
+	replyCmd.Flags().StringVar(&removeReaction, "remove-reaction", "", "Remove reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
+	replyCmd.Flags().BoolVar(&resolveConversation, "resolve", false, "Resolve the conversation after replying")
 }
 
 func runReply(cmd *cobra.Command, args []string) error {
@@ -56,7 +68,7 @@ func runReply(cmd *cobra.Command, args []string) error {
 	commentIDStr := args[0]
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
-		return fmt.Errorf("invalid comment ID: %s", commentIDStr)
+		return formatValidationError("comment ID", commentIDStr, "must be a valid integer")
 	}
 
 	// Get message if provided
@@ -65,13 +77,28 @@ func runReply(cmd *cobra.Command, args []string) error {
 		message = args[1]
 	}
 
-	// Validate that we have either message or reaction
-	if message == "" && reaction == "" {
-		return fmt.Errorf("must provide either a message or --reaction")
+	// Validate that we have either message, reaction, remove-reaction, or resolve
+	if message == "" && reaction == "" && removeReaction == "" && !resolveConversation {
+		return fmt.Errorf("must provide either a message, --reaction, --remove-reaction, or --resolve")
 	}
 
-	// Get repository
-	repository, err := getCurrentRepo()
+	// Validate that we don't have both reaction and remove-reaction
+	if reaction != "" && removeReaction != "" {
+		return fmt.Errorf("cannot use both --reaction and --remove-reaction at the same time")
+	}
+
+	// Validate reaction if provided
+	if reaction != "" && !validateReaction(reaction) {
+		return formatValidationError("reaction", reaction, "must be one of: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
+	}
+
+	// Validate remove-reaction if provided
+	if removeReaction != "" && !validateReaction(removeReaction) {
+		return formatValidationError("remove-reaction", removeReaction, "must be one of: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
+	}
+
+	// Get repository and PR context
+	repository, pr, err := getPRContext()
 	if err != nil {
 		return err
 	}
@@ -85,6 +112,12 @@ func runReply(cmd *cobra.Command, args []string) error {
 		if reaction != "" {
 			fmt.Printf("Reaction: %s\n", reaction)
 		}
+		if removeReaction != "" {
+			fmt.Printf("Remove Reaction: %s\n", removeReaction)
+		}
+		if resolveConversation {
+			fmt.Printf("Resolve Conversation: true\n")
+		}
 		fmt.Println()
 	}
 
@@ -95,6 +128,12 @@ func runReply(cmd *cobra.Command, args []string) error {
 		}
 		if reaction != "" {
 			fmt.Printf("Reaction: %s\n", reaction)
+		}
+		if removeReaction != "" {
+			fmt.Printf("Remove Reaction: %s\n", removeReaction)
+		}
+		if resolveConversation {
+			fmt.Printf("Resolve Conversation: true\n")
 		}
 		return nil
 	}
@@ -108,6 +147,15 @@ func runReply(cmd *cobra.Command, args []string) error {
 		fmt.Printf("✅ Added %s reaction to comment #%d\n", reaction, commentID)
 	}
 
+	// Remove reaction if specified
+	if removeReaction != "" {
+		err = removeReactionFromComment(repository, commentID, removeReaction)
+		if err != nil {
+			return fmt.Errorf("failed to remove reaction: %w", err)
+		}
+		fmt.Printf("✅ Removed %s reaction from comment #%d\n", removeReaction, commentID)
+	}
+
 	// Add reply message if specified
 	if message != "" {
 		err = addReply(repository, commentID, message)
@@ -115,6 +163,15 @@ func runReply(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("failed to add reply: %w", err)
 		}
 		fmt.Printf("✅ Replied to comment #%d\n", commentID)
+	}
+
+	// Resolve conversation if specified
+	if resolveConversation {
+		err = resolveComment(repository, commentID, pr)
+		if err != nil {
+			return fmt.Errorf("failed to resolve conversation: %w", err)
+		}
+		fmt.Printf("✅ Resolved conversation for comment #%d\n", commentID)
 	}
 
 	return nil
@@ -140,7 +197,7 @@ func addReaction(repo string, commentID int, reactionType string) error {
 	var response map[string]interface{}
 	err = client.Post(fmt.Sprintf("repos/%s/pulls/comments/%d/reactions", repo, commentID), bytes.NewReader(payloadJSON), &response)
 	if err != nil {
-		return fmt.Errorf("failed to add reaction: %w", err)
+		return formatAPIError("adding reaction", fmt.Sprintf("repos/%s/pulls/comments/%d/reactions", repo, commentID), err)
 	}
 
 	if verbose {
@@ -204,6 +261,175 @@ func addReply(repo string, commentID int, message string) error {
 
 	if verbose {
 		fmt.Printf("Reply added successfully to review thread\n")
+	}
+
+	return nil
+}
+
+func removeReactionFromComment(repo string, commentID int, reactionType string) error {
+	client, err := api.DefaultRESTClient()
+	if err != nil {
+		return err
+	}
+
+	// First, we need to get the current user's reaction ID for this comment
+	// GitHub API requires the reaction ID to delete it
+	var reactions []map[string]interface{}
+	err = client.Get(fmt.Sprintf("repos/%s/pulls/comments/%d/reactions", repo, commentID), &reactions)
+	if err != nil {
+		return fmt.Errorf("failed to get reactions: %w", err)
+	}
+
+	// Find the current user's reaction of the specified type
+	var reactionID int
+	for _, reaction := range reactions {
+		if reaction["content"] == reactionType {
+			// For now, we'll take the first matching reaction
+			// In practice, this will be the current user's reaction since
+			// we're authenticated as that user
+			if id, ok := reaction["id"].(float64); ok {
+				reactionID = int(id)
+				break
+			}
+		}
+	}
+
+	if reactionID == 0 {
+		return fmt.Errorf("reaction '%s' not found or not owned by current user", reactionType)
+	}
+
+	// Delete the reaction using the reaction ID
+	// GitHub API endpoint for deleting reactions from pull request comments
+	err = client.Delete(fmt.Sprintf("repos/%s/pulls/comments/%d/reactions/%d", repo, commentID, reactionID), nil)
+	if err != nil {
+		return fmt.Errorf("failed to remove reaction: %w", err)
+	}
+
+	return nil
+}
+
+func resolveComment(repo string, commentID int, prNumber int) error {
+	client, err := api.DefaultGraphQLClient()
+	if err != nil {
+		return fmt.Errorf("failed to create GraphQL client: %w", err)
+	}
+
+	// Parse repo owner and name
+	parts := strings.Split(repo, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repo)
+	}
+	owner, repoName := parts[0], parts[1]
+
+	// Step 1: Find the review thread containing this comment
+	prQuery := `
+		query($owner: String!, $repo: String!, $number: Int!) {
+			repository(owner: $owner, name: $repo) {
+				pullRequest(number: $number) {
+					id
+					reviewThreads(first: 100) {
+						nodes {
+							id
+							isResolved
+							comments(first: 10) {
+								nodes {
+									databaseId
+								}
+							}
+						}
+					}
+			}
+		}
+	}`
+
+	type PRData struct {
+		Repository struct {
+			PullRequest struct {
+				ID           string `json:"id"`
+				ReviewThreads struct {
+					Nodes []struct {
+						ID         string `json:"id"`
+						IsResolved bool   `json:"isResolved"`
+						Comments   struct {
+							Nodes []struct {
+								DatabaseID int `json:"databaseId"`
+							} `json:"nodes"`
+						} `json:"comments"`
+					} `json:"nodes"`
+				} `json:"reviewThreads"`
+			} `json:"pullRequest"`
+		} `json:"repository"`
+	}
+
+	var prData PRData
+	err = client.Do(prQuery, map[string]interface{}{
+		"owner":  owner,
+		"repo":   repoName,
+		"number": prNumber,
+	}, &prData)
+	if err != nil {
+		return fmt.Errorf("failed to fetch PR data: %w", err)
+	}
+
+	// Step 2: Find the thread containing our comment
+	var threadID string
+	for _, thread := range prData.Repository.PullRequest.ReviewThreads.Nodes {
+		if thread.IsResolved {
+			continue // Skip already resolved threads
+		}
+		
+		// Check if this thread contains our comment
+		for _, comment := range thread.Comments.Nodes {
+			if comment.DatabaseID == commentID {
+				threadID = thread.ID
+				break
+			}
+		}
+		if threadID != "" {
+			break
+		}
+	}
+
+	if threadID == "" {
+		return formatNotFoundError("unresolved thread containing comment", commentID)
+	}
+
+	if verbose {
+		fmt.Printf("Found thread ID: %s for comment %d\n", threadID, commentID)
+	}
+
+	// Step 3: Resolve the thread using GraphQL mutation
+	resolveMutation := `
+		mutation($threadId: ID!) {
+			resolveReviewThread(input: {threadId: $threadId}) {
+				thread {
+					id
+					isResolved
+				}
+			}
+		}`
+
+	type ResolveResponse struct {
+		ResolveReviewThread struct {
+			Thread struct {
+				ID         string `json:"id"`
+				IsResolved bool   `json:"isResolved"`
+			} `json:"thread"`
+		} `json:"resolveReviewThread"`
+	}
+
+	var resolveResp ResolveResponse
+	err = client.Do(resolveMutation, map[string]interface{}{
+		"threadId": threadID,
+	}, &resolveResp)
+	if err != nil {
+		return fmt.Errorf("failed to resolve thread: %w", err)
+	}
+
+	if verbose {
+		fmt.Printf("Successfully resolved thread: %s (resolved: %t)\n", 
+			resolveResp.ResolveReviewThread.Thread.ID,
+			resolveResp.ResolveReviewThread.Thread.IsResolved)
 	}
 
 	return nil

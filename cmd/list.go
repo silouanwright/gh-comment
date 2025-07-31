@@ -15,6 +15,7 @@ var (
 	onlyUnresolved bool
 	author string
 	quiet bool
+	hideAuthors bool
 )
 
 var listCmd = &cobra.Command{
@@ -44,6 +45,9 @@ Examples:
   # List comments from specific author
   gh comment list 123 --author octocat
   
+  # Hide author names for privacy
+  gh comment list 123 --hide-authors
+  
   # Auto-detect PR from current branch
   gh comment list`,
 	Args: cobra.MaximumNArgs(1),
@@ -57,6 +61,7 @@ func init() {
 	listCmd.Flags().BoolVar(&onlyUnresolved, "unresolved", false, "Show only unresolved comments")
 	listCmd.Flags().StringVar(&author, "author", "", "Filter comments by author")
 	listCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Minimal output without URLs and IDs (default shows full context for AI)")
+	listCmd.Flags().BoolVar(&hideAuthors, "hide-authors", false, "Hide author names for privacy")
 }
 
 func runList(cmd *cobra.Command, args []string) error {
@@ -67,7 +72,7 @@ func runList(cmd *cobra.Command, args []string) error {
 	if len(args) == 1 {
 		pr, err = strconv.Atoi(args[0])
 		if err != nil {
-			return fmt.Errorf("invalid PR number: %s", args[0])
+			return formatValidationError("PR number", args[0], "must be a valid integer")
 		}
 	} else {
 		// Auto-detect PR
@@ -89,6 +94,7 @@ func runList(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Show resolved: %v\n", showResolved)
 		fmt.Printf("Only unresolved: %v\n", onlyUnresolved)
 		fmt.Printf("Quiet mode: %v\n", quiet)
+		fmt.Printf("Hide authors: %v\n", hideAuthors)
 		if author != "" {
 			fmt.Printf("Filter by author: %s\n", author)
 		}
@@ -313,7 +319,11 @@ func displayComments(comments []Comment, pr int) {
 func displayComment(comment Comment, index int) {
 	// Header with author and timestamp
 	timeAgo := formatTimeAgo(comment.CreatedAt)
-	fmt.Printf("[%d] 👤 %s • %s", index, comment.Author, timeAgo)
+	if hideAuthors {
+		fmt.Printf("[%d] 👤 [hidden] • %s", index, timeAgo)
+	} else {
+		fmt.Printf("[%d] 👤 %s • %s", index, comment.Author, timeAgo)
+	}
 	
 	// Show review state for review-level comments
 	if comment.Type == "review" && comment.State != "" {
