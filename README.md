@@ -1,4 +1,4 @@
-# gh-comment
+# gh-comment 💬
 
 Strategic line-specific PR commenting for GitHub CLI (optimized for AI)
 
@@ -23,13 +23,13 @@ Strategic line-specific PR commenting for GitHub CLI (optimized for AI)
 
 `gh-comment` was specifically designed for AI assistants like Claude, ChatGPT, and other automated workflows. Here's why AI tools work exceptionally well with this extension:
 
-### **💝 Why AI Loves gh-comment**
+### **Why AI Loves gh-comment**
 
-- ⚡ **Immediate feedback**: Every command provides instant results, allowing AI to adjust strategy in real-time
-- 📚 **Rich documentation**: Comprehensive `--help` text enables rapid AI learning of command patterns
-- 📊 **Structured output**: Verbose mode provides detailed context for AI decision-making
-- 🎯 **Explicit operations**: Clear, predictable commands reduce AI interpretation overhead
-- 🛡️ **Safety features**: Dry-run mode allows AI to preview actions before execution
+- **Immediate feedback**: Every command provides instant results, allowing AI to adjust strategy in real-time
+- **Rich documentation**: Comprehensive `--help` text enables rapid AI learning of command patterns
+- **Structured output**: Verbose mode provides detailed context for AI decision-making
+- **Explicit operations**: Clear, predictable commands reduce AI interpretation overhead
+- **Safety features**: Dry-run mode allows AI to preview actions before execution
 
 ### **🚀 Built for Speed**
 
