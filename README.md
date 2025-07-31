@@ -9,7 +9,9 @@ Strategic line-specific PR commenting for GitHub CLI
 ## Features
 
 - **Line-specific comments**: Add comments to individual lines or line ranges
-- **List all comments**: View all PR comments with author, file, and line info
+- **List all comments**: View all PR comments with diff context and author info
+- **Reply to comments**: Respond to specific comments with threaded replies
+- **Emoji reactions**: Quick acknowledgments with GitHub reactions
 - **Dry-run mode**: Preview comments before posting
 - **Auto-detection**: Automatically detect current repository and PR
 - **Verbose mode**: Detailed API interaction logging
@@ -38,7 +40,7 @@ gh comment add src/api.js 42 "this fixes the jest scoping issue"
 ### List Comments
 
 ```bash
-# List all comments on a PR
+# List all comments on a PR with diff context
 gh comment list 123
 
 # List comments from specific author
@@ -47,9 +49,48 @@ gh comment list 123 --author octocat
 # Auto-detect PR from current branch
 gh comment list
 
-# Show verbose output with URLs
+# Show verbose output with URLs and comment IDs
 gh comment list 123 --verbose
 ```
+
+### Reply to Comments
+
+```bash
+# Reply to a specific comment (use comment ID from verbose output)
+gh comment reply 2246362251 "Good catch, thanks for the feedback!"
+
+# Add a reaction to show appreciation
+gh comment reply 2246362251 --reaction +1
+
+# Reply with both message and reaction
+gh comment reply 2246362251 "Fixed in latest commit!" --reaction heart
+
+# Quick acknowledgment
+gh comment reply 2246362251 --reaction eyes
+```
+
+### Key Feature: Diff Context
+
+Unlike other tools, `gh comment list` shows the **exact code context** that comments refer to:
+
+```
+📍 Line-Specific Comments (1)
+──────────────────────────────────────────────────
+[1] 👤 reviewer • 5 minutes ago
+📁 src/api.js:L42
+📝 Code Context:
+   🔹 @@ -40,6 +40,8 @@ function handleRequest(req) {
+      if (!req.user) {
+        throw new Error('Unauthorized');
+      }
+   ➕ +  // Add rate limiting check
+   ➕ +  checkRateLimit(req.user.id);
+      return processRequest(req);
+
+   This needs error handling for rate limit failures
+```
+
+This makes it **perfect for AI-assisted code reviews** - no guessing what code the comment refers to!
 
 ### Options
 
@@ -57,7 +98,7 @@ gh comment list 123 --verbose
 # Dry run - preview without posting
 gh comment add --dry-run 123 src/api.js 42 "test comment"
 
-# Verbose mode - show API details
+# Verbose mode - show API details and comment IDs
 gh comment add --verbose 123 src/api.js 42 "test comment"
 
 # Specify repository explicitly
@@ -81,24 +122,30 @@ gh comment add 998 src/api/client.js 120:135 "centralized error handling - repla
 ### Complete Review Workflow
 ```bash
 # 1. Someone reviews your PR and adds comments
-# 2. List all feedback to see what needs to be addressed
-gh comment list 998
+# 2. List all feedback with diff context and comment IDs
+gh comment list 998 --verbose
 
-# 3. Add explanatory comments during your review
+# 3. Reply to specific feedback in threaded conversations
+gh comment reply 2246362251 "Good point, I'll fix this!"
+gh comment reply 2246362252 --reaction +1
+
+# 4. Add your own explanatory comments
 gh comment add src/auth.js 42 "this handles the oauth callback edge case we discussed"
-gh comment add src/utils/validation.js 15 "regex pattern updated for new email format requirements"
 
-# 4. List comments again to verify everything is addressed
+# 5. Verify all feedback is addressed
 gh comment list 998 --author reviewer-username
 ```
 
 ## Roadmap
 
+- [x] **Line-specific comments**: Add targeted comments to specific lines ✅
+- [x] **List comments with context**: View all PR feedback with diff context ✅
+- [x] **Reply to comments**: Threaded replies and emoji reactions ✅
 - [ ] **Review-based comments**: Create professional grouped reviews
 - [ ] **Batch operations**: Process multiple comments from config files
 - [ ] **Interactive mode**: GUI-like comment selection
 - [ ] **Comment templates**: Predefined comment patterns
-- [ ] **Analytics**: Comment usage reporting
+- [ ] **Resolve comments**: Mark conversations as resolved
 
 ## Contributing
 

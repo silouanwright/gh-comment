@@ -119,6 +119,7 @@ type Comment struct {
 	Path      string `json:"path,omitempty"`
 	Line      int    `json:"line,omitempty"`
 	StartLine int    `json:"start_line,omitempty"`
+	DiffHunk  string `json:"diff_hunk,omitempty"`
 	
 	// Comment type
 	Type string `json:"type"` // "issue" or "review"
@@ -165,6 +166,38 @@ func fetchAllComments(repo string, pr int) ([]Comment, error) {
 		})
 	}
 
+	// Fetch reviews (parent comments that group line-specific comments)
+	var reviews []struct {
+		ID        int       `json:"id"`
+		User      struct {
+			Login string `json:"login"`
+		} `json:"user"`
+		Body      string    `json:"body"`
+		State     string    `json:"state"`
+		CreatedAt time.Time `json:"submitted_at"`
+		HTMLURL   string    `json:"html_url"`
+	}
+
+	err = client.Get(fmt.Sprintf("repos/%s/pulls/%d/reviews", repo, pr), &reviews)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch reviews: %w", err)
+	}
+
+	// Convert reviews (only include ones with body text)
+	for _, review := range reviews {
+		if strings.TrimSpace(review.Body) != "" {
+			allComments = append(allComments, Comment{
+				ID:        review.ID,
+				Author:    review.User.Login,
+				Body:      review.Body,
+				CreatedAt: review.CreatedAt,
+				HTMLURL:   review.HTMLURL,
+				Type:      "review",
+				State:     review.State,
+			})
+		}
+	}
+
 	// Fetch review comments (line-specific)
 	var reviewComments []struct {
 		ID        int       `json:"id"`
@@ -178,6 +211,7 @@ func fetchAllComments(repo string, pr int) ([]Comment, error) {
 		Path      string    `json:"path"`
 		Line      int       `json:"line"`
 		StartLine int       `json:"start_line"`
+		DiffHunk  string    `json:"diff_hunk"`
 	}
 
 	err = client.Get(fmt.Sprintf("repos/%s/pulls/%d/comments", repo, pr), &reviewComments)
@@ -197,6 +231,7 @@ func fetchAllComments(repo string, pr int) ([]Comment, error) {
 			Path:      comment.Path,
 			Line:      comment.Line,
 			StartLine: comment.StartLine,
+			DiffHunk:  comment.DiffHunk,
 			Type:      "review",
 		})
 	}
@@ -231,12 +266,14 @@ func displayComments(comments []Comment, pr int) {
 	fmt.Printf("📝 Comments on PR #%d (%d total)\n\n", pr, len(comments))
 
 	// Group comments by type
-	var issueComments, reviewComments []Comment
+	var issueComments, reviewComments, lineComments []Comment
 	for _, comment := range comments {
 		if comment.Type == "issue" {
 			issueComments = append(issueComments, comment)
-		} else {
+		} else if comment.Type == "review" {
 			reviewComments = append(reviewComments, comment)
+		} else {
+			lineComments = append(lineComments, comment)
 		}
 	}
 
@@ -250,11 +287,21 @@ func displayComments(comments []Comment, pr int) {
 		fmt.Println()
 	}
 
-	// Display line-specific comments
+	// Display review-level comments (parent comments that group line-specific ones)
 	if len(reviewComments) > 0 {
-		fmt.Printf("📍 Line-Specific Comments (%d)\n", len(reviewComments))
+		fmt.Printf("📋 Review Comments (%d)\n", len(reviewComments))
 		fmt.Println(strings.Repeat("─", 50))
 		for i, comment := range reviewComments {
+			displayComment(comment, i+1)
+		}
+		fmt.Println()
+	}
+
+	// Display line-specific comments
+	if len(lineComments) > 0 {
+		fmt.Printf("📍 Line-Specific Comments (%d)\n", len(lineComments))
+		fmt.Println(strings.Repeat("─", 50))
+		for i, comment := range lineComments {
 			displayComment(comment, i+1)
 		}
 	}
@@ -263,15 +310,36 @@ func displayComments(comments []Comment, pr int) {
 func displayComment(comment Comment, index int) {
 	// Header with author and timestamp
 	timeAgo := formatTimeAgo(comment.CreatedAt)
-	fmt.Printf("[%d] 👤 %s • %s\n", index, comment.Author, timeAgo)
+	fmt.Printf("[%d] 👤 %s • %s", index, comment.Author, timeAgo)
+	
+	// Show review state for review-level comments
+	if comment.Type == "review" && comment.State != "" {
+		stateEmoji := "📝"
+		switch comment.State {
+		case "approved":
+			stateEmoji = "✅"
+		case "changes_requested":
+			stateEmoji = "🔴"
+		case "commented":
+			stateEmoji = "💬"
+		}
+		fmt.Printf(" %s %s", stateEmoji, comment.State)
+	}
+	fmt.Println()
 
-	// File and line info for review comments
-	if comment.Type == "review" && comment.Path != "" {
+	// File and line info for line-specific comments
+	if comment.Path != "" {
 		lineInfo := fmt.Sprintf("L%d", comment.Line)
 		if comment.StartLine > 0 && comment.StartLine != comment.Line {
 			lineInfo = fmt.Sprintf("L%d-L%d", comment.StartLine, comment.Line)
 		}
 		fmt.Printf("📁 %s:%s\n", comment.Path, lineInfo)
+		
+		// Show the actual diff context if available
+		if comment.DiffHunk != "" {
+			fmt.Printf("📝 Code Context:\n")
+			displayDiffHunk(comment.DiffHunk)
+		}
 	}
 
 	// Comment body (truncate if too long)
@@ -321,4 +389,31 @@ func formatTimeAgo(t time.Time) string {
 			return t.Format("Jan 2, 2006")
 		}
 	}
+}
+
+func displayDiffHunk(diffHunk string) {
+	// Split diff hunk into lines
+	lines := strings.Split(strings.TrimSpace(diffHunk), "\n")
+	
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		
+		// Color code the diff lines
+		if strings.HasPrefix(line, "@@") {
+			// Diff header - show line numbers
+			fmt.Printf("   🔹 %s\n", line)
+		} else if strings.HasPrefix(line, "+") {
+			// Added line - green
+			fmt.Printf("   ➕ %s\n", line)
+		} else if strings.HasPrefix(line, "-") {
+			// Removed line - red
+			fmt.Printf("   ➖ %s\n", line)
+		} else {
+			// Context line - neutral
+			fmt.Printf("     %s\n", line)
+		}
+	}
+	fmt.Println()
 }
