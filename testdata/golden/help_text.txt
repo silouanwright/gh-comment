@@ -1,0 +1,21 @@
+GitHub CLI extension for managing PR comments
+
+Usage:
+  gh-comment [command]
+
+Available Commands:
+  add         Add a line-specific comment to a PR
+  add-review  Add multiple comments as a batch review
+  edit        Edit an existing comment
+  help        Help about any command
+  list        List all comments on a PR
+  reply       Reply to a comment
+  resolve     Resolve a review conversation
+  submit-review Submit a pending review
+  suggestions Expand suggestion syntax in comments
+
+Flags:
+  -h, --help      help for gh-comment
+  -v, --verbose   Enable verbose output
+
+Use "gh-comment [command] --help" for more information about a command.

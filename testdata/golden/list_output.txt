@@ -1,0 +1,12 @@
+💬 General PR Comments (1)
+──────────────────────────────────────────────────
+[1] 👤 reviewer1 • Jan 1, 2024
+   LGTM! Great work on this PR.
+   🔗 https://github.com/owner/repo/issues/1#issuecomment-123456
+
+📋 Review Comments (1)
+──────────────────────────────────────────────────
+[1] 👤 reviewer2 • Jan 1, 2024
+📁 main.go:L42
+   Consider using a more descriptive variable name here.
+   🔗 https://github.com/owner/repo/pull/1#discussion_r654321

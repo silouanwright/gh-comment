@@ -1,0 +1,8 @@
+# Test basic list functionality
+exec gh-comment list --pr 123 --repo owner/repo
+stdout 'General PR Comments'
+stdout 'Review Comments'
+! stderr .
+
+-- .github/config.yml --
+# Mock GitHub CLI config

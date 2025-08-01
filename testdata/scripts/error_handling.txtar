@@ -1,0 +1,12 @@
+# Test error scenarios
+! exec gh-comment reply invalid 'message'
+stderr 'invalid comment ID'
+
+! exec gh-comment reply 123456 'message' --type invalid
+stderr 'invalid type'
+
+! exec gh-comment list invalid
+stderr 'invalid PR number'
+
+-- .github/config.yml --
+# Mock GitHub CLI config

@@ -1,0 +1,7 @@
+# Test replying to issue comment
+exec gh-comment reply 123456 'Thanks!' --type issue --pr 123
+stdout 'Replied to issue comment'
+! stderr .
+
+-- .github/config.yml --
+# Mock GitHub CLI config

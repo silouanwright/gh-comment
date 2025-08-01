@@ -1,0 +1,4 @@
+Error: invalid comment ID 'invalid': must be a valid integer
+Error: invalid PR number 'abc': must be a valid integer
+Error: invalid reaction 'bad': must be one of: +1, -1, laugh, confused, heart, hooray, rocket, eyes
+Error: invalid type 'invalid': must be either 'issue' or 'review'
