@@ -53,9 +53,8 @@ POST /repos/owner/repo/pulls/123/reviews/{review_id}/comments
 
 ### Technical Details
 - **Core Issue**: No API endpoint exists to add comments to an existing pending review
-- **Current Limitation**: Once a pending review is created, additional comments cannot be added to it via API
+- **Impact**: Forces all-or-nothing review creation, breaking natural incremental workflows
 - **Affects Both APIs**: Neither REST nor GraphQL provide this capability
-- **Workaround Required**: All review comments must be included in the initial review creation call
 
 ### API-Web Interface Parity Issue
 
@@ -127,16 +126,16 @@ An AI code reviewer analyzes a PR and immediately finds 3 critical issues, so it
 ### Developer Ecosystem Impact
 
 **Affected Use Cases:**
-- 🤖 AI-assisted code review tools
-- 🔄 Interactive CLI review workflows  
-- 📱 Mobile apps for code review
-- 🔧 IDE integrations for PR review
-- 📊 Review analytics tools that need incremental data collection
+- AI-assisted code review tools
+- Interactive CLI review workflows  
+- Mobile apps for code review
+- IDE integrations for PR review
+- Review analytics tools requiring incremental data collection
 
 **Business Impact:**
-- Limits innovation in developer tooling
-- Forces suboptimal UX in review tools
-- Creates barrier to building GitHub-integrated products
+- Limits innovation in developer tooling ecosystem
+- Forces suboptimal user experiences in review tools
+- Creates barriers to building GitHub-integrated products
 
 ### Proposed Solution
 Add API support for the "pending review" workflow that already exists in the GitHub web interface.
@@ -179,10 +178,10 @@ This would replicate the exact workflow available in the GitHub web interface.
 - **Repository**: https://github.com/silouanwright/gh-comment
 
 ### References
-- [PyGithub Issue #3038](https://github.com/PyGithub/PyGithub/issues/3038): "issues with pull request review, adding many comments always fails"
-- [Stack Overflow #71421045](https://stackoverflow.com/questions/71421045/): "How to add comments to pending GitHub review via API"
-- [GitHub Community Discussion #24854](https://github.com/orgs/community/discussions/24854): "Cannot add comments to existing pending review"
-- [GitHub API Documentation](https://docs.github.com/en/rest/pulls/comments): Current API limitations
+- [PyGithub Issue #3038](https://github.com/PyGithub/PyGithub/issues/3038) - "issues with pull request review, adding many comments always fails"
+- [Stack Overflow Discussion](https://stackoverflow.com/questions/71421045/) - "How to add comments to pending GitHub review via API"
+- [GitHub Community Discussion #24854](https://github.com/orgs/community/discussions/24854) - "Cannot add comments to existing pending review"
+- [GitHub API Documentation](https://docs.github.com/en/rest/pulls/comments) - Current API limitations
 
 ---
 
