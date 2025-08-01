@@ -230,14 +230,16 @@ gh comment list 998 --author reviewer-username
 
 ## Limitations
 
-**[Incremental Review Comments](https://docs.github.com/en/rest/pulls/comments) Not Supported**
+**[Incremental Review Comments](https://github.com/orgs/community/discussions/168380) Not Supported**
 
-Queuing individual comments as part of a review would be helpful, but GitHub's [API constraint](https://github.com/orgs/community/discussions/24854) allows only [one pending review](https://stackoverflow.com/questions/71421045/) per user per PR. This affects [many integrations](https://github.com/cli/cli/issues/4682) and remains a [long-standing](https://github.com/octokit/octokit.js/issues/2124) [developer](https://github.com/microsoft/vscode-pull-request-github/issues/2832) [pain point](https://github.com/github/docs/issues/19891).
+Queuing individual comments as part of a review would be helpful, but GitHub's API constraint allows only one pending review per user per PR. This affects many integrations and remains a long-standing developer pain point.
 
 **Workarounds:**
 - **Batch reviews**: Plan all feedback upfront with `add-review`
 - **Individual comments**: Post immediately with `add` (not grouped in reviews)
 - **Submit and restart**: Complete any pending review first, then create new ones
+
+**Help us get this feature added!** Please visit https://github.com/orgs/community/discussions/168380 and upvote the discussion to gain more traction with GitHub's product team.
 
 ## Roadmap
 
