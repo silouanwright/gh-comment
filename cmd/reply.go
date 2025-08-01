@@ -24,7 +24,7 @@ var replyCmd = &cobra.Command{
 	Short: "Reply to a specific comment on a PR",
 	Long: `Reply to a specific comment on a pull request.
 
-You can reply with a message, add/remove reactions, or both. Use the comment ID from the URL 
+You can reply with a message, add/remove reactions, or both. Use the comment ID from the URL
 shown in 'gh comment list' output. Specify the comment type using --type flag:
 - 'review' for line-specific code review comments (default)
 - 'issue' for general PR discussion comments
@@ -40,22 +40,22 @@ Common use cases:
 Examples:
   # Reply to a review comment (line-specific)
   gh comment reply 2246362251 "Good catch, fixed this!"
-  
+
   # Reply to an issue comment (general PR comment)
   gh comment reply 3141344022 "Thanks for the feedback!" --type issue
-  
+
   # Reply and resolve conversation (review comments only)
   gh comment reply 2246362251 "Fixed in latest commit" --resolve
-  
+
   # Add a thumbs up reaction
   gh comment reply 2246362251 --reaction +1
-  
+
   # Remove a reaction
   gh comment reply 2246362251 --remove-reaction +1
-  
+
   # Reply with message, reaction, and resolve
   gh comment reply 2246362251 "Thanks for the feedback!" --reaction heart --resolve
-  
+
   # Quick acknowledgment
   gh comment reply 2246362251 "👍 Fixed"`,
 	Args: cobra.RangeArgs(1, 2),
@@ -64,7 +64,7 @@ Examples:
 
 func init() {
 	rootCmd.AddCommand(replyCmd)
-	
+
 	replyCmd.Flags().StringVar(&reaction, "reaction", "", "Add reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
 	replyCmd.Flags().StringVar(&removeReaction, "remove-reaction", "", "Remove reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
 	replyCmd.Flags().BoolVar(&resolveConversation, "resolve", false, "Resolve the conversation after replying")
@@ -180,14 +180,14 @@ func runReply(cmd *cobra.Command, args []string) error {
 		} else {
 			finalMessage = expandSuggestions(message)
 		}
-		
+
 		// Use appropriate reply method based on comment type
 		if commentType == "issue" {
 			err = addIssueCommentReply(repository, pr, finalMessage)
 		} else {
 			err = addReviewCommentReply(repository, commentID, pr, finalMessage)
 		}
-		
+
 		if err != nil {
 			return fmt.Errorf("failed to add reply: %w", err)
 		}
@@ -433,7 +433,7 @@ func resolveComment(repo string, commentID int, prNumber int) error {
 		if thread.IsResolved {
 			continue // Skip already resolved threads
 		}
-		
+
 		// Check if this thread contains our comment
 		for _, comment := range thread.Comments.Nodes {
 			if comment.DatabaseID == commentID {
@@ -483,7 +483,7 @@ func resolveComment(repo string, commentID int, prNumber int) error {
 	}
 
 	if verbose {
-		fmt.Printf("Successfully resolved thread: %s (resolved: %t)\n", 
+		fmt.Printf("Successfully resolved thread: %s (resolved: %t)\n",
 			resolveResp.ResolveReviewThread.Thread.ID,
 			resolveResp.ResolveReviewThread.Thread.IsResolved)
 	}

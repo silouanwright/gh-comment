@@ -29,16 +29,16 @@ new reviews.
 Examples:
   # Submit pending review with approval
   gh comment submit-review 123 "LGTM! Great work" --event APPROVE
-  
+
   # Submit with change requests
   gh comment submit-review 123 "Please address the comments" --event REQUEST_CHANGES
-  
+
   # Submit as general comment
   gh comment submit-review 123 "Thanks for the updates" --event COMMENT
-  
+
   # Submit with minimal body (auto-detect PR)
   gh comment submit-review "Looks good" --event APPROVE
-  
+
   # Submit without additional body
   gh comment submit-review 123 --event APPROVE`,
 	Args: cobra.RangeArgs(0, 2),

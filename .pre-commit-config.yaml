@@ -1,0 +1,60 @@
+# ==========================================================================
+# Go Pre-Commit Hooks Configuration for gh-comment
+# Optimized for speed and integrated with existing test suite
+# ==========================================================================
+
+repos:
+  # Basic file quality checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+
+  # Go-specific hooks (essential checks only)
+  - repo: https://github.com/tekwizely/pre-commit-golang
+    rev: v1.0.0-rc.2
+    hooks:
+      # Core checks that work with standard Go installation
+      - id: go-build-repo-mod
+        name: ' Go Build'
+        
+      - id: go-mod-tidy-repo
+        name: ' Go Mod Tidy'
+        
+      # Fast unit tests only
+      - id: go-test-repo-mod
+        name: ' Go Unit Tests'
+        args: ['-short', '-timeout=30s']
+        
+      - id: go-vet-repo-mod
+        name: ' Go Vet'
+        
+      - id: go-fmt-repo
+        name: ' Go Format'
+
+  # Commit message linting
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [feat, fix, docs, style, refactor, test, chore, ci]
+
+# Configuration
+default_stages: [pre-commit]
+fail_fast: false
+
+# Exclude patterns - skip test files and generated content
+exclude: |
+  (?x)^(
+    testdata/.*|
+    .*_test\.go$|
+    .*\.md$|
+    go\.sum$|
+    \.pre-commit-config\.yaml$
+  )$

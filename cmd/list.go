@@ -38,16 +38,16 @@ Shows key information for each comment:
 Examples:
   # List all comments on PR 123 (shows URLs and IDs by default)
   gh comment list 123
-  
+
   # Minimal output for human reading
   gh comment list 123 --quiet
-  
+
   # List comments from specific author
   gh comment list 123 --author octocat
-  
+
   # Hide author names for privacy
   gh comment list 123 --hide-authors
-  
+
   # Auto-detect PR from current branch
   gh comment list`,
 	Args: cobra.MaximumNArgs(1),
@@ -56,7 +56,7 @@ Examples:
 
 func init() {
 	rootCmd.AddCommand(listCmd)
-	
+
 	listCmd.Flags().BoolVar(&showResolved, "resolved", false, "Include resolved comments")
 	listCmd.Flags().BoolVar(&onlyUnresolved, "unresolved", false, "Show only unresolved comments")
 	listCmd.Flags().StringVar(&author, "author", "", "Filter comments by author")
@@ -123,16 +123,16 @@ type Comment struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	HTMLURL   string    `json:"html_url"`
-	
+
 	// For line-specific comments
 	Path      string `json:"path,omitempty"`
 	Line      int    `json:"line,omitempty"`
 	StartLine int    `json:"start_line,omitempty"`
 	DiffHunk  string `json:"diff_hunk,omitempty"`
-	
+
 	// Comment type
 	Type string `json:"type"` // "issue" or "review"
-	
+
 	// Resolution status (for review comments)
 	State string `json:"state,omitempty"` // "pending", "submitted", etc.
 }
@@ -261,7 +261,7 @@ func filterComments(comments []Comment) []Comment {
 
 		// TODO: Add resolution status filtering when we implement it
 		// For now, we don't have resolution status from the API
-		
+
 		filtered = append(filtered, comment)
 	}
 
@@ -288,7 +288,7 @@ func displayComments(comments []Comment, pr int) {
 			lineComments = append(lineComments, comment)
 		}
 	}
-	
+
 
 
 	// Display general PR comments
@@ -329,7 +329,7 @@ func displayComment(comment Comment, index int) {
 	} else {
 		fmt.Printf("[%d] 👤 %s • %s", index, comment.Author, timeAgo)
 	}
-	
+
 	// Show review state for review-level comments
 	if comment.Type == "review" && comment.State != "" {
 		stateEmoji := "📝"
@@ -352,7 +352,7 @@ func displayComment(comment Comment, index int) {
 			lineInfo = fmt.Sprintf("L%d-L%d", comment.StartLine, comment.Line)
 		}
 		fmt.Printf("📁 %s:%s\n", comment.Path, lineInfo)
-		
+
 		// Show the actual diff context if available
 		if comment.DiffHunk != "" {
 			fmt.Printf("📝 Code Context:\n")
@@ -365,7 +365,7 @@ func displayComment(comment Comment, index int) {
 	if len(body) > 200 {
 		body = body[:197] + "..."
 	}
-	
+
 	// Indent the comment body
 	lines := strings.Split(body, "\n")
 	for _, line := range lines {
@@ -413,12 +413,12 @@ func formatTimeAgo(t time.Time) string {
 func displayDiffHunk(diffHunk string) {
 	// Split diff hunk into lines
 	lines := strings.Split(strings.TrimSpace(diffHunk), "\n")
-	
+
 	for _, line := range lines {
 		if line == "" {
 			continue
 		}
-		
+
 		// Color code the diff lines
 		if strings.HasPrefix(line, "@@") {
 			// Diff header - show line numbers

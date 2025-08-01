@@ -32,10 +32,10 @@ Common use cases:
 Examples:
   # Edit with new message
   gh comment edit 2246362251 "Updated comment with better explanation"
-  
+
   # Edit with multi-line content using --message flags (AI-friendly)
   gh comment edit 2246362251 --message "First paragraph" --message "Second paragraph"
-  
+
   # Edit with multi-line content (shell native)
   gh comment edit 2246362251 "Line 1
 Line 2
@@ -57,7 +57,7 @@ func runEdit(cmd *cobra.Command, args []string) error {
 	}
 
 	var message string
-	
+
 	// Handle message from positional arg or --message flags
 	if len(args) == 2 {
 		message = args[1]

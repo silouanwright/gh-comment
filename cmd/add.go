@@ -29,13 +29,13 @@ Comments are posted immediately to the PR.
 Examples:
   # Add single-line comment (posts immediately)
   gh comment add 123 src/api.js 42 "this handles the rate limiting edge case"
-  
+
   # Add range comment
   gh comment add 123 src/api.js 42:45 "this entire block needs review"
-  
+
   # Add multi-line comment using --message flags (AI-friendly)
   gh comment add 123 src/api.js 42 --message "First paragraph" --message "Second paragraph"
-  
+
   # Auto-detect PR with --message flags
   gh comment add src/api.js 42 -m "Line 1" -m "Line 2"`,
 	Args: cobra.RangeArgs(2, 4),
@@ -146,21 +146,21 @@ func parseLineSpec(lineSpec string) (int, int, error) {
 		if len(parts) != 2 {
 			return 0, 0, fmt.Errorf("invalid line range format: %s (use start:end)", lineSpec)
 		}
-		
+
 		start, err := strconv.Atoi(parts[0])
 		if err != nil {
 			return 0, 0, fmt.Errorf("invalid start line: %s", parts[0])
 		}
-		
+
 		end, err := strconv.Atoi(parts[1])
 		if err != nil {
 			return 0, 0, fmt.Errorf("invalid end line: %s", parts[1])
 		}
-		
+
 		if start > end {
 			return 0, 0, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", start, end)
 		}
-		
+
 		return start, end, nil
 	} else {
 		// Single line
@@ -186,7 +186,7 @@ func addLineComment(repo string, pr int, file string, startLine, endLine int, co
 			SHA string `json:"sha"`
 		} `json:"head"`
 	}{}
-	
+
 	err = client.Get(fmt.Sprintf("repos/%s/pulls/%d", repo, pr), &prData)
 	if err != nil {
 		return fmt.Errorf("failed to get PR data: %w", err)
@@ -229,7 +229,7 @@ func addLineComment(repo string, pr int, file string, startLine, endLine int, co
 		fmt.Printf("-%d", endLine)
 	}
 	fmt.Printf(" in PR #%d\n", pr)
-	
+
 	if verbose {
 		if htmlURL, ok := response["html_url"].(string); ok {
 			fmt.Printf("Comment URL: %s\n", htmlURL)
@@ -238,5 +238,3 @@ func addLineComment(repo string, pr int, file string, startLine, endLine int, co
 
 	return nil
 }
-
-

@@ -30,12 +30,12 @@ and streamline your code review process with batch operations.
 Examples:
   # Add a single line comment
   gh comment add 123 src/api.js 42 "this handles the rate limiting edge case"
-  
+
   # Create a review with multiple comments
   gh comment review 123 "Migration review" \
     --comment src/api.js:42:"rate limiting fix" \
     --comment src/auth.js:15:20:"updated auth flow"
-  
+
   # Process comments from a config file
   gh comment batch 123 comments.yaml`,
 	Version: "1.0.0",
@@ -61,13 +61,13 @@ func getCurrentRepo() (string, error) {
 	if repo != "" {
 		return repo, nil
 	}
-	
+
 	// Use gh CLI to get current repository
 	stdout, _, err := gh.Exec("repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner")
 	if err != nil {
 		return "", fmt.Errorf("failed to get current repository: %w", err)
 	}
-	
+
 	return strings.TrimSpace(stdout.String()), nil
 }
 
@@ -76,18 +76,18 @@ func getCurrentPR() (int, error) {
 	if prNumber != 0 {
 		return prNumber, nil
 	}
-	
+
 	// Use gh CLI to get PR for current branch
 	stdout, _, err := gh.Exec("pr", "view", "--json", "number", "-q", ".number")
 	if err != nil {
 		return 0, fmt.Errorf("failed to get current PR: %w (try specifying --pr)", err)
 	}
-	
+
 	prStr := strings.TrimSpace(stdout.String())
 	pr, err := strconv.Atoi(prStr)
 	if err != nil {
 		return 0, fmt.Errorf("invalid PR number: %s", prStr)
 	}
-	
+
 	return pr, nil
 }

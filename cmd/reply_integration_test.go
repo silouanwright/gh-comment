@@ -137,7 +137,13 @@ func TestRunReplyIntegration(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset global flags
-			resetReplyFlags()
+			// Reset global flags
+		commentType = "review"
+		reaction = ""
+		removeReaction = ""
+		resolveConversation = false
+		dryRun = false
+		noExpandSuggestionsReply = false
 
 			// Create mock client
 			mockClient := &MockReplyClient{}

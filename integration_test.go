@@ -37,7 +37,15 @@ func TestIntegration(t *testing.T) {
 
 // main1 is a wrapper around main that returns an exit code
 func main1() int {
-	// This would normally call the main function
-	// For now, we'll simulate success
+	// Call the actual main function and handle panics
+	defer func() {
+		if r := recover(); r != nil {
+			// If main panics, return error code
+			os.Exit(1)
+		}
+	}()
+	
+	// Call the real main function
+	main()
 	return 0
 }

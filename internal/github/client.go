@@ -11,7 +11,7 @@ type GitHubAPI interface {
 	ListReviewComments(owner, repo string, prNumber int) ([]Comment, error)
 	CreateIssueComment(owner, repo string, prNumber int, body string) (*Comment, error)
 	CreateReviewCommentReply(owner, repo string, commentID int, body string) (*Comment, error)
-	
+
 	// GraphQL operations
 	ResolveReviewThread(threadID string) error
 	FindReviewThreadForComment(owner, repo string, prNumber, commentID int) (string, error)
@@ -24,12 +24,12 @@ type Comment struct {
 	User      User      `json:"user"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	
+
 	// Review comment specific fields
 	Path     string `json:"path,omitempty"`
 	Line     int    `json:"line,omitempty"`
 	Position int    `json:"position,omitempty"`
-	
+
 	// Computed fields
 	Type string `json:"-"` // "issue" or "review"
 }
@@ -47,7 +47,7 @@ type MockClient struct {
 	ReviewComments []Comment
 	CreatedComment *Comment
 	ResolvedThread string
-	
+
 	// Error simulation
 	ListIssueCommentsError  error
 	ListReviewCommentsError error
@@ -100,7 +100,7 @@ func (m *MockClient) CreateIssueComment(owner, repo string, prNumber int, body s
 	if m.CreateCommentError != nil {
 		return nil, m.CreateCommentError
 	}
-	
+
 	comment := &Comment{
 		ID:        789012,
 		Body:      body,
@@ -116,7 +116,7 @@ func (m *MockClient) CreateReviewCommentReply(owner, repo string, commentID int,
 	if m.CreateCommentError != nil {
 		return nil, m.CreateCommentError
 	}
-	
+
 	comment := &Comment{
 		ID:        345678,
 		Body:      body,

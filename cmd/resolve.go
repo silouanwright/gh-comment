@@ -18,7 +18,7 @@ has been addressed. Use the comment ID from 'gh comment list' output.
 Examples:
   # Resolve a conversation
   gh comment resolve 2246362251
-  
+
   # Resolve with dry-run
   gh comment resolve --dry-run 2246362251`,
 	Args: cobra.ExactArgs(1),

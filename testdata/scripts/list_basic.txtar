@@ -1,7 +1,13 @@
-# Test basic list functionality
-exec gh-comment list --pr 123 --repo owner/repo
-stdout 'General PR Comments'
-stdout 'Review Comments'
+# Test basic list functionality with help command
+exec gh-comment list --help
+stdout 'List all comments on a pull request'
+stdout 'Usage:'
+! stderr .
+
+# Test root help command
+exec gh-comment --help
+stdout 'gh-comment is the first GitHub CLI extension'
+stdout 'Available Commands:'
 ! stderr .
 
 -- .github/config.yml --

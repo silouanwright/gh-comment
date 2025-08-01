@@ -17,7 +17,7 @@ func getPRContext() (repo string, pr int, err error) {
 	if err != nil {
 		return "", 0, fmt.Errorf("failed to get repository: %w", err)
 	}
-	
+
 	if prNumber > 0 {
 		pr = prNumber
 	} else {
@@ -26,7 +26,7 @@ func getPRContext() (repo string, pr int, err error) {
 			return "", 0, fmt.Errorf("failed to detect PR number: %w (try specifying --pr)", err)
 		}
 	}
-	
+
 	return repo, pr, nil
 }
 

@@ -41,38 +41,38 @@ func MockGitHubAPI(t *testing.T) *httptest.Server {
 func CaptureOutput(fn func()) (stdout, stderr string) {
 	oldStdout := os.Stdout
 	oldStderr := os.Stderr
-	
+
 	rOut, wOut, _ := os.Pipe()
 	rErr, wErr, _ := os.Pipe()
-	
+
 	os.Stdout = wOut
 	os.Stderr = wErr
-	
+
 	outC := make(chan string)
 	errC := make(chan string)
-	
+
 	go func() {
 		var buf bytes.Buffer
 		io.Copy(&buf, rOut)
 		outC <- buf.String()
 	}()
-	
+
 	go func() {
 		var buf bytes.Buffer
 		io.Copy(&buf, rErr)
 		errC <- buf.String()
 	}()
-	
+
 	fn()
-	
+
 	wOut.Close()
 	wErr.Close()
 	os.Stdout = oldStdout
 	os.Stderr = oldStderr
-	
+
 	stdout = <-outC
 	stderr = <-errC
-	
+
 	return
 }
 
@@ -212,7 +212,7 @@ func CreateTestComments() []TestComment {
 // AssertGoldenMatch compares output with golden file
 func AssertGoldenMatch(t *testing.T, goldenFile string, actual string) {
 	goldenPath := filepath.Join("testdata", "golden", goldenFile)
-	
+
 	if os.Getenv("UPDATE_GOLDEN") == "1" {
 		// Update golden file
 		err := os.MkdirAll(filepath.Dir(goldenPath), 0755)
@@ -221,12 +221,12 @@ func AssertGoldenMatch(t *testing.T, goldenFile string, actual string) {
 		require.NoError(t, err)
 		return
 	}
-	
+
 	expected, err := os.ReadFile(goldenPath)
 	if os.IsNotExist(err) {
 		t.Fatalf("Golden file %s does not exist. Run with UPDATE_GOLDEN=1 to create it.", goldenPath)
 	}
 	require.NoError(t, err)
-	
+
 	require.Equal(t, string(expected), actual, "Output doesn't match golden file %s", goldenFile)
 }

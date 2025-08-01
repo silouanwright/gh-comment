@@ -33,13 +33,13 @@ Examples:
   gh comment add-review 123 "Overall looks good" \
     --comment "src/api.js:42:This handles rate limiting well" \
     --comment "src/auth.js:15:20:Consider using async/await here"
-  
-  # Create and submit review immediately  
+
+  # Create and submit review immediately
   gh comment add-review 123 "LGTM with minor suggestions" \
     --event APPROVE \
     --comment "src/api.js:42:Great error handling" \
     --comment "src/utils.js:10:Minor: consider extracting this constant"
-  
+
   # Auto-detect PR from current branch
   gh comment add-review "Code review feedback" \
     --comment "README.md:25:Update installation instructions" \
@@ -142,7 +142,7 @@ func createReviewWithComments(repo string, pr int, body, event string, commentSp
 			SHA string `json:"sha"`
 		} `json:"head"`
 	}{}
-	
+
 	err = client.Get(fmt.Sprintf("repos/%s/pulls/%d", repo, pr), &prData)
 	if err != nil {
 		return fmt.Errorf("failed to get PR data: %w", err)
@@ -211,19 +211,19 @@ func parseCommentSpec(spec, commitSHA string) (map[string]interface{}, error) {
 	}
 
 	file := parts[0]
-	
+
 	if len(parts) == 3 {
 		// Single line: file:line:message
 		line, err := strconv.Atoi(parts[1])
 		if err != nil {
 			return nil, fmt.Errorf("invalid line number: %s", parts[1])
 		}
-		
+
 		body := parts[2]
 		if !noExpandSuggestionsReview {
 			body = expandSuggestions(body)
 		}
-		
+
 		return map[string]interface{}{
 			"path": file,
 			"line": line,
@@ -235,21 +235,21 @@ func parseCommentSpec(spec, commitSHA string) (map[string]interface{}, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid start line: %s", parts[1])
 		}
-		
+
 		endLine, err := strconv.Atoi(parts[2])
 		if err != nil {
 			return nil, fmt.Errorf("invalid end line: %s", parts[2])
 		}
-		
+
 		if startLine > endLine {
 			return nil, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", startLine, endLine)
 		}
-		
+
 		body := parts[3]
 		if !noExpandSuggestionsReview {
 			body = expandSuggestions(body)
 		}
-		
+
 		return map[string]interface{}{
 			"path":       file,
 			"line":       endLine,
