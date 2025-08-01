@@ -15,6 +15,7 @@ var (
 	reaction string
 	removeReaction string
 	resolveConversation bool
+	noExpandSuggestionsReply bool
 )
 
 var replyCmd = &cobra.Command{
@@ -61,6 +62,7 @@ func init() {
 	replyCmd.Flags().StringVar(&reaction, "reaction", "", "Add reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
 	replyCmd.Flags().StringVar(&removeReaction, "remove-reaction", "", "Remove reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
 	replyCmd.Flags().BoolVar(&resolveConversation, "resolve", false, "Resolve the conversation after replying")
+	replyCmd.Flags().BoolVar(&noExpandSuggestionsReply, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax")
 }
 
 func runReply(cmd *cobra.Command, args []string) error {
@@ -158,7 +160,14 @@ func runReply(cmd *cobra.Command, args []string) error {
 
 	// Add reply message if specified
 	if message != "" {
-		err = addReply(repository, commentID, message)
+		// Expand suggestion syntax to GitHub markdown (unless disabled)
+		var finalMessage string
+		if noExpandSuggestionsReply {
+			finalMessage = message
+		} else {
+			finalMessage = expandSuggestions(message)
+		}
+		err = addReply(repository, commentID, finalMessage)
 		if err != nil {
 			return fmt.Errorf("failed to add reply: %w", err)
 		}

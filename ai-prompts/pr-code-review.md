@@ -154,7 +154,7 @@ gh comment add-review <PR_NUMBER> \
 
 **✅ Good: Casual & Conversational**
 ```
-this looks solid! one quick thought - what happens if user is null here? might be worth adding a quick check since we've seen some edge cases in prod where the auth service returns null users.
+this looks solid! one quick thought - what happens if user is null here? is it worth adding a quick check since we've seen some edge cases in prod where the auth service returns null users?
 
 maybe something like:
 ```suggestion

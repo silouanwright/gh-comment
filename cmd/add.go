@@ -13,6 +13,7 @@ import (
 
 var (
 	messages []string
+	noExpandSuggestions bool
 )
 
 var addCmd = &cobra.Command{
@@ -44,6 +45,7 @@ Examples:
 func init() {
 	rootCmd.AddCommand(addCmd)
 	addCmd.Flags().StringArrayVarP(&messages, "message", "m", []string{}, "Add message (can be used multiple times for multi-line comments)")
+	addCmd.Flags().BoolVar(&noExpandSuggestions, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax")
 }
 
 func runAdd(cmd *cobra.Command, args []string) error {
@@ -104,8 +106,13 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Use comment as-is
-	transformedComment := comment
+	// Expand suggestion syntax to GitHub markdown (unless disabled)
+	var transformedComment string
+	if noExpandSuggestions {
+		transformedComment = comment
+	} else {
+		transformedComment = expandSuggestions(comment)
+	}
 
 	if verbose {
 		fmt.Printf("Repository: %s\n", repository)

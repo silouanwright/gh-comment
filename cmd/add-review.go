@@ -15,6 +15,7 @@ var (
 	reviewBody string
 	reviewComments []string
 	reviewEvent string
+	noExpandSuggestionsReview bool
 )
 
 var addReviewCmd = &cobra.Command{
@@ -52,6 +53,7 @@ func init() {
 	addReviewCmd.Flags().StringVar(&reviewBody, "body", "", "Review summary body (optional)")
 	addReviewCmd.Flags().StringArrayVar(&reviewComments, "comment", []string{}, "Add comment in format 'file:line:message' or 'file:start:end:message' (can be used multiple times)")
 	addReviewCmd.Flags().StringVar(&reviewEvent, "event", "", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT (leave empty for pending review)")
+	addReviewCmd.Flags().BoolVar(&noExpandSuggestionsReview, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax")
 }
 
 func runAddReview(cmd *cobra.Command, args []string) error {
@@ -217,10 +219,15 @@ func parseCommentSpec(spec, commitSHA string) (map[string]interface{}, error) {
 			return nil, fmt.Errorf("invalid line number: %s", parts[1])
 		}
 		
+		body := parts[2]
+		if !noExpandSuggestionsReview {
+			body = expandSuggestions(body)
+		}
+		
 		return map[string]interface{}{
 			"path": file,
 			"line": line,
-			"body": parts[2],
+			"body": body,
 		}, nil
 	} else {
 		// Range: file:start:end:message
@@ -238,12 +245,17 @@ func parseCommentSpec(spec, commitSHA string) (map[string]interface{}, error) {
 			return nil, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", startLine, endLine)
 		}
 		
+		body := parts[3]
+		if !noExpandSuggestionsReview {
+			body = expandSuggestions(body)
+		}
+		
 		return map[string]interface{}{
 			"path":       file,
 			"line":       endLine,
 			"start_line": startLine,
 			"start_side": "RIGHT",
-			"body":       parts[3],
+			"body":       body,
 		}, nil
 	}
 }

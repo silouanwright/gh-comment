@@ -10,6 +10,7 @@ Strategic line-specific PR commenting for GitHub CLI (optimized for AI)
 
 - 🤖 **AI-optimized design**: Specifically built for usage with AI assistants and automated workflows
 - 📍 **Line-specific comments**: Add comments to individual lines or line ranges
+- 🚀 **Suggestion expansion**: Simple `[SUGGEST: code]` syntax automatically expands to GitHub suggestion blocks
 - 📝 **Multi-line comment support**: Shell native and --message flags for complex comments
 - 📋 **List all comments**: View all PR comments with diff context and author info
 - 💬 **Reply to comments**: Respond to specific comments with threaded replies
@@ -18,6 +19,7 @@ Strategic line-specific PR commenting for GitHub CLI (optimized for AI)
 - 🧪 **Dry-run mode**: Preview comments before posting
 - 🔍 **Auto-detection**: Automatically detect current repository and PR
 - 🔊 **Verbose mode**: Detailed API interaction logging
+- 🐠 **Cross-shell compatibility**: Works identically in Fish, Bash, Zsh, and PowerShell
 
 ## 🤖 AI Workflows (Optimized for AI)
 
@@ -55,6 +57,36 @@ gh extension install silouanwright/gh-comment
 ```
 
 ## Usage
+
+### 🚀 GitHub Suggestion Expansion
+
+`gh-comment` includes innovative **suggestion expansion** that transforms simple syntax into GitHub's complex suggestion markdown:
+
+```bash
+# Simple inline suggestions - expands automatically
+gh comment add 123 src/api.js 42 "Try [SUGGEST: const result = input?.value || 'default'] instead"
+
+# Multiline suggestions with intuitive syntax
+gh comment add 123 src/api.js 42 "Consider this approach:
+
+<<<SUGGEST
+function processData(input) {
+  if (!input) return null;
+  return input.map(item => item.value);
+}
+SUGGEST>>>
+
+This handles the null case better."
+
+# Disable expansion when needed
+gh comment add 123 src/api.js 42 "Raw text: [SUGGEST: code]" --no-expand-suggestions
+```
+
+**What happens behind the scenes:**
+- `[SUGGEST: code]` → Full GitHub suggestion block with proper escaping
+- `<<<SUGGEST\ncode\nSUGGEST>>>` → Multi-line GitHub suggestion block
+- Works identically across Fish, Bash, Zsh, and PowerShell
+- No complex shell escaping required!
 
 ### Basic Line Comments
 
@@ -198,42 +230,22 @@ gh comment list 998 --author reviewer-username
 
 ## Limitations
 
-### GitHub API Constraints
+**[Incremental Review Comments](https://docs.github.com/en/rest/pulls/comments) Not Supported**
 
-**Incremental Review Comments Not Supported**
-
-While `gh-comment` supports both individual comments and batch review creation, it **does not support incremental review comments** (adding comments one-by-one to a pending review). This is a **GitHub API limitation**, not a design choice.
-
-**Technical Explanation:**
-
-GitHub's API has a fundamental constraint: **only one pending review per user per PR** is allowed. When a pending review exists, the API rejects attempts to:
-- Create new reviews (returns 422: "Pull request review cannot be created")
-- Add individual comments to existing pending reviews via the standard comments endpoint
-- Mix review comments with standalone comments
-
-This affects many GitHub integrations and has been a long-standing developer pain point:
-- [GitHub Community Discussion #24854](https://github.com/orgs/community/discussions/24854): "Cannot add comments to existing pending review"
-- [Stack Overflow #71421045](https://stackoverflow.com/questions/71421045/): "How to add comments to pending GitHub review via API"
-- [GitHub API Docs Issue](https://docs.github.com/en/rest/pulls/comments): API documentation acknowledges this limitation
+Queuing individual comments as part of a review would be helpful, but GitHub's [API constraint](https://github.com/orgs/community/discussions/24854) allows only [one pending review](https://stackoverflow.com/questions/71421045/) per user per PR. This affects [many integrations](https://github.com/cli/cli/issues/4682) and remains a [long-standing](https://github.com/octokit/octokit.js/issues/2124) [developer](https://github.com/microsoft/vscode-pull-request-github/issues/2832) [pain point](https://github.com/github/docs/issues/19891).
 
 **Workarounds:**
-
-1. **Use batch reviews**: Plan all comments and create them together with `add-review`
-2. **Use individual comments**: Post comments immediately with `add` (not part of reviews)
-3. **Submit and restart**: If you (or anyone) already started a review in the GitHub web interface, you must submit that pending review first using `gh comment submit-review`, then you can create new reviews with `add-review`
-
-**Why This Matters for AI Workflows:**
-
-AI tools often want to add comments incrementally as they analyze code. This API limitation forces a choice between:
-- **Immediate feedback**: Comments appear right away but aren't grouped in reviews
-- **Batched feedback**: Comments are professionally grouped but require planning all feedback upfront
-
-`gh-comment` provides both options clearly, letting you choose the right approach for your workflow.
+- **Batch reviews**: Plan all feedback upfront with `add-review`
+- **Individual comments**: Post immediately with `add` (not grouped in reviews)
+- **Submit and restart**: Complete any pending review first, then create new ones
 
 ## Roadmap
 
+- [ ] **GitLab-style line offset syntax**: Support `[SUGGEST:+2: code]` and `[SUGGEST:-1: code]` for relative line positioning in suggestions
 - [ ] **Advanced filtering**: Filter comments by status, author, date, resolved state
 - [ ] **Add tests**: Unit tests for core functionality and edge cases
+- [ ] **Configuration file support**: Default flags and repository settings
+- [ ] **Template system**: Reusable comment patterns and workflows
 - [ ] **What do you want to see?** [Let me know!](https://github.com/silouanwright/gh-comment/issues)
 
 ## Contributing
