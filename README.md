@@ -52,8 +52,69 @@ gh auth login
 
 ## Installation
 
+### 🚀 Quick Install (Recommended)
+
+Install from source with automatic updates:
 ```bash
 gh extension install silouanwright/gh-comment
+```
+
+### 📦 Manual Binary Install
+
+Download pre-compiled binaries for faster installation:
+
+**macOS:**
+```bash
+# Apple Silicon (M1/M2/M3)
+gh extension install silouanwright/gh-comment --precompiled darwin-arm64
+
+# Intel
+gh extension install silouanwright/gh-comment --precompiled darwin-amd64
+```
+
+**Linux:**
+```bash
+# 64-bit
+gh extension install silouanwright/gh-comment --precompiled linux-amd64
+
+# ARM64 (Raspberry Pi, etc.)
+gh extension install silouanwright/gh-comment --precompiled linux-arm64
+```
+
+**Windows:**
+```bash
+# 64-bit
+gh extension install silouanwright/gh-comment --precompiled windows-amd64.exe
+
+# ARM64
+gh extension install silouanwright/gh-comment --precompiled windows-arm64.exe
+```
+
+### 🔄 Upgrading
+
+```bash
+# Upgrade to latest version
+gh extension upgrade gh-comment
+
+# Or reinstall
+gh extension remove gh-comment
+gh extension install silouanwright/gh-comment
+```
+
+### 🗑️ Uninstalling
+
+```bash
+gh extension remove gh-comment
+```
+
+### ✅ Verification
+
+```bash
+# Check installation
+gh comment --version
+
+# Test basic functionality
+gh comment --help
 ```
 
 ## Comment System
