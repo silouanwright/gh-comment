@@ -56,21 +56,14 @@ gh auth login
 gh extension install silouanwright/gh-comment
 ```
 
-## 🔄 Unified Comment System
+## Comment System
 
-**NEW**: `gh-comment` now provides a **unified view and management system** for ALL PR comments:
+`gh-comment` provides unified management for both types of PR comments:
 
-### 📋 Complete Comment Coverage
 - **General PR Comments**: Discussion like "LGTM", questions, or general feedback
 - **Line-Specific Review Comments**: Code review comments tied to specific files and lines
-- **Single Command**: `gh comment list` shows both types with full context
-- **Universal Replies**: `gh comment reply` works with both types using `--type` flag
 
-### 🚀 Why This Matters
-- **No More Missing Context**: See the complete conversation, not just code-specific feedback
-- **AI-Optimized**: Perfect for AI tools that need full PR context for decision-making
-- **Efficient Workflows**: One command to see everything, targeted replies based on comment type
-- **GitHub API Mastery**: Uses the right API endpoints for each comment type automatically
+`gh comment list` shows both types with full context, and `gh comment reply` works with both using the `--type` flag to automatically select the correct GitHub API endpoint.
 
 ## Usage
 
@@ -324,7 +317,6 @@ Queuing individual comments as part of a review would be helpful, but GitHub's A
 
 - [ ] **GitLab-style line offset syntax**: Support `[SUGGEST:+2: code]` and `[SUGGEST:-1: code]` for relative line positioning in suggestions
 - [ ] **Advanced filtering**: Filter comments by status, author, date, resolved state
-- [ ] **Add tests**: Unit tests for core functionality and edge cases
 - [ ] **Configuration file support**: Default flags and repository settings
 - [ ] **Template system**: Reusable comment patterns and workflows
 - [ ] **What do you want to see?** [Let me know!](https://github.com/silouanwright/gh-comment/issues)
@@ -339,6 +331,8 @@ Queuing individual comments as part of a review would be helpful, but GitHub's A
 
 ## Development
 
+### Setup
+
 ```bash
 # Clone and build
 git clone https://github.com/silouanwright/gh-comment
@@ -348,9 +342,69 @@ go build
 # Install locally
 gh extension install .
 
-# Test
+# Test basic functionality
 ./gh-comment add --dry-run --repo owner/repo 123 file.js 42 "test comment"
 ```
+
+### Testing
+
+The project includes comprehensive testing with multiple layers:
+
+```bash
+# Run all tests
+go test ./...
+
+# Run only fast unit tests
+go test ./... -short
+
+# Run with coverage
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
+
+# Run integration tests (uses testscript)
+go test ./... -run TestIntegration
+
+# Run E2E tests (requires GitHub token and test repo)
+export GH_TOKEN="your-token"
+export GH_E2E_REPO="owner/repo"
+export GH_E2E_PR="123"
+export RUN_E2E_TESTS="true"
+go test ./cmd -run TestE2E
+```
+
+**Test Architecture:**
+- **Unit Tests**: Core function testing with mocks
+- **Integration Tests**: CLI workflow testing with testscript
+- **Fuzz Tests**: Edge case discovery with Go 1.18+ fuzzing
+- **E2E Tests**: Real GitHub API testing with safety measures
+- **Benchmark Tests**: Performance monitoring
+
+See `TESTING.md` and `E2E_TESTING.md` for detailed testing documentation.
+
+### Code Quality
+
+Pre-commit hooks automatically ensure code quality:
+
+```bash
+# Install pre-commit (one-time setup)
+brew install pre-commit
+go install github.com/securego/gosec/v2/cmd/gosec@latest
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Install hooks
+pre-commit install
+pre-commit install --hook-type commit-msg
+```
+
+**Automatic Checks on Every Commit:**
+- Go build verification
+- Unit test execution
+- Code formatting (`go fmt`)
+- Static analysis (`go vet`)
+- Dependency management (`go mod tidy`)
+- Conventional commit message format
+
+See `PRE_COMMIT_SETUP.md` for complete setup instructions.
 
 ## License
 
