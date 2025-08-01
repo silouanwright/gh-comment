@@ -52,43 +52,19 @@ gh auth login
 
 ## Installation
 
-### 🚀 Quick Install (Recommended)
+### 🚀 Installation
 
-Install from source with automatic updates:
+**One-command install** with automatic platform detection:
 ```bash
 gh extension install silouanwright/gh-comment
 ```
 
-### 📦 Manual Binary Install
+GitHub CLI automatically:
+- Detects your platform (macOS, Linux, Windows)
+- Downloads the correct pre-compiled binary
+- Falls back to source compilation if needed
 
-Download pre-compiled binaries for faster installation:
-
-**macOS:**
-```bash
-# Apple Silicon (M1/M2/M3)
-gh extension install silouanwright/gh-comment --precompiled darwin-arm64
-
-# Intel
-gh extension install silouanwright/gh-comment --precompiled darwin-amd64
-```
-
-**Linux:**
-```bash
-# 64-bit
-gh extension install silouanwright/gh-comment --precompiled linux-amd64
-
-# ARM64 (Raspberry Pi, etc.)
-gh extension install silouanwright/gh-comment --precompiled linux-arm64
-```
-
-**Windows:**
-```bash
-# 64-bit
-gh extension install silouanwright/gh-comment --precompiled windows-amd64.exe
-
-# ARM64
-gh extension install silouanwright/gh-comment --precompiled windows-arm64.exe
-```
+**That's it!** No need to specify your platform or architecture.
 
 ### 🔄 Upgrading
 
