@@ -6,16 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cli/go-gh/v2/pkg/api"
+	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 )
 
 var (
-	showResolved bool
+	showResolved   bool
 	onlyUnresolved bool
-	author string
-	quiet bool
-	hideAuthors bool
+	author         string
+	quiet          bool
+	hideAuthors    bool
+
+	// Client for dependency injection (tests can override)
+	listClient github.GitHubAPI
 )
 
 var listCmd = &cobra.Command{
@@ -65,6 +68,11 @@ func init() {
 }
 
 func runList(cmd *cobra.Command, args []string) error {
+	// Initialize client if not set (production use)
+	if listClient == nil {
+		listClient = &github.RealClient{}
+	}
+
 	var pr int
 	var err error
 
@@ -102,7 +110,7 @@ func runList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Fetch comments
-	comments, err := fetchAllComments(repository, pr)
+	comments, err := fetchAllComments(listClient, repository, pr)
 	if err != nil {
 		return err
 	}
@@ -137,95 +145,37 @@ type Comment struct {
 	State string `json:"state,omitempty"` // "pending", "submitted", etc.
 }
 
-func fetchAllComments(repo string, pr int) ([]Comment, error) {
-	client, err := api.DefaultRESTClient()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create GitHub client: %w", err)
+func fetchAllComments(client github.GitHubAPI, repo string, pr int) ([]Comment, error) {
+	// Parse owner/repo
+	parts := strings.Split(repo, "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("invalid repository format: %s (expected owner/repo)", repo)
 	}
+	owner, repoName := parts[0], parts[1]
 
 	var allComments []Comment
 
 	// Fetch general PR comments (issue comments)
-	var issueComments []struct {
-		ID        int       `json:"id"`
-		User      struct {
-			Login string `json:"login"`
-		} `json:"user"`
-		Body      string    `json:"body"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		HTMLURL   string    `json:"html_url"`
-	}
-
-	err = client.Get(fmt.Sprintf("repos/%s/issues/%d/comments", repo, pr), &issueComments)
+	issueComments, err := client.ListIssueComments(owner, repoName, pr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch issue comments: %w", err)
 	}
 
-
 	// Convert issue comments
 	for _, comment := range issueComments {
-
 		allComments = append(allComments, Comment{
 			ID:        comment.ID,
 			Author:    comment.User.Login,
 			Body:      comment.Body,
 			CreatedAt: comment.CreatedAt,
 			UpdatedAt: comment.UpdatedAt,
-			HTMLURL:   comment.HTMLURL,
+			HTMLURL:   "", // TODO: Add HTMLURL to github.Comment
 			Type:      "issue",
 		})
 	}
 
-	// Fetch reviews (parent comments that group line-specific comments)
-	var reviews []struct {
-		ID        int       `json:"id"`
-		User      struct {
-			Login string `json:"login"`
-		} `json:"user"`
-		Body      string    `json:"body"`
-		State     string    `json:"state"`
-		CreatedAt time.Time `json:"submitted_at"`
-		HTMLURL   string    `json:"html_url"`
-	}
-
-	err = client.Get(fmt.Sprintf("repos/%s/pulls/%d/reviews", repo, pr), &reviews)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch reviews: %w", err)
-	}
-
-	// Convert reviews (only include ones with body text)
-	for _, review := range reviews {
-		if strings.TrimSpace(review.Body) != "" {
-			allComments = append(allComments, Comment{
-				ID:        review.ID,
-				Author:    review.User.Login,
-				Body:      review.Body,
-				CreatedAt: review.CreatedAt,
-				HTMLURL:   review.HTMLURL,
-				Type:      "review",
-				State:     review.State,
-			})
-		}
-	}
-
 	// Fetch review comments (line-specific)
-	var reviewComments []struct {
-		ID        int       `json:"id"`
-		User      struct {
-			Login string `json:"login"`
-		} `json:"user"`
-		Body      string    `json:"body"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		HTMLURL   string    `json:"html_url"`
-		Path      string    `json:"path"`
-		Line      int       `json:"line"`
-		StartLine int       `json:"start_line"`
-		DiffHunk  string    `json:"diff_hunk"`
-	}
-
-	err = client.Get(fmt.Sprintf("repos/%s/pulls/%d/comments", repo, pr), &reviewComments)
+	reviewComments, err := client.ListReviewComments(owner, repoName, pr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch review comments: %w", err)
 	}
@@ -238,11 +188,9 @@ func fetchAllComments(repo string, pr int) ([]Comment, error) {
 			Body:      comment.Body,
 			CreatedAt: comment.CreatedAt,
 			UpdatedAt: comment.UpdatedAt,
-			HTMLURL:   comment.HTMLURL,
+			HTMLURL:   "", // TODO: Add HTMLURL to github.Comment
 			Path:      comment.Path,
 			Line:      comment.Line,
-			StartLine: comment.StartLine,
-			DiffHunk:  comment.DiffHunk,
 			Type:      "review",
 		})
 	}
@@ -288,8 +236,6 @@ func displayComments(comments []Comment, pr int) {
 			lineComments = append(lineComments, comment)
 		}
 	}
-
-
 
 	// Display general PR comments
 	if len(issueComments) > 0 {

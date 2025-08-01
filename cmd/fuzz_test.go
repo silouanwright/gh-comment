@@ -30,7 +30,7 @@ func FuzzCommentID(f *testing.F) {
 
 		// Test strconv.Atoi behavior (used in runReply and runResolve)
 		commentID, err := strconv.Atoi(input)
-		
+
 		if err == nil {
 			// If parsing succeeded, the ID should be reasonable
 			if commentID < 0 {
@@ -86,7 +86,7 @@ func FuzzReactionValidation(f *testing.F) {
 
 		// Test validateReaction function
 		isValid := validateReaction(reaction)
-		
+
 		// Known valid reactions should always be valid
 		validReactions := []string{"+1", "-1", "laugh", "confused", "heart", "hooray", "rocket", "eyes"}
 		for _, valid := range validReactions {
@@ -124,7 +124,7 @@ func FuzzAuthorFilter(f *testing.F) {
 	f.Add("123")
 	f.Add("user@domain.com")
 	f.Add("user name") // Space in username
-	f.Add("用户") // Unicode characters
+	f.Add("用户")        // Unicode characters
 
 	f.Fuzz(func(t *testing.T, authorInput string) {
 		// Test that author filtering doesn't panic
@@ -167,7 +167,7 @@ func FuzzAuthorFilter(f *testing.F) {
 					t.Errorf("Filtered comment has author %q, expected %q", comment.Author, authorInput)
 				}
 			}
-			
+
 			// It's OK if no comments match the filter (empty slice)
 			// This is expected behavior for non-matching authors
 		}
@@ -197,7 +197,7 @@ func FuzzSuggestionExpansion(f *testing.F) {
 	f.Add("suggestion```")
 	f.Add("```suggestion\nline1\nline2\n```")
 	f.Add("Before\n```suggestion\nfix\n```\nAfter")
-	f.Add("```suggestion\n\n```") // Empty suggestion
+	f.Add("```suggestion\n\n```")   // Empty suggestion
 	f.Add("```suggestion\n\t\n```") // Whitespace only
 
 	f.Fuzz(func(t *testing.T, input string) {
@@ -231,19 +231,19 @@ func FuzzSuggestionExpansion(f *testing.F) {
 // containsSuggestion checks if input contains suggestion syntax
 func containsSuggestion(input string) bool {
 	return len(input) > 0 && (
-		// Look for suggestion markers
-		contains(input, "```suggestion") ||
+	// Look for suggestion markers
+	contains(input, "```suggestion") ||
 		contains(input, "suggestion```"))
 }
 
 // contains is a simple substring check
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || 
-		    (len(s) > len(substr) && 
-		     (s[:len(substr)] == substr || 
-		      s[len(s)-len(substr):] == substr ||
-		      containsAt(s, substr))))
+	return len(s) >= len(substr) &&
+		(s == substr ||
+			(len(s) > len(substr) &&
+				(s[:len(substr)] == substr ||
+					s[len(s)-len(substr):] == substr ||
+					containsAt(s, substr))))
 }
 
 // containsAt checks if substr exists anywhere in s
@@ -280,7 +280,7 @@ func FuzzPRNumber(f *testing.F) {
 
 		// Test strconv.Atoi behavior (used in runList)
 		prNumber, err := strconv.Atoi(input)
-		
+
 		if err == nil {
 			// If parsing succeeded, the PR number should be reasonable
 			if prNumber <= 0 {

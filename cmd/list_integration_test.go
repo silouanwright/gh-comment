@@ -134,11 +134,11 @@ func TestRunListIntegration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset global flags
 			// Reset global flags
-		quiet = false
-		hideAuthors = false
-		author = ""
-		showResolved = false
-		onlyUnresolved = false
+			quiet = false
+			hideAuthors = false
+			author = ""
+			showResolved = false
+			onlyUnresolved = false
 
 			// Create a mock GitHub client
 			mockClient := &MockGitHubClient{
@@ -157,7 +157,7 @@ func TestRunListIntegration(t *testing.T) {
 
 			// Capture output
 			var output bytes.Buffer
-			
+
 			// Create a test command that uses our mock
 			cmd := &cobra.Command{
 				Use:  "list [pr]",
@@ -392,5 +392,3 @@ func displayCommentToBuffer(comment Comment, index int, output *bytes.Buffer) {
 
 	fmt.Fprintf(output, "\n")
 }
-
-

@@ -124,7 +124,7 @@ func testCommentWorkflowE2E(t *testing.T, repo string, prNumber int) {
 func runCommandCapture(args ...string) (string, error) {
 	// This would typically use exec.Command to run the actual gh-comment binary
 	// For now, we'll simulate this by calling our command functions directly
-	
+
 	// Reset global state
 	resetAllGlobalFlags()
 
@@ -193,7 +193,7 @@ func runListE2E(args []string) (string, error) {
 	// For E2E testing, we would call the actual GitHub API here
 	// For now, simulate the output format
 	output := fmt.Sprintf("📝 Comments on PR #%d (0 total)\n\nNo comments found on PR #%d\n", pr, pr)
-	
+
 	if quiet {
 		// Remove URLs and decorative elements in quiet mode
 		output = strings.ReplaceAll(output, "📝", "")
@@ -211,10 +211,10 @@ func runReplyE2E(args []string) (string, error) {
 
 	commentID := args[0]
 	message := args[1]
-	
+
 	// Parse flags
 	var isDryRun bool
-	
+
 	for i := 2; i < len(args); i++ {
 		switch args[i] {
 		case "--dry-run":

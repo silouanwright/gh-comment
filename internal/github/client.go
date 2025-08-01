@@ -68,9 +68,9 @@ type ReviewCommentInput struct {
 
 // ReviewInput represents input for creating a review
 type ReviewInput struct {
-	Body     string                 `json:"body,omitempty"`
-	Event    string                 `json:"event"`
-	Comments []ReviewCommentInput   `json:"comments,omitempty"`
+	Body     string               `json:"body,omitempty"`
+	Event    string               `json:"event"`
+	Comments []ReviewCommentInput `json:"comments,omitempty"`
 }
 
 // PullRequestDiff represents PR diff information

@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	reviewBody string
-	reviewComments []string
-	reviewEvent string
+	reviewBody                string
+	reviewComments            []string
+	reviewEvent               string
 	noExpandSuggestionsReview bool
 )
 

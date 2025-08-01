@@ -10,7 +10,7 @@ import (
 // TestFormatTimeAgoList tests the time formatting function for list command
 func TestFormatTimeAgoList(t *testing.T) {
 	now := time.Now()
-	
+
 	tests := []struct {
 		name     string
 		input    time.Time
@@ -79,7 +79,7 @@ func TestFilterCommentsList(t *testing.T) {
 		},
 		{
 			ID:        2,
-			Author:    "bob", 
+			Author:    "bob",
 			Body:      "Second comment",
 			Type:      "review",
 			CreatedAt: time.Now().Add(-2 * time.Hour),
@@ -87,7 +87,7 @@ func TestFilterCommentsList(t *testing.T) {
 		{
 			ID:        3,
 			Author:    "alice",
-			Body:      "Third comment", 
+			Body:      "Third comment",
 			Type:      "review",
 			CreatedAt: time.Now().Add(-3 * time.Hour),
 		},
@@ -133,9 +133,9 @@ func TestFilterCommentsList(t *testing.T) {
 			defer func() { author = originalAuthor }()
 
 			filtered := filterComments(comments)
-			
+
 			assert.Len(t, filtered, tt.expectedCount)
-			
+
 			if tt.expectedCount > 0 {
 				var actualIDs []int
 				for _, comment := range filtered {

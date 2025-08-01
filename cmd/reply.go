@@ -12,11 +12,11 @@ import (
 )
 
 var (
-	reaction string
-	removeReaction string
-	resolveConversation bool
+	reaction                 string
+	removeReaction           string
+	resolveConversation      bool
 	noExpandSuggestionsReply bool
-	commentType string
+	commentType              string
 )
 
 var replyCmd = &cobra.Command{
@@ -401,7 +401,7 @@ func resolveComment(repo string, commentID int, prNumber int) error {
 	type PRData struct {
 		Repository struct {
 			PullRequest struct {
-				ID           string `json:"id"`
+				ID            string `json:"id"`
 				ReviewThreads struct {
 					Nodes []struct {
 						ID         string `json:"id"`

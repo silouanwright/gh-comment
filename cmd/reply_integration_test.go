@@ -138,12 +138,12 @@ func TestRunReplyIntegration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset global flags
 			// Reset global flags
-		commentType = "review"
-		reaction = ""
-		removeReaction = ""
-		resolveConversation = false
-		dryRun = false
-		noExpandSuggestionsReply = false
+			commentType = "review"
+			reaction = ""
+			removeReaction = ""
+			resolveConversation = false
+			dryRun = false
+			noExpandSuggestionsReply = false
 
 			// Create mock client
 			mockClient := &MockReplyClient{}
@@ -208,11 +208,11 @@ func TestRunReplyIntegration(t *testing.T) {
 
 // MockReplyClient for testing reply functionality
 type MockReplyClient struct {
-	calls                           []string
-	createIssueCommentResult        *github.Comment
-	createReviewCommentReplyResult  *github.Comment
-	findReviewThreadResult          string
-	shouldError                     bool
+	calls                          []string
+	createIssueCommentResult       *github.Comment
+	createReviewCommentReplyResult *github.Comment
+	findReviewThreadResult         string
+	shouldError                    bool
 }
 
 func (m *MockReplyClient) ListIssueComments(owner, repo string, prNumber int) ([]github.Comment, error) {
@@ -404,5 +404,3 @@ func runReplyWithMock(cmd *cobra.Command, args []string, mockClient *MockReplyCl
 	fmt.Fprintf(output, "✅ Reply added successfully\n")
 	return nil
 }
-
-

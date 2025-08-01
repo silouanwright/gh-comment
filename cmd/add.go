@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	messages []string
+	messages            []string
 	noExpandSuggestions bool
 )
 
@@ -171,8 +171,6 @@ func parseLineSpec(lineSpec string) (int, int, error) {
 		return line, line, nil
 	}
 }
-
-
 
 func addLineComment(repo string, pr int, file string, startLine, endLine int, comment string) error {
 	client, err := api.DefaultRESTClient()

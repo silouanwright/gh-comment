@@ -171,13 +171,13 @@ func TestDependencyInjection(t *testing.T) {
 
 // FullMockClient implements all GitHub API methods for comprehensive testing
 type FullMockClient struct {
-	calls                           []string
-	issueComments                   []github.Comment
-	reviewComments                  []github.Comment
-	createIssueCommentResult        *github.Comment
-	createReviewCommentReplyResult  *github.Comment
-	findReviewThreadResult          string
-	shouldError                     bool
+	calls                          []string
+	issueComments                  []github.Comment
+	reviewComments                 []github.Comment
+	createIssueCommentResult       *github.Comment
+	createReviewCommentReplyResult *github.Comment
+	findReviewThreadResult         string
+	shouldError                    bool
 }
 
 func (m *FullMockClient) ListIssueComments(owner, repo string, prNumber int) ([]github.Comment, error) {

@@ -5,21 +5,21 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 ## 🚧 In Progress
 
 ### High Priority
-- [ ] **Binary Distribution Setup** - Add automated binary releases for better user experience
+- [x] **Binary Distribution Setup** - Add automated binary releases for better user experience
   - [x] Create GitHub Actions workflow for binary releases
   - [x] Set up `gh-extension-precompile` action
   - [x] Test binary distribution with tag releases
-  - [ ] Update installation documentation
-  - [ ] Announce binary distribution to users
+  - [x] Update installation documentation
+  - [x] Announce binary distribution to users
 
-- [ ] **AI-Optimized README Overhaul** - Complete command documentation for AI processing
-  - [ ] Audit all existing commands vs README coverage gaps
-  - [ ] Research and propose README optimization approaches (with A-F ratings)
-  - [ ] Document every command with full flag specifications
-  - [ ] Add comprehensive examples for each command combination
-  - [ ] Structure content for AI parsing and synthesis
-  - [ ] Test README with AI systems for completeness
-  - [ ] Implement chosen optimization approach
+- [x] **AI-Optimized README Overhaul** - Complete command documentation for AI processing
+  - [x] Audit all existing commands vs README coverage gaps
+  - [x] Research and propose README optimization approaches (with A-F ratings)
+  - [x] Document every command with full flag specifications
+  - [x] Add comprehensive examples for each command combination
+  - [x] Structure content for AI parsing and synthesis
+  - [x] Test README with AI systems for completeness
+  - [x] Implement chosen optimization approach
 
 ### Medium Priority
 - [ ] **Increase Test Coverage to 80%** - Refactor commands with dependency injection
@@ -110,6 +110,17 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 ## ✅ Recently Completed
 
 ### August 2025
+- [x] **Binary Distribution Setup** - Add automated binary releases for better user experience
+  - [x] Simplified installation to single command with automatic platform detection
+  - [x] Created v0.1.1 release with comprehensive binary support
+  - [x] Updated documentation for streamlined user experience
+  - [x] Announced binary distribution with proper release notes
+- [x] **AI-Optimized README Overhaul** - Complete command documentation for AI processing
+  - [x] Documented missing commands (`add-review`, `submit-review`, `resolve`)
+  - [x] Added AI-optimized command reference table
+  - [x] Created comprehensive error handling guide for AI assistants
+  - [x] Added all missing flag documentation
+  - [x] Structured content for better AI parsing and understanding
 - [x] **Fixed Failing Tests** - Resolved test failures in `TestHelperFunctions` and `TestPRContext`
 - [x] **GitHub API Client Refactoring** - Created clean abstraction layer in `internal/github/`
   - [x] Created `GitHubAPI` interface

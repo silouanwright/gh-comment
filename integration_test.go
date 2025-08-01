@@ -44,7 +44,7 @@ func main1() int {
 			os.Exit(1)
 		}
 	}()
-	
+
 	// Call the real main function
 	main()
 	return 0

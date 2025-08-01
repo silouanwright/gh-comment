@@ -291,7 +291,6 @@ func (c *RealClient) AddReviewComment(owner, repo string, pr int, comment Review
 	return nil
 }
 
-
 // FetchPRDiff fetches the diff for a pull request
 func (c *RealClient) FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, error) {
 	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d", owner, repo, pr)
@@ -334,7 +333,6 @@ func (c *RealClient) FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, 
 
 	return diff, nil
 }
-
 
 // Helper function to parse diff content
 func parseDiff(diffContent string) *PullRequestDiff {
@@ -385,7 +383,6 @@ func (c *RealClient) CreateReview(owner, repo string, pr int, review ReviewInput
 
 	return nil
 }
-
 
 // GetPRDetails fetches basic PR information
 func (c *RealClient) GetPRDetails(owner, repo string, pr int) (map[string]interface{}, error) {
