@@ -56,6 +56,8 @@ gh auth login
 gh extension install silouanwright/gh-comment
 ```
 
+## Typo Usage
+
 ## Usage
 
 ### 🚀 GitHub Suggestion Expansion
