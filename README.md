@@ -4,7 +4,7 @@ Strategic line-specific PR commenting for GitHub CLI (optimized for AI)
 
 ## Overview
 
-`gh-comment` is the first GitHub CLI extension designed for strategic, line-specific PR commenting workflows. It fills a genuine gap in the GitHub CLI ecosystem by enabling targeted comments on specific lines in pull requests, with smart tone transformation and batch operations. Built specifically for AI assistants and automated workflows.
+`gh-comment` is the first GitHub CLI extension designed for comprehensive PR comment management. It provides a unified system for both general PR discussion and line-specific code review comments, filling a genuine gap in the GitHub CLI ecosystem. Features smart suggestion expansion, complete comment visibility, and universal reply capabilities. Built specifically for AI assistants and automated workflows.
 
 ## Features
 
@@ -12,8 +12,8 @@ Strategic line-specific PR commenting for GitHub CLI (optimized for AI)
 - 📍 **Line-specific comments**: Add comments to individual lines or line ranges
 - 🚀 **Suggestion expansion**: Simple `[SUGGEST: code]` syntax automatically expands to GitHub suggestion blocks
 - 📝 **Multi-line comment support**: Shell native and --message flags for complex comments
-- 📋 **List all comments**: View all PR comments with diff context and author info
-- 💬 **Reply to comments**: Respond to specific comments with threaded replies
+- 📋 **Unified comment listing**: View ALL PR comments (both general discussion and line-specific) with diff context
+- 💬 **Universal reply system**: Reply to any comment type (issue or review) with automatic API selection
 - ✏️ **Edit existing comments**: Update comment text to fix mistakes or add context
 - 😀 **Emoji reactions**: Quick acknowledgments with GitHub reactions
 - 🧪 **Dry-run mode**: Preview comments before posting
@@ -56,6 +56,22 @@ gh auth login
 gh extension install silouanwright/gh-comment
 ```
 
+## 🔄 Unified Comment System
+
+**NEW**: `gh-comment` now provides a **unified view and management system** for ALL PR comments:
+
+### 📋 Complete Comment Coverage
+- **General PR Comments**: Discussion like "LGTM", questions, or general feedback
+- **Line-Specific Review Comments**: Code review comments tied to specific files and lines
+- **Single Command**: `gh comment list` shows both types with full context
+- **Universal Replies**: `gh comment reply` works with both types using `--type` flag
+
+### 🚀 Why This Matters
+- **No More Missing Context**: See the complete conversation, not just code-specific feedback
+- **AI-Optimized**: Perfect for AI tools that need full PR context for decision-making
+- **Efficient Workflows**: One command to see everything, targeted replies based on comment type
+- **GitHub API Mastery**: Uses the right API endpoints for each comment type automatically
+
 ## Usage
 
 ### 🚀 GitHub Suggestion Expansion
@@ -83,15 +99,27 @@ gh comment add 123 src/api.js 42 "Raw text: [SUGGEST: code]" --no-expand-suggest
 ```
 
 **What happens behind the scenes:**
-- `[SUGGEST: code]` → Full GitHub suggestion block with proper escaping
-- `<<<SUGGEST\ncode\nSUGGEST>>>` → Multi-line GitHub suggestion block
+
+Your input:
+```
+[SUGGEST: const result = data.filter(x => x.active);]
+```
+
+Becomes this GitHub suggestion block:
+````
+```suggestion
+const result = data.filter(x => x.active);
+```
+````
+
 - Works identically across Fish, Bash, Zsh, and PowerShell
 - No complex shell escaping required!
 
-### Basic Line Comments
+### Creating Comments
 
+#### Line-Specific Comments (gh-comment extension)
 ```bash
-# Add single-line comment
+# Add single-line comment to specific code line
 gh comment add 123 src/api.js 42 "this handles the rate limiting edge case"
 
 # Add multi-line comment (shell native)
@@ -106,7 +134,25 @@ gh comment add 123 src/api.js 42 --message "First paragraph" --message "Second p
 gh comment add src/api.js 42 "quick fix needed"
 ```
 
-### List Comments
+#### General PR Comments (native GitHub CLI)
+```bash
+# Add general discussion comment (not tied to specific code)
+gh pr comment 123 --body "LGTM! Just a few minor suggestions below."
+
+# Multi-line general comment
+gh pr comment 123 --body "Thanks for this PR!
+
+I've reviewed the changes and they look good overall.
+Just a couple of questions about the implementation."
+```
+
+**Key Distinction:**
+- **Line-specific**: Use `gh comment add <pr> <file> <line>` (gh-comment extension)
+- **General discussion**: Use `gh pr comment <pr> --body` (native GitHub CLI)
+
+### List All Comments (Unified System)
+
+`gh comment list` shows **ALL** comments on a PR - both general discussion and line-specific code review comments:
 
 ```bash
 # List all comments on a PR with diff context
@@ -122,21 +168,34 @@ gh comment list
 gh comment list 123 --quiet
 ```
 
-### Reply to Comments
+**Output includes two distinct sections:**
+- **💬 General PR Comments**: Discussion comments like "LGTM" or general feedback
+- **📋 Review Comments**: Line-specific code review comments with file/line context
+
+### Reply to Comments (Universal System)
+
+`gh comment reply` works with **both** comment types using the `--type` flag:
 
 ```bash
-# Reply to a specific comment (use comment ID from verbose output)
-gh comment reply 2246362251 "Good catch, thanks for the feedback!"
+# Reply to line-specific review comment (default)
+gh comment reply 2246362251 "Good point, I'll fix this!"
 
-# Add a reaction to show appreciation
+# Reply to general PR discussion comment
+gh comment reply 3141344022 "Thanks for the feedback!" --type issue
+
+# Add reaction to any comment type
 gh comment reply 2246362251 --reaction +1
 
-# Reply with both message and reaction
-gh comment reply 2246362251 "Fixed in latest commit!" --reaction heart
+# Reply and resolve conversation (review comments only)
+gh comment reply 2246362251 "Fixed in latest commit" --resolve
 
-# Quick acknowledgment
-gh comment reply 2246362251 --reaction eyes
+# Remove reaction from any comment
+gh comment reply 2246362251 --remove-reaction +1
 ```
+
+**Comment Types:**
+- `--type review` (default): Line-specific code review comments - creates threaded replies
+- `--type issue`: General PR discussion comments - creates new top-level comments
 
 ### Edit Comments
 
@@ -156,14 +215,27 @@ Line 3"
 gh comment edit --dry-run 2246362251 "Test message"
 ```
 
-### Key Feature: Diff Context
+### Key Feature: Unified Comment View
 
-Unlike other tools, `gh comment list` shows the **exact code context** that comments refer to:
+Unlike other tools, `gh comment list` shows **ALL** PR comments with full context:
 
 ```
-📍 Line-Specific Comments (1)
+📝 Comments on PR #123 (5 total)
+
+💬 General PR Comments (2)
 ──────────────────────────────────────────────────
-[1] 👤 reviewer • 5 minutes ago
+[1] 👤 reviewer • 2 hours ago
+   LGTM! Just a few minor suggestions below.
+   🔗 https://github.com/owner/repo/pull/123#issuecomment-3141344022
+
+[2] 👤 maintainer • 1 hour ago
+   Thanks for the contribution! Please address the review feedback.
+   🔗 https://github.com/owner/repo/pull/123#issuecomment-3141355432
+
+
+📋 Review Comments (3)
+──────────────────────────────────────────────────
+[1] 👤 reviewer • 2 hours ago
 📁 src/api.js:L42
 📝 Code Context:
    🔹 @@ -40,6 +40,8 @@ function handleRequest(req) {
@@ -175,6 +247,7 @@ Unlike other tools, `gh comment list` shows the **exact code context** that comm
       return processRequest(req);
 
    This needs error handling for rate limit failures
+   🔗 https://github.com/owner/repo/pull/123#discussion_r2246362251
 ```
 
 This makes it **perfect for AI-assisted code reviews** - no guessing what code the comment refers to!
@@ -208,23 +281,29 @@ gh comment add 998 packages/knit/package.json 74 "switched from bugsnag to datad
 gh comment add 998 src/api/client.js 120:135 "centralized error handling - replaces scattered try-catch blocks"
 ```
 
-### Complete Review Workflow
+### Complete Review Workflow (Unified System)
 ```bash
-# 1. Someone reviews your PR and adds comments
-# 2. List all feedback with diff context and comment IDs
-gh comment list 998 --verbose
+# 1. Someone reviews your PR and adds both general and line-specific comments
+# 2. List ALL feedback with full context and comment IDs
+gh comment list 998
 
-# 3. Reply to specific feedback in threaded conversations
-gh comment reply 2246362251 "Good point, I'll fix this!"
+# 3. Reply to general PR discussion
+gh comment reply 3141344022 "Thanks for the overall feedback!" --type issue
+
+# 4. Reply to specific line-specific review comments
+gh comment reply 2246362251 "Good point, I'll fix this!" --type review
 gh comment reply 2246362252 --reaction +1
 
-# 4. Edit comments to fix mistakes or add context
-gh comment edit 2246362251 "Updated: Good point, I'll fix this in the next commit!"
+# 5. Resolve conversations after addressing feedback
+gh comment reply 2246362251 "Fixed in commit abc123" --resolve
 
-# 5. Add your own explanatory comments
+# 6. Edit comments to fix mistakes or add context
+gh comment edit 2246362251 "Updated: Fixed in commit abc123 with proper error handling"
+
+# 7. Add your own explanatory comments
 gh comment add src/auth.js 42 "this handles the oauth callback edge case we discussed"
 
-# 6. Verify all feedback is addressed
+# 8. Verify all feedback is addressed (both types)
 gh comment list 998 --author reviewer-username
 ```
 

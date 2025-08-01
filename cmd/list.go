@@ -162,8 +162,10 @@ func fetchAllComments(repo string, pr int) ([]Comment, error) {
 		return nil, fmt.Errorf("failed to fetch issue comments: %w", err)
 	}
 
+
 	// Convert issue comments
 	for _, comment := range issueComments {
+
 		allComments = append(allComments, Comment{
 			ID:        comment.ID,
 			Author:    comment.User.Login,
@@ -277,6 +279,7 @@ func displayComments(comments []Comment, pr int) {
 	// Group comments by type
 	var issueComments, reviewComments, lineComments []Comment
 	for _, comment := range comments {
+
 		if comment.Type == "issue" {
 			issueComments = append(issueComments, comment)
 		} else if comment.Type == "review" {
@@ -285,6 +288,8 @@ func displayComments(comments []Comment, pr int) {
 			lineComments = append(lineComments, comment)
 		}
 	}
+	
+
 
 	// Display general PR comments
 	if len(issueComments) > 0 {

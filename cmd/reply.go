@@ -16,15 +16,18 @@ var (
 	removeReaction string
 	resolveConversation bool
 	noExpandSuggestionsReply bool
+	commentType string
 )
 
 var replyCmd = &cobra.Command{
 	Use:   "reply <comment-id> [message]",
 	Short: "Reply to a specific comment on a PR",
-	Long: `Reply to a specific comment on a pull request review.
+	Long: `Reply to a specific comment on a pull request.
 
 You can reply with a message, add/remove reactions, or both. Use the comment ID from the URL 
-shown in 'gh comment list' output.
+shown in 'gh comment list' output. Specify the comment type using --type flag:
+- 'review' for line-specific code review comments (default)
+- 'issue' for general PR discussion comments
 
 Common use cases:
 - Acknowledge feedback: "Good point, thanks!"
@@ -35,10 +38,13 @@ Common use cases:
 - Resolve conversations after addressing feedback
 
 Examples:
-  # Reply with a message
+  # Reply to a review comment (line-specific)
   gh comment reply 2246362251 "Good catch, fixed this!"
   
-  # Reply and resolve conversation (common workflow)
+  # Reply to an issue comment (general PR comment)
+  gh comment reply 3141344022 "Thanks for the feedback!" --type issue
+  
+  # Reply and resolve conversation (review comments only)
   gh comment reply 2246362251 "Fixed in latest commit" --resolve
   
   # Add a thumbs up reaction
@@ -63,6 +69,7 @@ func init() {
 	replyCmd.Flags().StringVar(&removeReaction, "remove-reaction", "", "Remove reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
 	replyCmd.Flags().BoolVar(&resolveConversation, "resolve", false, "Resolve the conversation after replying")
 	replyCmd.Flags().BoolVar(&noExpandSuggestionsReply, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax")
+	replyCmd.Flags().StringVar(&commentType, "type", "review", "Comment type: 'issue' for general PR comments, 'review' for line-specific comments (default: review)")
 }
 
 func runReply(cmd *cobra.Command, args []string) error {
@@ -99,6 +106,11 @@ func runReply(cmd *cobra.Command, args []string) error {
 		return formatValidationError("remove-reaction", removeReaction, "must be one of: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
 	}
 
+	// Validate comment type
+	if commentType != "issue" && commentType != "review" {
+		return formatValidationError("type", commentType, "must be either 'issue' or 'review'")
+	}
+
 	// Get repository and PR context
 	repository, pr, err := getPRContext()
 	if err != nil {
@@ -108,6 +120,7 @@ func runReply(cmd *cobra.Command, args []string) error {
 	if verbose {
 		fmt.Printf("Repository: %s\n", repository)
 		fmt.Printf("Comment ID: %d\n", commentID)
+		fmt.Printf("Comment Type: %s\n", commentType)
 		if message != "" {
 			fmt.Printf("Message: %s\n", message)
 		}
@@ -167,11 +180,18 @@ func runReply(cmd *cobra.Command, args []string) error {
 		} else {
 			finalMessage = expandSuggestions(message)
 		}
-		err = addReply(repository, commentID, finalMessage)
+		
+		// Use appropriate reply method based on comment type
+		if commentType == "issue" {
+			err = addIssueCommentReply(repository, pr, finalMessage)
+		} else {
+			err = addReviewCommentReply(repository, commentID, pr, finalMessage)
+		}
+		
 		if err != nil {
 			return fmt.Errorf("failed to add reply: %w", err)
 		}
-		fmt.Printf("✅ Replied to comment #%d\n", commentID)
+		fmt.Printf("✅ Replied to %s comment #%d\n", commentType, commentID)
 	}
 
 	// Resolve conversation if specified
@@ -216,38 +236,33 @@ func addReaction(repo string, commentID int, reactionType string) error {
 	return nil
 }
 
-func addReply(repo string, commentID int, message string) error {
+// addReviewCommentReply adds a reply to a review comment (line-specific)
+func addReviewCommentReply(repo string, commentID int, prNumber int, message string) error {
 	client, err := api.DefaultRESTClient()
 	if err != nil {
 		return fmt.Errorf("failed to create GitHub client: %w", err)
 	}
 
-	// Get the original comment to extract PR info and commit SHA
+	// Get the original review comment details
 	var originalComment struct {
-		PullRequestURL string `json:"pull_request_url"`
-		Path           string `json:"path"`
-		CommitID       string `json:"commit_id"`
-		Line           int    `json:"line"`
-		StartLine      int    `json:"start_line"`
+		Path      string `json:"path"`
+		CommitID  string `json:"commit_id"`
+		Line      int    `json:"line"`
+		StartLine int    `json:"start_line"`
 	}
 
 	err = client.Get(fmt.Sprintf("repos/%s/pulls/comments/%d", repo, commentID), &originalComment)
 	if err != nil {
-		return fmt.Errorf("failed to get comment details: %w", err)
+		return fmt.Errorf("failed to get review comment details: %w", err)
 	}
 
-	// Extract PR number from URL
-	urlParts := strings.Split(originalComment.PullRequestURL, "/")
-	prNumber := urlParts[len(urlParts)-1]
-
-	// Create a reply using the pull request review comments API
-	// This will create a threaded reply within the same review conversation
+	// Create a threaded reply within the same review conversation
 	payload := map[string]interface{}{
-		"body":         message,
-		"commit_id":    originalComment.CommitID,
-		"path":         originalComment.Path,
-		"line":         originalComment.Line,
-		"in_reply_to":  commentID, // This makes it a threaded reply
+		"body":        message,
+		"commit_id":   originalComment.CommitID,
+		"path":        originalComment.Path,
+		"line":        originalComment.Line,
+		"in_reply_to": commentID, // This makes it a threaded reply
 	}
 
 	// Add start_line if it's a range comment
@@ -263,13 +278,45 @@ func addReply(repo string, commentID int, message string) error {
 	}
 
 	var response map[string]interface{}
-	err = client.Post(fmt.Sprintf("repos/%s/pulls/%s/comments", repo, prNumber), bytes.NewReader(payloadJSON), &response)
+	err = client.Post(fmt.Sprintf("repos/%s/pulls/%d/comments", repo, prNumber), bytes.NewReader(payloadJSON), &response)
 	if err != nil {
-		return fmt.Errorf("failed to add reply: %w", err)
+		return fmt.Errorf("failed to add review comment reply: %w", err)
 	}
 
 	if verbose {
-		fmt.Printf("Reply added successfully to review thread\n")
+		fmt.Printf("Reply added successfully to review comment thread\n")
+	}
+
+	return nil
+}
+
+// addIssueCommentReply adds a reply to an issue comment (general PR comment)
+func addIssueCommentReply(repo string, prNumber int, message string) error {
+	client, err := api.DefaultRESTClient()
+	if err != nil {
+		return fmt.Errorf("failed to create GitHub client: %w", err)
+	}
+
+	// For issue comments, we create a new comment on the PR/issue
+	// GitHub doesn't support threaded replies for issue comments, so we create a new top-level comment
+	payload := map[string]interface{}{
+		"body": message,
+	}
+
+	// Marshal payload to JSON
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal payload: %w", err)
+	}
+
+	var response map[string]interface{}
+	err = client.Post(fmt.Sprintf("repos/%s/issues/%d/comments", repo, prNumber), bytes.NewReader(payloadJSON), &response)
+	if err != nil {
+		return fmt.Errorf("failed to add issue comment reply: %w", err)
+	}
+
+	if verbose {
+		fmt.Printf("Reply added successfully as new issue comment\n")
 	}
 
 	return nil
