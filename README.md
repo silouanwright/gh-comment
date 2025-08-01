@@ -315,11 +315,23 @@ Queuing individual comments as part of a review would be helpful, but GitHub's A
 
 ## Roadmap
 
+### 🚧 In Progress (August 2025)
+- [ ] **Test Coverage to 80%**: Refactoring commands with dependency injection for better testing
+- [ ] **Cross-Platform Testing**: Ensuring consistent behavior across Windows, macOS, and Linux
+
+### 📋 Planned Features
 - [ ] **GitLab-style line offset syntax**: Support `[SUGGEST:+2: code]` and `[SUGGEST:-1: code]` for relative line positioning in suggestions
 - [ ] **Advanced filtering**: Filter comments by status, author, date, resolved state
 - [ ] **Configuration file support**: Default flags and repository settings
 - [ ] **Template system**: Reusable comment patterns and workflows
+- [ ] **Batch operations**: Apply operations to multiple comments at once
+- [ ] **Export functionality**: Export comments to various formats (JSON, CSV, Markdown)
 - [ ] **What do you want to see?** [Let me know!](https://github.com/silouanwright/gh-comment/issues)
+
+### ✅ Recently Completed
+- [x] **API Abstraction Layer**: Clean separation of GitHub API calls for better testing (August 2025)
+- [x] **Performance Regression Testing**: Automated benchmark comparison on every PR (August 2025)
+- [x] **Pre-commit Hooks**: Automated code quality checks on every commit (August 2025)
 
 ## Contributing
 
@@ -370,6 +382,11 @@ export GH_E2E_REPO="owner/repo"
 export GH_E2E_PR="123"
 export RUN_E2E_TESTS="true"
 go test ./cmd -run TestE2E
+
+# Run benchmarks and compare performance
+./scripts/benchmark.sh                    # Run benchmarks
+./scripts/benchmark.sh compare main       # Compare with main branch
+./scripts/benchmark.sh profile            # Generate CPU/memory profiles
 ```
 
 **Test Architecture:**
@@ -377,7 +394,12 @@ go test ./cmd -run TestE2E
 - **Integration Tests**: CLI workflow testing with testscript
 - **Fuzz Tests**: Edge case discovery with Go 1.18+ fuzzing
 - **E2E Tests**: Real GitHub API testing with safety measures
-- **Benchmark Tests**: Performance monitoring
+- **Benchmark Tests**: Performance monitoring with regression detection
+
+**Recent Testing Improvements (August 2025):**
+- ✅ GitHub API abstraction layer for better testability
+- ✅ Automated performance regression testing in CI/CD
+- ✅ Local benchmark comparison script for developers
 
 See `TESTING.md` and `E2E_TESTING.md` for detailed testing documentation.
 

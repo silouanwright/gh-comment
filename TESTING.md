@@ -42,7 +42,24 @@ go test -bench=BenchmarkListComments ./cmd
 
 # Run benchmarks with memory profiling
 go test -bench=. -benchmem ./...
+
+# Use the benchmark script for advanced features
+./scripts/benchmark.sh                    # Run benchmarks
+./scripts/benchmark.sh compare main       # Compare with main branch
+./scripts/benchmark.sh profile            # Generate CPU/memory profiles
 ```
+
+#### Performance Regression Testing
+
+The project includes automated performance regression testing:
+
+1. **PR Benchmarks**: Every pull request automatically runs benchmarks comparing the PR branch against the base branch. Results are posted as a comment on the PR.
+
+2. **Continuous Tracking**: The main branch benchmarks are tracked over time and stored in the `gh-pages` branch. View historical trends at: `https://<owner>.github.io/<repo>/benchmarks/`
+
+3. **Local Testing**: Use `./scripts/benchmark.sh compare <branch>` to compare performance locally before submitting a PR.
+
+4. **Regression Alerts**: The CI will warn if performance degrades by more than 20%.
 
 ### Linting
 ```bash

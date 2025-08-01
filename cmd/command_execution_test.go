@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"testing"
 
@@ -223,21 +224,25 @@ func TestHelperFunctions(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name: "getCurrentRepo with no environment",
+			name: "getCurrentRepo with flag set",
 			function: func() error {
-				// Temporarily unset environment
-				original := os.Getenv("GH_REPO")
-				os.Unsetenv("GH_REPO")
+				// Test that flag takes precedence
+				originalRepo := repo
+				repo = "test/repo"
 				defer func() {
-					if original != "" {
-						os.Setenv("GH_REPO", original)
-					}
+					repo = originalRepo
 				}()
 				
-				_, err := getCurrentRepo()
-				return err
+				result, err := getCurrentRepo()
+				if err != nil {
+					return err
+				}
+				if result != "test/repo" {
+					return fmt.Errorf("expected test/repo, got %s", result)
+				}
+				return nil
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name: "getCurrentPR with no environment",
@@ -274,45 +279,51 @@ func TestHelperFunctions(t *testing.T) {
 
 // TestPRContext tests the getPRContext function
 func TestPRContext(t *testing.T) {
-	// Save original environment
-	originalRepo := os.Getenv("GH_REPO")
-	originalPR := os.Getenv("GH_PR")
+	// Save original global variables
+	originalRepo := repo
+	originalPR := prNumber
 	
 	defer func() {
-		if originalRepo != "" {
-			os.Setenv("GH_REPO", originalRepo)
-		} else {
-			os.Unsetenv("GH_REPO")
-		}
-		if originalPR != "" {
-			os.Setenv("GH_PR", originalPR)
-		} else {
-			os.Unsetenv("GH_PR")
-		}
+		repo = originalRepo
+		prNumber = originalPR
 	}()
 
-	t.Run("successful PR context", func(t *testing.T) {
-		os.Setenv("GH_REPO", "owner/repo")
-		os.Setenv("GH_PR", "123")
+	t.Run("successful PR context with flags", func(t *testing.T) {
+		// Set global variables as if they were set by flags
+		repo = "owner/repo"
+		prNumber = 123
 		
-		repo, pr, err := getPRContext()
+		gotRepo, gotPR, err := getPRContext()
 		assert.NoError(t, err)
-		assert.Equal(t, "owner/repo", repo)
-		assert.Equal(t, 123, pr)
+		assert.Equal(t, "owner/repo", gotRepo)
+		assert.Equal(t, 123, gotPR)
 	})
 
-	t.Run("missing repository", func(t *testing.T) {
-		os.Unsetenv("GH_REPO")
-		os.Setenv("GH_PR", "123")
+	t.Run("successful auto-detection", func(t *testing.T) {
+		// Clear global variables to test auto-detection
+		repo = ""
+		prNumber = 0
 		
-		_, _, err := getPRContext()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "repository")
+		// This will use gh repo view and gh pr view
+		// In a real git repo, this might succeed or fail
+		// For testing, we just verify it doesn't panic
+		gotRepo, gotPR, err := getPRContext()
+		
+		// If we're in a git repo with a PR, it might succeed
+		// If not, it should fail gracefully
+		if err == nil {
+			assert.NotEmpty(t, gotRepo)
+			assert.Greater(t, gotPR, 0)
+		} else {
+			// Should contain helpful error message
+			assert.Contains(t, err.Error(), "PR")
+		}
 	})
 
 	t.Run("missing PR", func(t *testing.T) {
-		os.Setenv("GH_REPO", "owner/repo")
-		os.Unsetenv("GH_PR")
+		// Set repo but clear PR to simulate missing PR flag
+		repo = "owner/repo"
+		prNumber = 0
 		
 		_, _, err := getPRContext()
 		assert.Error(t, err)

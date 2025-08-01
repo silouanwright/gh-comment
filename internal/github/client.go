@@ -12,6 +12,21 @@ type GitHubAPI interface {
 	CreateIssueComment(owner, repo string, prNumber int, body string) (*Comment, error)
 	CreateReviewCommentReply(owner, repo string, commentID int, body string) (*Comment, error)
 
+	// Reaction operations
+	AddReaction(owner, repo string, commentID int, reaction string) error
+	RemoveReaction(owner, repo string, commentID int, reaction string) error
+
+	// Comment operations
+	EditComment(owner, repo string, commentID int, body string) error
+	AddReviewComment(owner, repo string, pr int, comment ReviewCommentInput) error
+
+	// PR operations
+	FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, error)
+	GetPRDetails(owner, repo string, pr int) (map[string]interface{}, error)
+
+	// Review operations
+	CreateReview(owner, repo string, pr int, review ReviewInput) error
+
 	// GraphQL operations
 	ResolveReviewThread(threadID string) error
 	FindReviewThreadForComment(owner, repo string, prNumber, commentID int) (string, error)
@@ -39,6 +54,34 @@ type User struct {
 	Login     string `json:"login"`
 	ID        int    `json:"id"`
 	AvatarURL string `json:"avatar_url"`
+}
+
+// ReviewCommentInput represents input for creating a review comment
+type ReviewCommentInput struct {
+	Body      string `json:"body"`
+	Path      string `json:"path"`
+	Line      int    `json:"line,omitempty"`
+	StartLine int    `json:"start_line,omitempty"`
+	Side      string `json:"side,omitempty"`
+	CommitID  string `json:"commit_id"`
+}
+
+// ReviewInput represents input for creating a review
+type ReviewInput struct {
+	Body     string                 `json:"body,omitempty"`
+	Event    string                 `json:"event"`
+	Comments []ReviewCommentInput   `json:"comments,omitempty"`
+}
+
+// PullRequestDiff represents PR diff information
+type PullRequestDiff struct {
+	Files []DiffFile
+}
+
+// DiffFile represents a file in a PR diff
+type DiffFile struct {
+	Filename string
+	Lines    map[int]bool // line numbers that exist in the diff
 }
 
 // MockClient implements GitHubAPI for testing
@@ -137,5 +180,44 @@ func (m *MockClient) ResolveReviewThread(threadID string) error {
 		return m.ResolveThreadError
 	}
 	m.ResolvedThread = threadID
+	return nil
+}
+
+func (m *MockClient) AddReaction(owner, repo string, commentID int, reaction string) error {
+	return nil
+}
+
+func (m *MockClient) RemoveReaction(owner, repo string, commentID int, reaction string) error {
+	return nil
+}
+
+func (m *MockClient) EditComment(owner, repo string, commentID int, body string) error {
+	return nil
+}
+
+func (m *MockClient) AddReviewComment(owner, repo string, pr int, comment ReviewCommentInput) error {
+	return nil
+}
+
+func (m *MockClient) FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, error) {
+	return &PullRequestDiff{
+		Files: []DiffFile{
+			{
+				Filename: "test.go",
+				Lines:    map[int]bool{42: true, 43: true},
+			},
+		},
+	}, nil
+}
+
+func (m *MockClient) GetPRDetails(owner, repo string, pr int) (map[string]interface{}, error) {
+	return map[string]interface{}{
+		"number": pr,
+		"state":  "open",
+		"title":  "Test PR",
+	}, nil
+}
+
+func (m *MockClient) CreateReview(owner, repo string, pr int, review ReviewInput) error {
 	return nil
 }
