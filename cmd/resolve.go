@@ -54,12 +54,9 @@ func runResolve(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Resolve the conversation using GraphQL
-	err = resolveComment(repository, commentID, pr)
-	if err != nil {
-		return fmt.Errorf("failed to resolve conversation: %w", err)
-	}
+	// TODO: Refactor resolve functionality to use GitHub client interface
+	return fmt.Errorf("resolve command not yet refactored - will be updated in next iteration")
 
-	fmt.Printf("✅ Resolved conversation for comment #%d\n", commentID)
-	return nil
+	// fmt.Printf("✅ Resolved conversation for comment #%d\n", commentID)
+	// return nil
 }
