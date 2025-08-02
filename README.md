@@ -2,6 +2,8 @@
 
 Strategic line-specific PR commenting for GitHub CLI (optimized for AI)
 
+> **🆕 Latest Update**: Now with smart endpoint detection and commit ID tracking!
+
 ## Overview
 
 `gh-comment` is the first GitHub CLI extension designed for comprehensive PR comment management. It provides a unified system for both general PR discussion and line-specific code review comments, filling a genuine gap in the GitHub CLI ecosystem. Features smart suggestion expansion, complete comment visibility, and universal reply capabilities. Built specifically for AI assistants and automated workflows.
