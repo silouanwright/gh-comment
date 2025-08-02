@@ -5,6 +5,69 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 ## 🚧 In Progress
 
 ### High Priority
+
+- [ ] **Real GitHub Integration Tests** - End-to-end workflow testing with actual GitHub PRs
+  - **Context**: Current testing uses mocks, but we need to verify the extension works with real GitHub APIs
+  - **Strategy**: Create integration tests that open actual PRs, perform command workflows, verify results, then cleanup
+  - **Two Test Types**: Automated (full cycle with cleanup) and Manual Verification (leave open for inspection)
+  - **Conditional Execution**: Run periodically (e.g., every 10th execution) to avoid API rate limits
+  
+  **Phase 1: Basic Integration Test Framework**
+  - [ ] Create integration test repository or use existing test repo
+  - [ ] Design test PR template (simple file changes for testing)
+  - [ ] Create script to programmatically open test PRs via GitHub API
+  - [ ] Implement basic test runner that can conditionally execute integration tests
+  - [ ] Add cleanup mechanism to close/delete test PRs after completion
+
+  **Phase 2: Automated Full-Cycle Tests**
+  - [ ] **Test Scenario 1: Comment Workflow**
+    - Open PR → Verify no comments (`gh comment list`) → Add line comment (`gh comment add`) → Verify comment exists → Close PR
+  - [ ] **Test Scenario 2: Review Workflow** 
+    - Open PR → Add review comments (`gh comment add-review`) → Submit review (`gh comment submit-review`) → Verify review exists → Close PR
+  - [ ] **Test Scenario 3: Reaction Workflow**
+    - Open PR with existing comment → Add reaction (`gh comment reply --reaction`) → Verify reaction → Remove reaction → Close PR
+  - [ ] **Test Scenario 4: Reply Workflow**
+    - Open PR with existing comment → Reply to comment (`gh comment reply`) → Verify reply chain → Close PR
+  - [ ] **Test Scenario 5: Full Interaction Chain**
+    - Open PR → Add review comment → Add reaction → Reply to comment → List all (`gh comment list`) → Verify all interactions → Close PR
+
+  **Phase 3: Manual Verification Tests**
+  - [ ] **Test Scenario 1: Visual Inspection Workflow**
+    - Open PR → Perform various commands → Leave PR open for human verification → Document expected vs actual results
+  - [ ] **Test Scenario 2: Suggestion Syntax Testing**
+    - Open PR → Test `[SUGGEST: code]` expansion → Test `<<<SUGGEST>>>` syntax → Leave open for verification
+  - [ ] **Test Scenario 3: Edge Case Testing**
+    - Test multi-line comments, special characters, long messages, etc. → Leave open for verification
+
+  **Phase 4: Advanced Integration Features**
+  - [ ] Implement programmatic PR creation with realistic code changes
+  - [ ] Add support for testing against different repository types (public/private)
+  - [ ] Create test data generator for realistic comment scenarios
+  - [ ] Add integration test reporting and result comparison
+  - [ ] Implement test result persistence for regression detection
+
+  **Phase 5: Conditional Execution & CI Integration**
+  - [ ] Implement "every Nth run" logic for integration tests
+  - [ ] Add environment variable controls for integration test execution
+  - [ ] Create separate integration test command (`gh comment test-integration`)
+  - [ ] Add integration test results to CI/CD pipeline (optional/manual trigger)
+  - [ ] Create integration test dashboard for tracking results over time
+
+  **Technical Requirements**
+  - Must work with real GitHub API (not mocks)
+  - Must handle API rate limiting gracefully
+  - Must clean up test artifacts (PRs, comments, reactions)
+  - Must be configurable (target repo, test frequency, cleanup behavior)
+  - Must provide clear success/failure reporting
+  - Must be runnable both locally and in CI environments
+
+  **Success Criteria**
+  - All refactored commands work correctly with real GitHub APIs
+  - Integration tests can run automatically and report results
+  - Manual verification tests provide clear visual confirmation
+  - Test suite can be run periodically without manual intervention
+  - Zero false positives/negatives in test results
+
 - [x] **Binary Distribution Setup** - Add automated binary releases for better user experience
   - [x] Create GitHub Actions workflow for binary releases
   - [x] Set up `gh-extension-precompile` action
@@ -23,8 +86,9 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 ### Medium Priority
 - [ ] **Increase Test Coverage to 80%** - Refactor commands with dependency injection
-  - [ ] Refactor `cmd/list.go` to use new GitHub API client
-  - [ ] Refactor `cmd/reply.go` to use dependency injection
+  - [x] Refactor `cmd/list.go` to use new GitHub API client ✅ (Coverage: 12.7% → 23.1%)
+  - [x] Refactor `cmd/reply.go` reaction functionality with dependency injection ✅ (Coverage: 23.1% → 30.6%)
+  - [ ] Complete `cmd/reply.go` refactoring (message replies and resolve functionality)
   - [ ] Refactor `cmd/add.go` to use dependency injection
   - [ ] Test actual command execution with mocked GitHub API calls
   - [ ] Test repository and PR detection logic
