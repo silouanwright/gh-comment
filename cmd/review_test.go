@@ -438,7 +438,7 @@ func TestParseReviewCommentSpec(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := parseReviewCommentSpec(tt.spec, "abc123")
+			result, err := parseReviewCommentSpec(tt.spec)
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErrMsg != "" {
@@ -452,7 +452,7 @@ func TestParseReviewCommentSpec(t *testing.T) {
 					assert.Equal(t, tt.expectedStart, result.StartLine)
 				}
 				assert.Equal(t, tt.expectedBody, result.Body)
-				assert.Equal(t, "abc123", result.CommitID)
+				assert.Equal(t, "RIGHT", result.Side)
 			}
 		})
 	}

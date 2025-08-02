@@ -238,7 +238,6 @@ func parseCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, error)
 					StartLine: startLine,
 					Side:      "RIGHT",
 					Body:      body,
-					CommitID:  commitSHA,
 				}, nil
 			}
 		}
@@ -257,9 +256,9 @@ func parseCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, error)
 	}
 
 	return github.ReviewCommentInput{
-		Path:     file,
-		Line:     line,
-		Body:     body,
-		CommitID: commitSHA,
+		Path: file,
+		Line: line,
+		Body: body,
+		Side: "RIGHT", // Default to RIGHT side (additions/new lines)
 	}, nil
 }

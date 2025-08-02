@@ -174,6 +174,7 @@ func TestParseCommentSpec(t *testing.T) {
 			spec:     "main.go:42:This is a comment",
 			wantPath: "main.go",
 			wantLine: 42,
+			wantSide: "RIGHT",
 			wantBody: "This is a comment",
 			wantErr:  false,
 		},
@@ -192,6 +193,7 @@ func TestParseCommentSpec(t *testing.T) {
 			spec:     "config.yaml:5:Fix this: use https://example.com",
 			wantPath: "config.yaml",
 			wantLine: 5,
+			wantSide: "RIGHT",
 			wantBody: "Fix this: use https://example.com",
 			wantErr:  false,
 		},
@@ -219,6 +221,7 @@ func TestParseCommentSpec(t *testing.T) {
 			wantErr:  false, // Will parse as single line with "invalid:message" as body
 			wantPath: "main.go",
 			wantLine: 10,
+			wantSide: "RIGHT",
 			wantBody: "invalid:message",
 		},
 		{
@@ -247,7 +250,7 @@ func TestParseCommentSpec(t *testing.T) {
 				assert.Equal(t, tt.wantStartLine, result.StartLine)
 				assert.Equal(t, tt.wantSide, result.Side)
 				assert.Equal(t, tt.wantBody, result.Body)
-				assert.Equal(t, commitSHA, result.CommitID)
+				// Side is now set to "RIGHT" by default
 			}
 		})
 	}

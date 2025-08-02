@@ -66,7 +66,7 @@ type ReviewCommentInput struct {
 	Line      int    `json:"line,omitempty"`
 	StartLine int    `json:"start_line,omitempty"`
 	Side      string `json:"side,omitempty"`
-	CommitID  string `json:"commit_id"`
+	// Note: commit_id is NOT included here - GitHub uses the review-level commit automatically
 }
 
 // ReviewInput represents input for creating a review

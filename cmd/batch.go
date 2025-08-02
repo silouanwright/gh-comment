@@ -228,22 +228,13 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
 			continue
 		}
 
-		// Get commit SHA for the PR
-		prDetails, err := client.GetPRDetails(owner, repo, pr)
-		if err != nil {
-			return fmt.Errorf("failed to get PR details: %w", err)
-		}
-
-		headSHA, ok := prDetails["head"].(map[string]interface{})["sha"].(string)
-		if !ok {
-			return fmt.Errorf("failed to get commit SHA from PR details")
-		}
+		// Note: GitHub automatically uses the latest commit SHA for review comments
 
 		// Create review comment input
 		reviewComment := github.ReviewCommentInput{
-			Body:     expandSuggestions(comment.Message),
-			Path:     comment.File,
-			CommitID: headSHA,
+			Body: expandSuggestions(comment.Message),
+			Path: comment.File,
+			Side: "RIGHT", // Default to RIGHT side (additions/new lines)
 		}
 
 		// Set line or range
@@ -299,20 +290,12 @@ func processIndividualComments(client github.GitHubAPI, owner, repo string, pr i
 			_, err = client.CreateIssueComment(owner, repo, pr, expandSuggestions(comment.Message))
 		} else {
 			// For review comments, we need the commit SHA
-			prDetails, err := client.GetPRDetails(owner, repo, pr)
-			if err != nil {
-				return fmt.Errorf("failed to get PR details: %w", err)
-			}
-
-			headSHA, ok := prDetails["head"].(map[string]interface{})["sha"].(string)
-			if !ok {
-				return fmt.Errorf("failed to get commit SHA from PR details")
-			}
+			// Note: GitHub automatically uses the latest commit SHA for review comments
 
 			reviewComment := github.ReviewCommentInput{
-				Body:     expandSuggestions(comment.Message),
-				Path:     comment.File,
-				CommitID: headSHA,
+				Body: expandSuggestions(comment.Message),
+				Path: comment.File,
+				Side: "RIGHT", // Default to RIGHT side (additions/new lines)
 			}
 
 			// Set line or range

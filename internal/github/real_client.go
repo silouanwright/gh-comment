@@ -652,35 +652,8 @@ func (c *RealClient) CreateReview(owner, repo string, pr int, review ReviewInput
 		return fmt.Errorf("invalid review event '%s': must be APPROVE, REQUEST_CHANGES, or COMMENT", review.Event)
 	}
 
-	// If there are comments, we need to set commit_id for each one
-	if len(review.Comments) > 0 {
-		// Try to get commit ID from existing review comments first (more efficient)
-		commitID, err := c.getCommitIDFromExistingComments(owner, repo, pr)
-		if err != nil || commitID == "" {
-			// Fallback to fetching PR details for latest commit SHA
-			prDetails, err := c.GetPRDetails(owner, repo, pr)
-			if err != nil {
-				return fmt.Errorf("failed to get PR details for commit ID: %w", err)
-			}
-
-			// Extract the latest commit SHA
-			head, ok := prDetails["head"].(map[string]interface{})
-			if !ok {
-				return fmt.Errorf("invalid PR details: missing head information")
-			}
-
-			latestCommitSHA, ok := head["sha"].(string)
-			if !ok {
-				return fmt.Errorf("invalid PR details: missing commit SHA")
-			}
-			commitID = latestCommitSHA
-		}
-
-		// Add commit_id to each comment
-		for i := range review.Comments {
-			review.Comments[i].CommitID = commitID
-		}
-	}
+	// Note: GitHub automatically uses the latest commit SHA for review comments
+	// No need to manually set commit_id on individual comments
 
 	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/reviews", owner, repo, pr)
 

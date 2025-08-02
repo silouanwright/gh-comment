@@ -180,22 +180,8 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		reviewComment.Side = "RIGHT"
 	}
 
-	// We need the commit SHA - get PR details first
-	prDetails, err := addClient.GetPRDetails(owner, repoName, pr)
-	if err != nil {
-		return fmt.Errorf("failed to get PR details: %w", err)
-	}
-
-	// Extract commit SHA from PR details
-	if head, ok := prDetails["head"].(map[string]interface{}); ok {
-		if sha, ok := head["sha"].(string); ok {
-			reviewComment.CommitID = sha
-		} else {
-			return fmt.Errorf("could not extract commit SHA from PR details")
-		}
-	} else {
-		return fmt.Errorf("could not extract head information from PR details")
-	}
+	// Note: GitHub automatically uses the latest commit SHA for review comments
+	// No need to manually set commit_id
 
 	// Add the comment via GitHub API
 	err = addClient.AddReviewComment(owner, repoName, pr, reviewComment)

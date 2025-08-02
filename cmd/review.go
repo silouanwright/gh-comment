@@ -156,21 +156,10 @@ func runReview(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Get PR details for commit SHA
-	prDetails, err := reviewClient.GetPRDetails(owner, repoName, pr)
-	if err != nil {
-		return fmt.Errorf("failed to get PR details: %w", err)
-	}
-
-	headSHA, ok := prDetails["head"].(map[string]interface{})["sha"].(string)
-	if !ok {
-		return fmt.Errorf("failed to get commit SHA from PR details")
-	}
-
 	// Parse and create review comments
 	var reviewCommentInputs []github.ReviewCommentInput
 	for i, commentSpec := range reviewCommentsFlag {
-		commentInput, err := parseReviewCommentSpec(commentSpec, headSHA)
+		commentInput, err := parseReviewCommentSpec(commentSpec)
 		if err != nil {
 			return fmt.Errorf("invalid comment %d (%s): %w", i+1, commentSpec, err)
 		}
@@ -211,7 +200,7 @@ func runReview(cmd *cobra.Command, args []string) error {
 
 // parseReviewCommentSpec parses a comment specification in the format:
 // file:line:message or file:start-end:message
-func parseReviewCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, error) {
+func parseReviewCommentSpec(spec string) (github.ReviewCommentInput, error) {
 	parts := strings.SplitN(spec, ":", 3)
 	if len(parts) < 3 {
 		return github.ReviewCommentInput{}, fmt.Errorf("format must be file:line:message or file:start-end:message")
@@ -229,9 +218,9 @@ func parseReviewCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, 
 	}
 
 	comment := github.ReviewCommentInput{
-		Body:     expandSuggestions(message),
-		Path:     filePath,
-		CommitID: commitSHA,
+		Body: expandSuggestions(message),
+		Path: filePath,
+		Side: "RIGHT", // Default to RIGHT side (additions/new lines)
 	}
 
 	// Parse line specification (single line or range)

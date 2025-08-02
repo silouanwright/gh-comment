@@ -160,10 +160,10 @@ func TestMockClientAddReviewComment(t *testing.T) {
 	client := NewMockClient()
 
 	reviewComment := ReviewCommentInput{
-		Body:     "Test review comment",
-		Path:     "main.go",
-		Line:     42,
-		CommitID: "abc123",
+		Body: "Test review comment",
+		Path: "main.go",
+		Line: 42,
+		Side: "RIGHT",
 	}
 
 	err := client.AddReviewComment("owner", "repo", 123, reviewComment)
@@ -276,7 +276,6 @@ func TestReviewCommentInput(t *testing.T) {
 		Line:      42,
 		StartLine: 40,
 		Side:      "RIGHT",
-		CommitID:  "abc123def456",
 	}
 
 	assert.Equal(t, "Review comment", input.Body)
@@ -284,7 +283,7 @@ func TestReviewCommentInput(t *testing.T) {
 	assert.Equal(t, 42, input.Line)
 	assert.Equal(t, 40, input.StartLine)
 	assert.Equal(t, "RIGHT", input.Side)
-	assert.Equal(t, "abc123def456", input.CommitID)
+	// Removed CommitID assertion - now using Side field
 }
 
 func TestReviewInput(t *testing.T) {
@@ -293,10 +292,10 @@ func TestReviewInput(t *testing.T) {
 		Event: "APPROVE",
 		Comments: []ReviewCommentInput{
 			{
-				Body:     "Nice work here",
-				Path:     "main.go",
-				Line:     42,
-				CommitID: "abc123",
+				Body: "Nice work here",
+				Path: "main.go",
+				Line: 42,
+				Side: "RIGHT",
 			},
 		},
 	}
