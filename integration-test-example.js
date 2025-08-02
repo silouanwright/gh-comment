@@ -22,4 +22,3 @@ function processUserData(users) {
 }
 
 module.exports = { processUserData };
-EOF < /dev/null
