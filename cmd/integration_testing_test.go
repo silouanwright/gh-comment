@@ -18,7 +18,7 @@ func TestNewMockGitHubServer(t *testing.T) {
 	assert.NotEmpty(t, server.URL())
 	assert.NotNil(t, server.users)
 	assert.Equal(t, 4, len(server.users))
-	
+
 	// Verify users are properly set up
 	testUser, exists := server.users["test-user"]
 	assert.True(t, exists)
@@ -255,7 +255,7 @@ func TestMockGitHubServer_ThreadSafety(t *testing.T) {
 
 	// Test concurrent access
 	done := make(chan bool, 10)
-	
+
 	for i := 0; i < 10; i++ {
 		go func(i int) {
 			comment := MockComment{

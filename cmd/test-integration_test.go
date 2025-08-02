@@ -16,15 +16,15 @@ import (
 func TestSetupIntegrationLogging(t *testing.T) {
 	// Clean up any existing log setup
 	integrationLog = nil
-	
+
 	err := setupIntegrationLogging()
 	assert.NoError(t, err)
 	assert.NotNil(t, integrationLog)
-	
+
 	// Verify results directory was created
 	_, err = os.Stat("integration-tests/results")
 	assert.NoError(t, err)
-	
+
 	// Clean up
 	os.RemoveAll("integration-tests")
 }
@@ -32,14 +32,14 @@ func TestSetupIntegrationLogging(t *testing.T) {
 func TestCreateDummyTemplate(t *testing.T) {
 	tempDir := t.TempDir()
 	templatePath := filepath.Join(tempDir, "templates", "dummy-code.js")
-	
+
 	err := createDummyTemplate(templatePath)
 	require.NoError(t, err)
-	
+
 	// Verify file was created
 	content, err := os.ReadFile(templatePath)
 	require.NoError(t, err)
-	
+
 	contentStr := string(content)
 	assert.Contains(t, contentStr, "calculateTotal")
 	assert.Contains(t, contentStr, "Integration Test File")
@@ -52,16 +52,16 @@ func TestCopyTemplateFile(t *testing.T) {
 	tempDir := t.TempDir()
 	srcPath := filepath.Join(tempDir, "source.js")
 	dstPath := filepath.Join(tempDir, "destination.js")
-	
+
 	// Create source file
 	sourceContent := "console.log('test');"
 	err := os.WriteFile(srcPath, []byte(sourceContent), 0644)
 	require.NoError(t, err)
-	
+
 	// Copy file
 	err = copyTemplateFile(srcPath, dstPath)
 	require.NoError(t, err)
-	
+
 	// Verify destination exists and has same content
 	dstContent, err := os.ReadFile(dstPath)
 	require.NoError(t, err)
@@ -72,18 +72,18 @@ func TestCopyTemplateFileWithMissingSource(t *testing.T) {
 	tempDir := t.TempDir()
 	srcPath := filepath.Join(tempDir, "missing-source.js")
 	dstPath := filepath.Join(tempDir, "destination.js")
-	
+
 	// Source doesn't exist, should create template
 	err := copyTemplateFile(srcPath, dstPath)
 	require.NoError(t, err)
-	
+
 	// Verify both source and destination exist
 	_, err = os.Stat(srcPath)
 	assert.NoError(t, err)
-	
+
 	_, err = os.Stat(dstPath)
 	assert.NoError(t, err)
-	
+
 	// Verify content is the dummy template
 	content, err := os.ReadFile(dstPath)
 	require.NoError(t, err)
@@ -92,9 +92,9 @@ func TestCopyTemplateFileWithMissingSource(t *testing.T) {
 
 func TestRunSpecificScenario(t *testing.T) {
 	tests := []struct {
-		name         string
-		scenario     string
-		expectError  bool
+		name        string
+		scenario    string
+		expectError bool
 	}{
 		{
 			name:        "unknown scenario",
@@ -107,13 +107,13 @@ func TestRunSpecificScenario(t *testing.T) {
 			expectError: true, // Will fail without real PR setup
 		},
 		{
-			name:        "valid reviews scenario", 
+			name:        "valid reviews scenario",
 			scenario:    "reviews",
 			expectError: true, // Will fail without real PR setup
 		},
 		{
 			name:        "valid reactions scenario",
-			scenario:    "reactions", 
+			scenario:    "reactions",
 			expectError: true, // Will fail without real PR setup
 		},
 		{
@@ -127,11 +127,11 @@ func TestRunSpecificScenario(t *testing.T) {
 			expectError: true, // Will fail without real PR setup
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := runSpecificScenario(tt.scenario, 999)
-			
+
 			if tt.expectError {
 				assert.Error(t, err)
 				if tt.scenario == "invalid-scenario" {
@@ -169,18 +169,18 @@ func TestCleanupTestPR(t *testing.T) {
 func TestIntegrationFlags(t *testing.T) {
 	// Test that flags are properly defined
 	assert.NotNil(t, testIntegrationCmd)
-	
+
 	// Check that flags exist
 	flags := testIntegrationCmd.Flags()
-	
+
 	cleanupFlag := flags.Lookup("cleanup")
 	assert.NotNil(t, cleanupFlag)
 	assert.Equal(t, "true", cleanupFlag.DefValue)
-	
+
 	inspectFlag := flags.Lookup("inspect")
 	assert.NotNil(t, inspectFlag)
 	assert.Equal(t, "false", inspectFlag.DefValue)
-	
+
 	scenarioFlag := flags.Lookup("scenario")
 	assert.NotNil(t, scenarioFlag)
 	assert.Equal(t, "", scenarioFlag.DefValue)
@@ -194,33 +194,33 @@ func TestInspectModeDisablesCleanup(t *testing.T) {
 		cleanup = originalCleanup
 		inspect = originalInspect
 	}()
-	
+
 	// Set initial state
 	cleanup = true
 	inspect = false
-	
+
 	// Simulate inspect mode being enabled
 	inspect = true
-	
+
 	// This logic would be in runTestIntegration
 	if inspect {
 		cleanup = false
 	}
-	
+
 	assert.False(t, cleanup)
 }
 
 func TestDummyTemplateContent(t *testing.T) {
 	tempFile := filepath.Join(t.TempDir(), "test.js")
-	
+
 	err := createDummyTemplate(tempFile)
 	require.NoError(t, err)
-	
+
 	content, err := os.ReadFile(tempFile)
 	require.NoError(t, err)
-	
+
 	lines := strings.Split(string(content), "\n")
-	
+
 	// Verify specific content that tests can comment on
 	found := false
 	for _, line := range lines {
@@ -230,7 +230,7 @@ func TestDummyTemplateContent(t *testing.T) {
 		}
 	}
 	assert.True(t, found, "Template should contain comment targets")
-	
+
 	// Verify various code patterns exist for testing
 	contentStr := string(content)
 	assert.Contains(t, contentStr, "function calculateTotal")

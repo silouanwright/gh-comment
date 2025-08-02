@@ -240,8 +240,8 @@ func TestExpandSuggestionsEdgeCases(t *testing.T) {
 			expected: "\n\n```suggestion\nregex = /.*+?[\n```\n\n{}()|\\^$/]", // Breaks at first ]
 		},
 		{
-			name: "very long suggestion",
-			input: "[SUGGEST: " + string(make([]byte, 1000, 1000)) + "]",
+			name:     "very long suggestion",
+			input:    "[SUGGEST: " + string(make([]byte, 1000, 1000)) + "]",
 			expected: "\n\n```suggestion\n" + string(make([]byte, 1000, 1000)) + "\n```\n\n",
 		},
 		{

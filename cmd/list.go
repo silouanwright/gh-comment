@@ -21,11 +21,11 @@ var (
 	hideAuthors    bool
 
 	// Advanced filtering flags
-	status       string
-	since        string
-	until        string
-	resolved     string
-	listType     string
+	status   string
+	since    string
+	until    string
+	resolved string
+	listType string
 
 	// Parsed time values
 	sinceTime *time.Time
@@ -179,6 +179,7 @@ type Comment struct {
 	Line      int    `json:"line,omitempty"`
 	StartLine int    `json:"start_line,omitempty"`
 	DiffHunk  string `json:"diff_hunk,omitempty"`
+	CommitID  string `json:"commit_id,omitempty"`
 
 	// Comment type
 	Type string `json:"type"` // "issue" or "review"
@@ -233,6 +234,7 @@ func fetchAllComments(client github.GitHubAPI, repo string, pr int) ([]Comment, 
 			HTMLURL:   "", // TODO: Add HTMLURL to github.Comment
 			Path:      comment.Path,
 			Line:      comment.Line,
+			CommitID:  comment.CommitID,
 			Type:      "review",
 		})
 	}
@@ -286,7 +288,6 @@ func parseFlexibleDate(dateStr string) (time.Time, error) {
 	}
 	return parsed.Time, nil
 }
-
 
 func filterComments(comments []Comment) []Comment {
 	var filtered []Comment
@@ -378,7 +379,22 @@ func displayComments(comments []Comment, pr int) {
 		return
 	}
 
-	fmt.Printf("📝 Comments on PR #%d (%d total)\n\n", pr, len(comments))
+	// Collect unique commit IDs for summary
+	commitIDs := make(map[string]bool)
+	for _, comment := range comments {
+		if comment.CommitID != "" {
+			commitIDs[comment.CommitID] = true
+		}
+	}
+
+	fmt.Printf("📝 Comments on PR #%d (%d total", pr, len(comments))
+	if len(commitIDs) > 0 {
+		fmt.Printf(", %d commit", len(commitIDs))
+		if len(commitIDs) != 1 {
+			fmt.Printf("s")
+		}
+	}
+	fmt.Printf(")\n\n")
 
 	// Group comments by type
 	var issueComments, reviewComments, lineComments []Comment
@@ -453,7 +469,13 @@ func displayComment(comment Comment, index int) {
 		if comment.StartLine > 0 && comment.StartLine != comment.Line {
 			lineInfo = fmt.Sprintf("L%d-L%d", comment.StartLine, comment.Line)
 		}
-		fmt.Printf("📁 %s:%s\n", comment.Path, lineInfo)
+		fmt.Printf("📁 %s:%s", comment.Path, lineInfo)
+
+		// Show commit ID for review comments (helps with debugging and understanding)
+		if comment.CommitID != "" {
+			fmt.Printf(" • 📊 %s", comment.CommitID[:8]) // Show first 8 chars of commit SHA
+		}
+		fmt.Println()
 
 		// Show the actual diff context if available
 		if comment.DiffHunk != "" {

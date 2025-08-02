@@ -13,11 +13,11 @@ type GitHubAPI interface {
 	CreateReviewCommentReply(owner, repo string, commentID int, body string) (*Comment, error)
 
 	// Reaction operations
-	AddReaction(owner, repo string, commentID int, reaction string) error
-	RemoveReaction(owner, repo string, commentID int, reaction string) error
+	AddReaction(owner, repo string, commentID int, prNumber int, reaction string) error
+	RemoveReaction(owner, repo string, commentID int, prNumber int, reaction string) error
 
 	// Comment operations
-	EditComment(owner, repo string, commentID int, body string) error
+	EditComment(owner, repo string, commentID int, prNumber int, body string) error
 	AddReviewComment(owner, repo string, pr int, comment ReviewCommentInput) error
 
 	// PR operations
@@ -46,6 +46,7 @@ type Comment struct {
 	Path     string `json:"path,omitempty"`
 	Line     int    `json:"line,omitempty"`
 	Position int    `json:"position,omitempty"`
+	CommitID string `json:"commit_id,omitempty"`
 
 	// Computed fields
 	Type string `json:"-"` // "issue" or "review"
@@ -88,21 +89,21 @@ type DiffFile struct {
 
 // MockClient implements GitHubAPI for testing
 type MockClient struct {
-	IssueComments  []Comment
-	ReviewComments []Comment
-	CreatedComment *Comment
-	ResolvedThread string
-	PendingReviewID int
+	IssueComments     []Comment
+	ReviewComments    []Comment
+	CreatedComment    *Comment
+	ResolvedThread    string
+	PendingReviewID   int
 	SubmittedReviewID int
 
 	// Error simulation
-	ListIssueCommentsError    error
-	ListReviewCommentsError   error
-	CreateCommentError        error
-	ResolveThreadError        error
-	FindReviewThreadError     error
-	FindPendingReviewError    error
-	SubmitReviewError         error
+	ListIssueCommentsError  error
+	ListReviewCommentsError error
+	CreateCommentError      error
+	ResolveThreadError      error
+	FindReviewThreadError   error
+	FindPendingReviewError  error
+	SubmitReviewError       error
 }
 
 // NewMockClient creates a new mock client for testing
@@ -194,15 +195,15 @@ func (m *MockClient) ResolveReviewThread(threadID string) error {
 	return nil
 }
 
-func (m *MockClient) AddReaction(owner, repo string, commentID int, reaction string) error {
+func (m *MockClient) AddReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	return nil
 }
 
-func (m *MockClient) RemoveReaction(owner, repo string, commentID int, reaction string) error {
+func (m *MockClient) RemoveReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	return nil
 }
 
-func (m *MockClient) EditComment(owner, repo string, commentID int, body string) error {
+func (m *MockClient) EditComment(owner, repo string, commentID int, prNumber int, body string) error {
 	return nil
 }
 

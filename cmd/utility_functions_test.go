@@ -21,7 +21,7 @@ func TestValidateReaction(t *testing.T) {
 		{"rocket", true},
 		{"eyes", true},
 		{"invalid", false},
-		{"thumbsup", false}, // This is different from +1
+		{"thumbsup", false},   // This is different from +1
 		{"thumbsdown", false}, // This is different from -1
 		{"", false},
 		{"LAUGH", false}, // Case sensitive
@@ -147,10 +147,10 @@ func TestParseFlexibleDate(t *testing.T) {
 
 func TestMatchesAuthorFilter(t *testing.T) {
 	tests := []struct {
-		name      string
-		author    string
-		filter    string
-		expected  bool
+		name     string
+		author   string
+		filter   string
+		expected bool
 	}{
 		{
 			name:     "exact match",

@@ -39,7 +39,11 @@ func init() {
 func runResolve(cmd *cobra.Command, args []string) error {
 	// Initialize client if not set (production use)
 	if resolveClient == nil {
-		resolveClient = &github.RealClient{}
+		client, err := createGitHubClient()
+		if err != nil {
+			return fmt.Errorf("failed to create GitHub client: %w", err)
+		}
+		resolveClient = client
 	}
 
 	// Parse comment ID

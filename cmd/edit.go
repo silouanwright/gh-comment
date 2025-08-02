@@ -53,7 +53,11 @@ func init() {
 func runEdit(cmd *cobra.Command, args []string) error {
 	// Initialize client if not set (production use)
 	if editClient == nil {
-		editClient = &github.RealClient{}
+		client, err := createGitHubClient()
+		if err != nil {
+			return fmt.Errorf("failed to create GitHub client: %w", err)
+		}
+		editClient = client
 	}
 
 	// Parse comment ID
@@ -73,8 +77,8 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("must provide either a message argument or --message flags")
 	}
 
-	// Get repository
-	repository, err := getCurrentRepo()
+	// Get repository context
+	repository, prNumber, err := getPRContext()
 	if err != nil {
 		return err
 	}
@@ -100,7 +104,7 @@ func runEdit(cmd *cobra.Command, args []string) error {
 	}
 
 	// Edit the comment using the client
-	err = editClient.EditComment(owner, repoName, commentID, message)
+	err = editClient.EditComment(owner, repoName, commentID, prNumber, message)
 	if err != nil {
 		return fmt.Errorf("failed to edit comment: %w", err)
 	}

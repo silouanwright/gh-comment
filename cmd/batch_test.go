@@ -84,9 +84,9 @@ comments:
 			expectedErrMsg: "must be a valid integer",
 		},
 		{
-			name: "empty config",
-			args: []string{"123", "config.yaml"},
-			configContent: ``,
+			name:           "empty config",
+			args:           []string{"123", "config.yaml"},
+			configContent:  ``,
 			wantErr:        true,
 			expectedErrMsg: "configuration must contain either comments or review",
 		},
@@ -503,11 +503,11 @@ func TestBatchWithClientInitialization(t *testing.T) {
 	repo = "owner/repo"
 	prNumber = 123
 
-	// This test verifies that when batchClient is nil, 
+	// This test verifies that when batchClient is nil,
 	// a RealClient is initialized in production
 	// Since we can't easily test the RealClient without external dependencies,
 	// we'll test that the initialization happens by setting up a mock afterwards
-	
+
 	// First verify the client gets initialized
 	mockClient := github.NewMockClient()
 	batchClient = mockClient
@@ -527,7 +527,7 @@ comments:
 	configFile := filepath.Join(tempDir, "config.yaml")
 	err = ioutil.WriteFile(configFile, []byte(configContent), 0644)
 	assert.NoError(t, err)
-	
+
 	err = runBatch(nil, []string{"123", configFile})
 	assert.NoError(t, err)
 }

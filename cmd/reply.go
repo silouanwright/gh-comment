@@ -68,7 +68,11 @@ func init() {
 func runReply(cmd *cobra.Command, args []string) error {
 	// Initialize client if not set (production use)
 	if replyClient == nil {
-		replyClient = &github.RealClient{}
+		client, err := createGitHubClient()
+		if err != nil {
+			return fmt.Errorf("failed to create GitHub client: %w", err)
+		}
+		replyClient = client
 	}
 
 	// Parse comment ID
@@ -112,7 +116,7 @@ func runReply(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get repository context
-	repository, _, err := getPRContext()
+	repository, prNumber, err := getPRContext()
 	if err != nil {
 		return err
 	}
@@ -162,7 +166,7 @@ func runReply(cmd *cobra.Command, args []string) error {
 
 	// Add reaction if specified
 	if reaction != "" {
-		err = replyClient.AddReaction(owner, repoName, commentID, reaction)
+		err = replyClient.AddReaction(owner, repoName, commentID, prNumber, reaction)
 		if err != nil {
 			return fmt.Errorf("failed to add reaction: %w", err)
 		}
@@ -171,7 +175,7 @@ func runReply(cmd *cobra.Command, args []string) error {
 
 	// Remove reaction if specified
 	if removeReaction != "" {
-		err = replyClient.RemoveReaction(owner, repoName, commentID, removeReaction)
+		err = replyClient.RemoveReaction(owner, repoName, commentID, prNumber, removeReaction)
 		if err != nil {
 			return fmt.Errorf("failed to remove reaction: %w", err)
 		}

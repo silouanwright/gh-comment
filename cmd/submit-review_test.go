@@ -246,9 +246,9 @@ func TestSubmitReviewErrorHandling(t *testing.T) {
 	submitBody = ""
 
 	tests := []struct {
-		name              string
-		setupMockError    func(*github.MockClient)
-		expectedErrMsg    string
+		name           string
+		setupMockError func(*github.MockClient)
+		expectedErrMsg string
 	}{
 		{
 			name: "find pending review error",
@@ -480,15 +480,15 @@ func TestSubmitReviewWithClientInitialization(t *testing.T) {
 	submitEvent = "APPROVE"
 	submitBody = ""
 
-	// This test verifies that when submitClient is nil, 
+	// This test verifies that when submitClient is nil,
 	// a RealClient is initialized in production
 	// Since we can't easily test the RealClient without external dependencies,
 	// we'll test that the initialization happens by setting up a mock afterwards
-	
+
 	// First verify the client gets initialized
 	mockClient := github.NewMockClient()
 	submitClient = mockClient
-	
+
 	err := runSubmitReview(nil, []string{"123", "Review body"})
 	assert.NoError(t, err)
 }

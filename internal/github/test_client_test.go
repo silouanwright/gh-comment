@@ -76,18 +76,18 @@ func TestTestClientWithMockServer(t *testing.T) {
 		// In a real test environment, this would fail since no server is running
 		// But we can verify the method is callable
 		comments, err := client.ListIssueComments("owner", "repo", 123)
-		
+
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Nil(t, comments)
-		
+
 		// Verify error is related to connection (not validation)
 		assert.Contains(t, err.Error(), "connection refused")
 	})
 
 	t.Run("ListReviewComments", func(t *testing.T) {
 		comments, err := client.ListReviewComments("owner", "repo", 123)
-		
+
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Nil(t, comments)
@@ -96,7 +96,7 @@ func TestTestClientWithMockServer(t *testing.T) {
 
 	t.Run("CreateIssueComment", func(t *testing.T) {
 		comment, err := client.CreateIssueComment("owner", "repo", 123, "test comment")
-		
+
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Nil(t, comment)
@@ -109,9 +109,9 @@ func TestTestClientWithMockServer(t *testing.T) {
 			Path: "test.go",
 			Line: 42,
 		}
-		
+
 		err := client.AddReviewComment("owner", "repo", 123, reviewComment)
-		
+
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "connection refused")
@@ -122,9 +122,9 @@ func TestTestClientWithMockServer(t *testing.T) {
 			Body:  "Test review",
 			Event: "APPROVE",
 		}
-		
+
 		err := client.CreateReview("owner", "repo", 123, review)
-		
+
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "connection refused")
@@ -132,7 +132,7 @@ func TestTestClientWithMockServer(t *testing.T) {
 
 	t.Run("GetPRDetails", func(t *testing.T) {
 		details, err := client.GetPRDetails("owner", "repo", 123)
-		
+
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Nil(t, details)
@@ -161,19 +161,19 @@ func TestTestClientWithMockServer(t *testing.T) {
 	})
 
 	t.Run("AddReaction", func(t *testing.T) {
-		err := client.AddReaction("owner", "repo", 123, "+1")
+		err := client.AddReaction("owner", "repo", 123, 123, "+1")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not implemented")
 	})
 
 	t.Run("RemoveReaction", func(t *testing.T) {
-		err := client.RemoveReaction("owner", "repo", 123, "+1")
+		err := client.RemoveReaction("owner", "repo", 123, 123, "+1")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not implemented")
 	})
 
 	t.Run("EditComment", func(t *testing.T) {
-		err := client.EditComment("owner", "repo", 123, "edited")
+		err := client.EditComment("owner", "repo", 123, 123, "edited")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not implemented")
 	})
@@ -211,9 +211,9 @@ func TestTestClientDoRequest(t *testing.T) {
 	// Test that doRequest constructs URLs correctly
 	// We can't actually make requests without a real server, but we can verify
 	// the method is callable and handles errors appropriately
-	
+
 	resp, err := client.doRequest("GET", "/test/endpoint", nil)
-	
+
 	// Should fail with connection error since no server is running
 	assert.Error(t, err)
 	assert.Nil(t, resp)
@@ -231,7 +231,7 @@ func TestTestClientErrorHandling(t *testing.T) {
 
 	// Test doRequest with invalid base URL
 	resp, err := client.doRequest("GET", "/test", nil)
-	
+
 	// Should fail with URL error
 	assert.Error(t, err)
 	assert.Nil(t, resp)

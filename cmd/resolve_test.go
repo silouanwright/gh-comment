@@ -206,9 +206,9 @@ func TestResolveErrorHandling(t *testing.T) {
 	prNumber = 123
 
 	tests := []struct {
-		name              string
-		setupMockError    func(*github.MockClient)
-		expectedErrMsg    string
+		name           string
+		setupMockError func(*github.MockClient)
+		expectedErrMsg string
 	}{
 		{
 			name: "find review thread error",
@@ -274,9 +274,9 @@ func TestResolveCommentValidation(t *testing.T) {
 			wantErr:   false,
 		},
 		{
-			name:           "negative comment ID (technically valid for strconv.Atoi)",
-			commentID:      "-1",
-			wantErr:        false, // strconv.Atoi allows negative numbers
+			name:      "negative comment ID (technically valid for strconv.Atoi)",
+			commentID: "-1",
+			wantErr:   false, // strconv.Atoi allows negative numbers
 		},
 		{
 			name:           "non-numeric comment ID",
@@ -334,15 +334,15 @@ func TestResolveWithClientInitialization(t *testing.T) {
 	repo = "owner/repo"
 	prNumber = 123
 
-	// This test verifies that when resolveClient is nil, 
+	// This test verifies that when resolveClient is nil,
 	// a RealClient is initialized in production
 	// Since we can't easily test the RealClient without external dependencies,
 	// we'll test that the initialization happens by setting up a mock afterwards
-	
+
 	// First verify the client gets initialized
 	mockClient := github.NewMockClient()
 	resolveClient = mockClient
-	
+
 	err := runResolve(nil, []string{"123456"})
 	assert.NoError(t, err)
 }

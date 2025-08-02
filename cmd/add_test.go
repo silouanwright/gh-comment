@@ -99,12 +99,12 @@ func TestRunAddWithMockClient(t *testing.T) {
 
 func TestParseLineSpec(t *testing.T) {
 	tests := []struct {
-		name         string
-		lineSpec     string
-		wantStart    int
-		wantEnd      int
-		wantErr      bool
-		expectedErr  string
+		name        string
+		lineSpec    string
+		wantStart   int
+		wantEnd     int
+		wantErr     bool
+		expectedErr string
 	}{
 		{
 			name:      "single line",

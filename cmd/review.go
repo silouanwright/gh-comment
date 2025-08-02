@@ -71,7 +71,11 @@ func init() {
 func runReview(cmd *cobra.Command, args []string) error {
 	// Initialize client if not set (production use)
 	if reviewClient == nil {
-		reviewClient = &github.RealClient{}
+		client, err := createGitHubClient()
+		if err != nil {
+			return fmt.Errorf("failed to create GitHub client: %w", err)
+		}
+		reviewClient = client
 	}
 
 	var pr int

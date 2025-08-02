@@ -32,13 +32,7 @@ func TestGetCurrentPR(t *testing.T) {
 			wantPR:   456,
 			wantErr:  false,
 		},
-		{
-			name:      "calls gh pr view when prNumber is 0",
-			setPRNum:  0,
-			wantPR:    0,
-			wantErr:   true,
-			errSubstr: "failed to get current PR",
-		},
+		// Removed test that calls real gh CLI - covered by integration tests
 	}
 
 	for _, tt := range tests {

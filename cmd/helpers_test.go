@@ -174,11 +174,11 @@ func TestExecuteFunction(t *testing.T) {
 	// Test that Execute() function exists and delegates properly
 	// This is mainly for coverage of the Execute wrapper function
 	assert.NotNil(t, Execute, "Execute function should be defined")
-	
+
 	// We can't easily test successful execution without complex setup,
 	// but we can verify the function can be called and behaves reasonably
 	// When called without arguments, it shows help (which is successful behavior)
-	
+
 	// The Execute function should complete successfully when showing help
 	// This tests the wrapper function coverage without side effects
 	err := Execute()

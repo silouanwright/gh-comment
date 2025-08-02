@@ -88,8 +88,8 @@ func captureOutput(fn func()) string {
 
 func TestDisplayDiffHunk(t *testing.T) {
 	tests := []struct {
-		name         string
-		diffHunk     string
+		name          string
+		diffHunk      string
 		expectedLines []string // Lines that should be present in output
 	}{
 		{
@@ -108,7 +108,7 @@ func TestDisplayDiffHunk(t *testing.T) {
 			},
 		},
 		{
-			name: "diff header only",
+			name:     "diff header only",
 			diffHunk: `@@ -1,3 +1,3 @@`,
 			expectedLines: []string{
 				"🔹 @@ -1,3 +1,3 @@",
@@ -149,13 +149,13 @@ func TestDisplayDiffHunk(t *testing.T) {
 			expectedLines: []string{
 				"🔹 @@ -10,3 +10,3 @@ func context() {",
 				"line1",
-				"line2", 
+				"line2",
 				"line3",
 			},
 		},
 		{
-			name:         "empty diff hunk",
-			diffHunk:     "",
+			name:          "empty diff hunk",
+			diffHunk:      "",
 			expectedLines: []string{}, // Should just output a newline
 		},
 		{
@@ -209,10 +209,10 @@ func TestDisplayDiffHunk(t *testing.T) {
 			// For non-empty diff hunks, ensure we have proper formatting
 			if tt.diffHunk != "" {
 				lines := strings.Split(strings.TrimSpace(output), "\n")
-				
+
 				// Check that we have at least some output
 				assert.Greater(t, len(lines), 0, "Should have at least one line of output")
-				
+
 				// Check that the output ends with a blank line (due to fmt.Println())
 				assert.True(t, strings.HasSuffix(output, "\n"), "Output should end with newline")
 			}
@@ -222,14 +222,14 @@ func TestDisplayDiffHunk(t *testing.T) {
 
 func TestDisplayDiffHunkEdgeCases(t *testing.T) {
 	tests := []struct {
-		name         string
-		diffHunk     string
-		expectedContains []string
+		name                string
+		diffHunk            string
+		expectedContains    []string
 		expectedNotContains []string
 	}{
 		{
-			name:     "whitespace only diff hunk",
-			diffHunk: "   \n   \n   ",
+			name:             "whitespace only diff hunk",
+			diffHunk:         "   \n   \n   ",
 			expectedContains: []string{}, // Should handle gracefully
 		},
 		{
@@ -287,8 +287,8 @@ func TestDisplayDiffHunkEdgeCases(t *testing.T) {
 func TestDisplayDiffHunkFormatting(t *testing.T) {
 	// Test that different line types get proper prefixes
 	tests := []struct {
-		name         string
-		line         string
+		name           string
+		line           string
 		expectedPrefix string
 	}{
 		{"diff header", "@@ -1,1 +1,1 @@", "🔹"},

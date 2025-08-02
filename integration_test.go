@@ -45,20 +45,20 @@ func TestEnhancedIntegration(t *testing.T) {
 		Setup: func(env *testscript.Env) error {
 			// Start mock GitHub API server
 			mockServer = cmd.NewMockGitHubServer()
-			
+
 			// DETERMINISTIC SETUP: Always set up all scenarios
 			// This ensures consistent test data regardless of condition checks
 			mockServer.SetupTestScenario("basic")
 			mockServer.SetupTestScenario("security-review")
-			
+
 			// Set up test environment to use mock server
 			env.Setenv("GH_TOKEN", "test-token")
 			env.Setenv("GH_HOST", strings.TrimPrefix(mockServer.URL(), "http://"))
 			env.Setenv("MOCK_SERVER_URL", mockServer.URL())
-			
+
 			// Set up test repository context
 			env.Setenv("GH_REPO", "test-owner/test-repo")
-			
+
 			return nil
 		},
 		Condition: func(cond string) (bool, error) {

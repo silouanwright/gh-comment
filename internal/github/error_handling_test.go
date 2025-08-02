@@ -53,7 +53,7 @@ func TestValidateRepoParams(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := validateRepoParams(tt.owner, tt.repo)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Errorf("expected error but got none")
@@ -101,7 +101,7 @@ func TestIsValidReaction(t *testing.T) {
 
 func TestWrapAPIError(t *testing.T) {
 	client := &RealClient{}
-	
+
 	tests := []struct {
 		name      string
 		err       error
@@ -163,29 +163,29 @@ func TestWrapAPIError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := client.wrapAPIError(tt.err, tt.operation, tt.args...)
-			
+
 			if !strings.Contains(result.Error(), tt.wantMsg) {
 				t.Errorf("wrapAPIError() error = %v, want to contain %v", result.Error(), tt.wantMsg)
 			}
-			
+
 			// Verify the original error is wrapped
 			if !errors.Is(result, tt.err) {
 				t.Errorf("wrapAPIError() should wrap the original error")
 			}
-			
+
 			// Check for helpful tips in specific error types
 			if strings.Contains(tt.err.Error(), "rate limit") {
 				if !strings.Contains(result.Error(), "gh api rate_limit") {
 					t.Errorf("rate limit error should include tip about checking rate limit status")
 				}
 			}
-			
+
 			if strings.Contains(tt.err.Error(), "404") {
 				if !strings.Contains(result.Error(), "Verify the repository exists") {
 					t.Errorf("404 error should include tip about repository access")
 				}
 			}
-			
+
 			if strings.Contains(tt.err.Error(), "401") {
 				if !strings.Contains(result.Error(), "gh auth status") {
 					t.Errorf("401 error should include tip about checking authentication")
@@ -198,7 +198,7 @@ func TestWrapAPIError(t *testing.T) {
 func TestErrorHandlingInMethods(t *testing.T) {
 	// Test that our methods properly validate parameters
 	client := &RealClient{}
-	
+
 	t.Run("CreateIssueComment with invalid params", func(t *testing.T) {
 		tests := []struct {
 			name     string
@@ -241,7 +241,7 @@ func TestErrorHandlingInMethods(t *testing.T) {
 				wantErr:  "comment body cannot be empty",
 			},
 		}
-		
+
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				_, err := client.CreateIssueComment(tt.owner, tt.repo, tt.prNumber, tt.body)
@@ -249,14 +249,14 @@ func TestErrorHandlingInMethods(t *testing.T) {
 					t.Errorf("expected error but got none")
 					return
 				}
-				
+
 				if !strings.Contains(err.Error(), tt.wantErr) {
 					t.Errorf("expected error to contain '%s', got '%s'", tt.wantErr, err.Error())
 				}
 			})
 		}
 	})
-	
+
 	t.Run("AddReaction with invalid params", func(t *testing.T) {
 		tests := []struct {
 			name      string
@@ -283,15 +283,15 @@ func TestErrorHandlingInMethods(t *testing.T) {
 				wantErr:   "invalid reaction 'invalid'",
 			},
 		}
-		
+
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				err := client.AddReaction(tt.owner, tt.repo, tt.commentID, tt.reaction)
+				err := client.AddReaction(tt.owner, tt.repo, tt.commentID, 123, tt.reaction)
 				if err == nil {
 					t.Errorf("expected error but got none")
 					return
 				}
-				
+
 				if !strings.Contains(err.Error(), tt.wantErr) {
 					t.Errorf("expected error to contain '%s', got '%s'", tt.wantErr, err.Error())
 				}

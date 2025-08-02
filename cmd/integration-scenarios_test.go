@@ -116,19 +116,19 @@ func TestValidateSuggestionFormatting(t *testing.T) {
 func TestRunCommentAddArgs(t *testing.T) {
 	// Test that we can construct the expected command without executing it
 	// We'll test the argument construction logic by simulating what runCommentAdd does
-	
+
 	prNumber := 123
 	file := "test.js"
 	line := 42
 	endLine := ""
 	message := "test comment"
-	
+
 	args := []string{"comment", "add", strconv.Itoa(prNumber), file, strconv.Itoa(line)}
 	if endLine != "" {
 		args = append(args, endLine)
 	}
 	args = append(args, message)
-	
+
 	expectedArgs := []string{"comment", "add", "123", "test.js", "42", "test comment"}
 	assert.Equal(t, expectedArgs, args)
 }
@@ -139,10 +139,10 @@ func TestRunCommentAddRangeArgs(t *testing.T) {
 	startLine := 10
 	endLine := 20
 	message := "range comment"
-	
-	args := []string{"comment", "add", strconv.Itoa(prNumber), file, 
+
+	args := []string{"comment", "add", strconv.Itoa(prNumber), file,
 		strconv.Itoa(startLine), strconv.Itoa(endLine), message}
-	
+
 	expectedArgs := []string{"comment", "add", "123", "test.js", "10", "20", "range comment"}
 	assert.Equal(t, expectedArgs, args)
 }
@@ -152,10 +152,10 @@ func TestRunReviewAddArgs(t *testing.T) {
 	file := "test.js"
 	line := 42
 	message := "review comment"
-	
-	args := []string{"comment", "add-review", strconv.Itoa(prNumber), file, 
+
+	args := []string{"comment", "add-review", strconv.Itoa(prNumber), file,
 		strconv.Itoa(line), message}
-	
+
 	expectedArgs := []string{"comment", "add-review", "123", "test.js", "42", "review comment"}
 	assert.Equal(t, expectedArgs, args)
 }
@@ -164,10 +164,10 @@ func TestRunReviewSubmitArgs(t *testing.T) {
 	prNumber := 123
 	event := "REQUEST_CHANGES"
 	body := "review body"
-	
-	args := []string{"comment", "submit-review", strconv.Itoa(prNumber), 
+
+	args := []string{"comment", "submit-review", strconv.Itoa(prNumber),
 		"--event", event, "--body", body}
-	
+
 	expectedArgs := []string{"comment", "submit-review", "123", "--event", "REQUEST_CHANGES", "--body", "review body"}
 	assert.Equal(t, expectedArgs, args)
 }
@@ -175,9 +175,9 @@ func TestRunReviewSubmitArgs(t *testing.T) {
 func TestRunReplyReactionArgs(t *testing.T) {
 	commentID := "123456"
 	reaction := "+1"
-	
+
 	args := []string{"comment", "reply", "--comment-id", commentID, "--reaction", reaction}
-	
+
 	expectedArgs := []string{"comment", "reply", "--comment-id", "123456", "--reaction", "+1"}
 	assert.Equal(t, expectedArgs, args)
 }
@@ -185,18 +185,18 @@ func TestRunReplyReactionArgs(t *testing.T) {
 func TestRunReplyMessageArgs(t *testing.T) {
 	commentID := "123456"
 	message := "reply message"
-	
+
 	args := []string{"comment", "reply", "--comment-id", commentID, "--message", message}
-	
+
 	expectedArgs := []string{"comment", "reply", "--comment-id", "123456", "--message", "reply message"}
 	assert.Equal(t, expectedArgs, args)
 }
 
 func TestRunBatchCommandArgs(t *testing.T) {
 	configFile := "config.yaml"
-	
+
 	args := []string{"comment", "batch", configFile}
-	
+
 	expectedArgs := []string{"comment", "batch", "config.yaml"}
 	assert.Equal(t, expectedArgs, args)
 }

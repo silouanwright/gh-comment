@@ -25,27 +25,27 @@ func TestEdgeCasesAndCornerCases(t *testing.T) {
 
 	t.Run("formatTimeAgo edge cases", func(t *testing.T) {
 		now := time.Now()
-		
+
 		// Test just now
 		justNow := now.Add(-30 * time.Second)
 		result := formatTimeAgo(justNow)
 		assert.Equal(t, "just now", result)
-		
+
 		// Test exactly 1 minute
 		oneMinute := now.Add(-1 * time.Minute)
 		result = formatTimeAgo(oneMinute)
 		assert.Equal(t, "1 minute ago", result)
-		
+
 		// Test exactly 1 hour
 		oneHour := now.Add(-1 * time.Hour)
 		result = formatTimeAgo(oneHour)
 		assert.Equal(t, "1 hour ago", result)
-		
+
 		// Test exactly 1 day
 		oneDay := now.Add(-24 * time.Hour)
 		result = formatTimeAgo(oneDay)
 		assert.Equal(t, "1 day ago", result)
-		
+
 		// Test old date (more than 7 days)
 		oldDate := now.Add(-10 * 24 * time.Hour)
 		result = formatTimeAgo(oldDate)
@@ -57,12 +57,12 @@ func TestEdgeCasesAndCornerCases(t *testing.T) {
 		assert.NotPanics(t, func() {
 			displayDiffHunk("")
 		})
-		
+
 		// Test diff hunk with only whitespace
 		assert.NotPanics(t, func() {
 			displayDiffHunk("   \n   \n")
 		})
-		
+
 		// Test diff hunk with header lines
 		diffHunk := `@@ -1,4 +1,5 @@
  context line
@@ -77,32 +77,32 @@ func TestEdgeCasesAndCornerCases(t *testing.T) {
 	t.Run("matchesAuthorFilter edge cases", func(t *testing.T) {
 		// Test empty filter (should match all)
 		assert.True(t, matchesAuthorFilter("anyone", ""))
-		
+
 		// Test empty author
 		assert.False(t, matchesAuthorFilter("", "filter"))
-		
+
 		// Test both empty
 		assert.True(t, matchesAuthorFilter("", ""))
-		
+
 		// Test exact match
 		assert.True(t, matchesAuthorFilter("user", "user"))
-		
+
 		// Test wildcard at beginning
 		assert.True(t, matchesAuthorFilter("prefix-user", "*user"))
-		
+
 		// Test wildcard at end
 		assert.True(t, matchesAuthorFilter("user-suffix", "user*"))
-		
+
 		// Test wildcard in middle
 		assert.True(t, matchesAuthorFilter("pre-middle-suf", "pre*suf"))
-		
+
 		// Test case insensitive
 		assert.True(t, matchesAuthorFilter("User", "user"))
 		assert.True(t, matchesAuthorFilter("user", "User"))
-		
+
 		// Test no match
 		assert.False(t, matchesAuthorFilter("alice", "bob"))
-		
+
 		// Test invalid regex (shouldn't crash)
 		assert.NotPanics(t, func() {
 			matchesAuthorFilter("user", "invalid[regex")
@@ -134,7 +134,7 @@ func TestEdgeCasesAndCornerCases(t *testing.T) {
 			{"", false},
 			{"definitely not a date", false},
 		}
-		
+
 		for _, tc := range tests {
 			_, err := parseFlexibleDate(tc.input)
 			if tc.expected {
@@ -162,7 +162,7 @@ func TestEdgeCasesAndCornerCases(t *testing.T) {
 			{"", false},
 			{"2024-13-45", false}, // Invalid date
 		}
-		
+
 		for _, tc := range formats {
 			_, err := parseFlexibleDate(tc.input)
 			if tc.expected {
@@ -176,17 +176,17 @@ func TestEdgeCasesAndCornerCases(t *testing.T) {
 	t.Run("containsString edge cases", func(t *testing.T) {
 		// Test empty slice
 		assert.False(t, containsString([]string{}, "item"))
-		
+
 		// Test nil slice
 		assert.False(t, containsString(nil, "item"))
-		
+
 		// Test empty string
 		assert.True(t, containsString([]string{""}, ""))
 		assert.False(t, containsString([]string{"a", "b"}, ""))
-		
+
 		// Test duplicates
 		assert.True(t, containsString([]string{"a", "a", "b"}, "a"))
-		
+
 		// Test large slice
 		largeSlice := make([]string, 1000)
 		for i := range largeSlice {
@@ -197,37 +197,31 @@ func TestEdgeCasesAndCornerCases(t *testing.T) {
 	})
 
 	t.Run("getCurrentRepo edge cases", func(t *testing.T) {
-		// Test with repo already set
+		// Test with repo already set (no API call)
 		repo = "preset/repo"
 		result, err := getCurrentRepo()
 		assert.NoError(t, err)
 		assert.Equal(t, "preset/repo", result)
-		
-		// Test with empty repo (will try gh CLI)
-		repo = ""
-		_, err = getCurrentRepo()
-		// This will likely fail in test environment, but shouldn't panic
-		t.Logf("getCurrentRepo with empty repo: %v", err)
+
+		// Skip testing with empty repo to avoid real API calls
+		// This would be covered by integration tests
 	})
 
 	t.Run("getCurrentPR edge cases", func(t *testing.T) {
-		// Test with PR already set
+		// Test with PR already set (no API call)
 		prNumber = 123
 		result, err := getCurrentPR()
 		assert.NoError(t, err)
 		assert.Equal(t, 123, result)
-		
-		// Test with zero PR (will try gh CLI)
-		prNumber = 0
-		_, err = getCurrentPR()
-		// This will likely fail in test environment, but shouldn't panic
-		t.Logf("getCurrentPR with zero PR: %v", err)
-		
-		// Test with negative PR
+
+		// Test with negative PR (no API call)
 		prNumber = -1
 		result, err = getCurrentPR()
 		assert.NoError(t, err)
 		assert.Equal(t, -1, result)
+
+		// Skip testing with zero PR to avoid real API calls
+		// This would be covered by integration tests
 	})
 
 	t.Run("validateReaction edge cases", func(t *testing.T) {
@@ -236,7 +230,7 @@ func TestEdgeCasesAndCornerCases(t *testing.T) {
 		for _, reaction := range validReactions {
 			assert.True(t, validateReaction(reaction), "Should be valid: %s", reaction)
 		}
-		
+
 		// Test invalid reactions
 		invalidReactions := []string{"", "invalid", "thumbsup", "thumbsdown", "LAUGH", "+2", "smile"}
 		for _, reaction := range invalidReactions {
@@ -254,7 +248,7 @@ func TestGlobalVariableEdgeCases(t *testing.T) {
 		"dryRun":       dryRun,
 		"verbose":      verbose,
 	}
-	
+
 	defer func() {
 		repo = originalValues["repo"].(string)
 		prNumber = originalValues["prNumber"].(int)
@@ -264,7 +258,7 @@ func TestGlobalVariableEdgeCases(t *testing.T) {
 	}()
 
 	t.Run("global flag combinations", func(t *testing.T) {
-		// Test various flag combinations
+		// Test various flag combinations that don't hit APIs
 		combinations := []struct {
 			name         string
 			repo         string
@@ -273,16 +267,11 @@ func TestGlobalVariableEdgeCases(t *testing.T) {
 			dryRun       bool
 			verbose      bool
 		}{
-			{"all defaults", "", 0, true, false, false},
-			{"verbose only", "", 0, true, false, true},
-			{"dry run only", "", 0, true, true, false},
-			{"no validation", "", 0, false, false, false},
-			{"custom repo", "owner/repo", 0, true, false, false},
-			{"custom PR", "", 123, true, false, false},
-			{"all enabled", "owner/repo", 123, true, true, true},
-			{"all disabled", "", 0, false, false, false},
+			{"custom repo and PR", "owner/repo", 123, true, false, false},
+			{"all enabled with preset values", "owner/repo", 123, true, true, true},
+			{"preset values with dry run", "preset/repo", 456, false, true, false},
 		}
-		
+
 		for _, combo := range combinations {
 			t.Run(combo.name, func(t *testing.T) {
 				repo = combo.repo
@@ -290,13 +279,13 @@ func TestGlobalVariableEdgeCases(t *testing.T) {
 				validateDiff = combo.validateDiff
 				dryRun = combo.dryRun
 				verbose = combo.verbose
-				
-				// Test that these settings don't cause panics in basic operations
+
+				// Test that these settings don't cause panics (no API calls)
 				assert.NotPanics(t, func() {
-					getCurrentRepo()
+					getCurrentRepo() // Will return preset repo
 				})
 				assert.NotPanics(t, func() {
-					getCurrentPR()
+					getCurrentPR() // Will return preset PR number
 				})
 			})
 		}
@@ -306,7 +295,7 @@ func TestGlobalVariableEdgeCases(t *testing.T) {
 func TestMockClientEdgeCases(t *testing.T) {
 	t.Run("mock client with extreme configurations", func(t *testing.T) {
 		client := github.NewMockClient()
-		
+
 		// Test with all errors enabled
 		client.ListIssueCommentsError = errors.New("issue comments error")
 		client.ListReviewCommentsError = errors.New("review comments error")
@@ -314,28 +303,28 @@ func TestMockClientEdgeCases(t *testing.T) {
 		client.ResolveThreadError = errors.New("resolve thread error")
 		client.FindPendingReviewError = errors.New("find pending review error")
 		client.SubmitReviewError = errors.New("submit review error")
-		
+
 		// Test that all methods return appropriate errors
 		_, err := client.ListIssueComments("owner", "repo", 123)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "issue comments error")
-		
+
 		_, err = client.ListReviewComments("owner", "repo", 123)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "review comments error")
-		
+
 		_, err = client.CreateIssueComment("owner", "repo", 123, "test")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "create comment error")
-		
+
 		err = client.ResolveReviewThread("thread-id")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "resolve thread error")
-		
+
 		_, err = client.FindPendingReview("owner", "repo", 123)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "find pending review error")
-		
+
 		err = client.SubmitReview("owner", "repo", 123, 456, "body", "event")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "submit review error")

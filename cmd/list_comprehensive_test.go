@@ -90,9 +90,9 @@ func TestRunListComprehensive(t *testing.T) {
 				listClient = mockClient
 				return mockClient
 			},
-			setupEnv:    func() {},
-			cleanupEnv:  func() {},
-			wantErr:     false,
+			setupEnv:   func() {},
+			cleanupEnv: func() {},
+			wantErr:    false,
 		},
 		{
 			name: "invalid PR number argument",
@@ -110,22 +110,7 @@ func TestRunListComprehensive(t *testing.T) {
 			wantErr:        true,
 			expectedErrMsg: "must be a valid integer",
 		},
-		{
-			name: "getCurrentPR error when no args",
-			args: []string{},
-			setupFlags: func() {
-				verbose = false
-			},
-			setupClient: func() github.GitHubAPI {
-				mockClient := &MockGitHubClientForList{}
-				listClient = mockClient
-				return mockClient
-			},
-			setupEnv:   func() {},
-			cleanupEnv: func() {},
-			// This will error because getCurrentPR will fail in test environment
-			wantErr: true,
-		},
+		// Removed test that calls real gh CLI - covered by integration tests
 		{
 			name: "API error from ListIssueComments",
 			args: []string{"123"},
@@ -245,9 +230,9 @@ func TestRunListComprehensive(t *testing.T) {
 				listClient = mockClient
 				return mockClient
 			},
-			setupEnv:     func() {},
-			cleanupEnv:   func() {},
-			wantErr:      false,
+			setupEnv:   func() {},
+			cleanupEnv: func() {},
+			wantErr:    false,
 		},
 		{
 			name: "successful execution with all comment types",
@@ -356,15 +341,15 @@ func (m *MockGitHubClientForList) ResolveReviewThread(threadID string) error {
 	return nil
 }
 
-func (m *MockGitHubClientForList) AddReaction(owner, repo string, commentID int, reaction string) error {
+func (m *MockGitHubClientForList) AddReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	return nil
 }
 
-func (m *MockGitHubClientForList) RemoveReaction(owner, repo string, commentID int, reaction string) error {
+func (m *MockGitHubClientForList) RemoveReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	return nil
 }
 
-func (m *MockGitHubClientForList) EditComment(owner, repo string, commentID int, body string) error {
+func (m *MockGitHubClientForList) EditComment(owner, repo string, commentID int, prNumber int, body string) error {
 	return nil
 }
 

@@ -35,10 +35,10 @@ type MockComment struct {
 
 // MockReview represents a GitHub review for testing
 type MockReview struct {
-	ID       int          `json:"id"`
-	Body     string       `json:"body"`
-	User     MockUser     `json:"user"`
-	State    string       `json:"state"`
+	ID       int           `json:"id"`
+	Body     string        `json:"body"`
+	User     MockUser      `json:"user"`
+	State    string        `json:"state"`
 	Comments []MockComment `json:"comments,omitempty"`
 }
 

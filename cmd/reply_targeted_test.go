@@ -241,15 +241,15 @@ func (m *SimpleMockClient) ResolveReviewThread(threadID string) error {
 	return nil
 }
 
-func (m *SimpleMockClient) AddReaction(owner, repo string, commentID int, reaction string) error {
+func (m *SimpleMockClient) AddReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	return nil
 }
 
-func (m *SimpleMockClient) RemoveReaction(owner, repo string, commentID int, reaction string) error {
+func (m *SimpleMockClient) RemoveReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	return nil
 }
 
-func (m *SimpleMockClient) EditComment(owner, repo string, commentID int, body string) error {
+func (m *SimpleMockClient) EditComment(owner, repo string, commentID int, prNumber int, body string) error {
 	return nil
 }
 

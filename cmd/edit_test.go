@@ -74,6 +74,15 @@ func TestRunEditWithMockClient(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Save original state
+			originalPRNumber := prNumber
+			defer func() {
+				prNumber = originalPRNumber
+			}()
+
+			// Set up test state - set PR number to avoid API calls
+			prNumber = 123
+
 			// Reset global variables
 			editMessages = tt.setupMessages
 
@@ -105,10 +114,12 @@ func TestRunEditDryRun(t *testing.T) {
 	// Save original values
 	originalClient := editClient
 	originalRepo := repo
+	originalPRNumber := prNumber
 	originalDryRun := dryRun
 	defer func() {
 		editClient = originalClient
 		repo = originalRepo
+		prNumber = originalPRNumber
 		dryRun = originalDryRun
 	}()
 
@@ -116,6 +127,7 @@ func TestRunEditDryRun(t *testing.T) {
 	mockClient := github.NewMockClient()
 	editClient = mockClient
 	repo = "owner/repo"
+	prNumber = 123
 	dryRun = true
 
 	err := runEdit(nil, []string{"123456", "Test message"})
@@ -126,10 +138,12 @@ func TestRunEditVerbose(t *testing.T) {
 	// Save original values
 	originalClient := editClient
 	originalRepo := repo
+	originalPRNumber := prNumber
 	originalVerbose := verbose
 	defer func() {
 		editClient = originalClient
 		repo = originalRepo
+		prNumber = originalPRNumber
 		verbose = originalVerbose
 	}()
 
@@ -137,6 +151,7 @@ func TestRunEditVerbose(t *testing.T) {
 	mockClient := github.NewMockClient()
 	editClient = mockClient
 	repo = "owner/repo"
+	prNumber = 123
 	verbose = true
 
 	err := runEdit(nil, []string{"123456", "Test message"})
@@ -159,11 +174,11 @@ func TestEditMessageHandling(t *testing.T) {
 	repo = "owner/repo"
 
 	tests := []struct {
-		name              string
-		args              []string
-		setupMessages     []string
-		expectedMessage   string
-		shouldCallEdit    bool
+		name            string
+		args            []string
+		setupMessages   []string
+		expectedMessage string
+		shouldCallEdit  bool
 	}{
 		{
 			name:            "single line positional",
@@ -202,6 +217,15 @@ func TestEditMessageHandling(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Save original state
+			originalPRNumber := prNumber
+			defer func() {
+				prNumber = originalPRNumber
+			}()
+
+			// Set up test state - set PR number to avoid API calls
+			prNumber = 123
+
 			// Reset messages
 			editMessages = tt.setupMessages
 
@@ -219,13 +243,16 @@ func TestEditRepositoryParsing(t *testing.T) {
 	// Save original values
 	originalClient := editClient
 	originalRepo := repo
+	originalPRNumber := prNumber
 	defer func() {
 		editClient = originalClient
 		repo = originalRepo
+		prNumber = originalPRNumber
 	}()
 
 	mockClient := github.NewMockClient()
 	editClient = mockClient
+	prNumber = 123
 
 	tests := []struct {
 		name           string

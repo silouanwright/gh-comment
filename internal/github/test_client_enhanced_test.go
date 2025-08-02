@@ -78,7 +78,7 @@ func TestTestClientSuccessfulResponses(t *testing.T) {
 	// Create a mock server that returns successful responses
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		
+
 		switch r.URL.Path {
 		case "/repos/owner/repo/issues/123/comments":
 			if r.Method == "GET" {
@@ -265,12 +265,12 @@ func TestTestClientRequestBodyMarshaling(t *testing.T) {
 	// Test that complex request bodies are properly marshaled
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		
+
 		// For POST requests, verify the body was properly marshaled
 		if r.Method == "POST" {
 			var requestBody map[string]interface{}
 			json.NewDecoder(r.Body).Decode(&requestBody)
-			
+
 			// Echo back the request for verification with proper status
 			w.WriteHeader(http.StatusCreated)
 			json.NewEncoder(w).Encode(requestBody)
@@ -296,7 +296,7 @@ func TestTestClientRequestBodyMarshaling(t *testing.T) {
 					Line: 10,
 				},
 				{
-					Body: "Comment 2", 
+					Body: "Comment 2",
 					Path: "file2.go",
 					Line: 20,
 				},

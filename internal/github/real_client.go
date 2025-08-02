@@ -127,11 +127,39 @@ func (c *RealClient) CreateReviewCommentReply(owner, repo string, commentID int,
 		return nil, fmt.Errorf("reply body cannot be empty")
 	}
 
-	// For review comments, we need to get the PR number first
-	// This is a simplified version - in production, you'd want to cache or pass this info
-	endpoint := fmt.Sprintf("repos/%s/%s/pulls/comments/%d/replies", owner, repo, commentID)
+	// First, get the original comment to find PR number, path, and commit
+	originalEndpoint := fmt.Sprintf("repos/%s/%s/pulls/comments/%d", owner, repo, commentID)
+	var originalComment struct {
+		PullRequestURL string `json:"pull_request_url"`
+		Path           string `json:"path"`
+		CommitID       string `json:"commit_id"`
+		Line           int    `json:"line"`
+	}
 
-	payload := map[string]string{"body": body}
+	err := c.restClient.Get(originalEndpoint, &originalComment)
+	if err != nil {
+		return nil, c.wrapAPIError(err, "get original comment #%d in %s/%s", commentID, owner, repo)
+	}
+
+	// Extract PR number from pull_request_url
+	// URL format: https://api.github.com/repos/owner/repo/pulls/123
+	urlParts := strings.Split(originalComment.PullRequestURL, "/")
+	if len(urlParts) < 1 {
+		return nil, fmt.Errorf("invalid pull request URL format: %s", originalComment.PullRequestURL)
+	}
+	prNumber := urlParts[len(urlParts)-1]
+
+	// Create a new review comment as a reply (with in_reply_to_id)
+	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%s/comments", owner, repo, prNumber)
+
+	payload := map[string]interface{}{
+		"body":           body,
+		"path":           originalComment.Path,
+		"line":           originalComment.Line,
+		"commit_id":      originalComment.CommitID,
+		"in_reply_to_id": commentID,
+	}
+
 	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal reply payload: %w", err)
@@ -140,7 +168,9 @@ func (c *RealClient) CreateReviewCommentReply(owner, repo string, commentID int,
 	var comment Comment
 	err = c.restClient.Post(endpoint, bytes.NewReader(bodyBytes), &comment)
 	if err != nil {
-		return nil, c.wrapAPIError(err, "create reply to comment #%d in %s/%s", commentID, owner, repo)
+		// Provide intelligent error analysis
+		enhancedErr := AnalyzeAndEnhanceError(err, "reply", commentID)
+		return nil, enhancedErr
 	}
 
 	comment.Type = "review"
@@ -246,18 +276,37 @@ func (c *RealClient) ResolveReviewThread(threadID string) error {
 // Additional methods for other operations can be added here as needed...
 
 // AddReaction adds a reaction to a comment
-func (c *RealClient) AddReaction(owner, repo string, commentID int, reaction string) error {
+func (c *RealClient) AddReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	if err := validateRepoParams(owner, repo); err != nil {
 		return err
 	}
 	if commentID <= 0 {
 		return fmt.Errorf("invalid comment ID %d: must be positive", commentID)
 	}
+	if prNumber <= 0 {
+		return fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+	}
 	if !isValidReaction(reaction) {
 		return fmt.Errorf("invalid reaction '%s': must be one of +1, -1, laugh, hooray, confused, heart, rocket, eyes", reaction)
 	}
 
-	endpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions", owner, repo, commentID)
+	// Detect comment type first to use the correct endpoint
+	commentInfo, err := c.DetectCommentType(owner, repo, commentID, prNumber)
+	if err != nil {
+		return CreateSmartError(c, "add_reaction", "reply", commentID, prNumber, err)
+	}
+
+	if !commentInfo.Found {
+		return CreateSmartError(c, "add_reaction", "reply", commentID, prNumber, fmt.Errorf("comment #%d not found", commentID))
+	}
+
+	// Use the correct endpoint based on detected comment type
+	var endpoint string
+	if commentInfo.Type == "review" {
+		endpoint = fmt.Sprintf("repos/%s/%s/pulls/comments/%d/reactions", owner, repo, commentID)
+	} else {
+		endpoint = fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions", owner, repo, commentID)
+	}
 
 	payload := map[string]string{"content": reaction}
 	body, err := json.Marshal(payload)
@@ -267,36 +316,55 @@ func (c *RealClient) AddReaction(owner, repo string, commentID int, reaction str
 
 	err = c.restClient.Post(endpoint, bytes.NewReader(body), nil)
 	if err != nil {
-		return c.wrapAPIError(err, "add '%s' reaction to comment #%d in %s/%s", reaction, commentID, owner, repo)
+		return CreateSmartError(c, "add_reaction", "reply", commentID, prNumber, err)
 	}
 
 	return nil
 }
 
 // RemoveReaction removes a reaction from a comment
-func (c *RealClient) RemoveReaction(owner, repo string, commentID int, reaction string) error {
+func (c *RealClient) RemoveReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	if err := validateRepoParams(owner, repo); err != nil {
 		return err
 	}
 	if commentID <= 0 {
 		return fmt.Errorf("invalid comment ID %d: must be positive", commentID)
 	}
+	if prNumber <= 0 {
+		return fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+	}
 	if !isValidReaction(reaction) {
 		return fmt.Errorf("invalid reaction '%s': must be one of +1, -1, laugh, hooray, confused, heart, rocket, eyes", reaction)
 	}
 
-	// First, get reactions to find the ID to delete
-	endpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions", owner, repo, commentID)
+	// Detect comment type first to use the correct endpoint
+	commentInfo, err := c.DetectCommentType(owner, repo, commentID, prNumber)
+	if err != nil {
+		return CreateSmartError(c, "remove_reaction", "reply", commentID, prNumber, err)
+	}
 
+	if !commentInfo.Found {
+		return CreateSmartError(c, "remove_reaction", "reply", commentID, prNumber, fmt.Errorf("comment #%d not found", commentID))
+	}
+
+	// Use the correct endpoint based on detected comment type
+	var endpoint string
+	if commentInfo.Type == "review" {
+		endpoint = fmt.Sprintf("repos/%s/%s/pulls/comments/%d/reactions", owner, repo, commentID)
+	} else {
+		endpoint = fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions", owner, repo, commentID)
+	}
+
+	// Get reactions to find the ID to delete
 	var reactions []struct {
 		ID      int    `json:"id"`
 		Content string `json:"content"`
 		User    User   `json:"user"`
 	}
 
-	err := c.restClient.Get(endpoint, &reactions)
+	err = c.restClient.Get(endpoint, &reactions)
 	if err != nil {
-		return c.wrapAPIError(err, "fetch reactions for comment #%d in %s/%s", commentID, owner, repo)
+		return CreateSmartError(c, "remove_reaction", "reply", commentID, prNumber, err)
 	}
 
 	// Find current user's reaction
@@ -311,10 +379,17 @@ func (c *RealClient) RemoveReaction(owner, repo string, commentID int, reaction 
 	// Find and delete the reaction
 	for _, r := range reactions {
 		if r.Content == reaction && r.User.Login == currentUser.Login {
-			deleteEndpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions/%d", owner, repo, commentID, r.ID)
+			// Use the correct delete endpoint based on comment type
+			var deleteEndpoint string
+			if commentInfo.Type == "review" {
+				deleteEndpoint = fmt.Sprintf("repos/%s/%s/pulls/comments/%d/reactions/%d", owner, repo, commentID, r.ID)
+			} else {
+				deleteEndpoint = fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions/%d", owner, repo, commentID, r.ID)
+			}
+
 			err = c.restClient.Delete(deleteEndpoint, nil)
 			if err != nil {
-				return c.wrapAPIError(err, "remove '%s' reaction from comment #%d in %s/%s", reaction, commentID, owner, repo)
+				return CreateSmartError(c, "remove_reaction", "reply", commentID, prNumber, err)
 			}
 			return nil
 		}
@@ -324,18 +399,37 @@ func (c *RealClient) RemoveReaction(owner, repo string, commentID int, reaction 
 }
 
 // EditComment edits an existing comment
-func (c *RealClient) EditComment(owner, repo string, commentID int, body string) error {
+func (c *RealClient) EditComment(owner, repo string, commentID int, prNumber int, body string) error {
 	if err := validateRepoParams(owner, repo); err != nil {
 		return err
 	}
 	if commentID <= 0 {
 		return fmt.Errorf("invalid comment ID %d: must be positive", commentID)
 	}
+	if prNumber <= 0 {
+		return fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+	}
 	if strings.TrimSpace(body) == "" {
 		return fmt.Errorf("comment body cannot be empty")
 	}
 
-	endpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d", owner, repo, commentID)
+	// Detect comment type first to use the correct endpoint
+	commentInfo, err := c.DetectCommentType(owner, repo, commentID, prNumber)
+	if err != nil {
+		return CreateSmartError(c, "edit", "edit", commentID, prNumber, err)
+	}
+
+	if !commentInfo.Found {
+		return CreateSmartError(c, "edit", "edit", commentID, prNumber, fmt.Errorf("comment #%d not found", commentID))
+	}
+
+	// Use the correct endpoint based on detected comment type
+	var endpoint string
+	if commentInfo.Type == "review" {
+		endpoint = fmt.Sprintf("repos/%s/%s/pulls/comments/%d", owner, repo, commentID)
+	} else {
+		endpoint = fmt.Sprintf("repos/%s/%s/issues/comments/%d", owner, repo, commentID)
+	}
 
 	payload := map[string]string{"body": body}
 	bodyBytes, err := json.Marshal(payload)
@@ -345,7 +439,7 @@ func (c *RealClient) EditComment(owner, repo string, commentID int, body string)
 
 	err = c.restClient.Patch(endpoint, bytes.NewReader(bodyBytes), nil)
 	if err != nil {
-		return c.wrapAPIError(err, "edit comment #%d in %s/%s", commentID, owner, repo)
+		return CreateSmartError(c, "edit", "edit", commentID, prNumber, err)
 	}
 
 	return nil
@@ -468,14 +562,14 @@ func (c *RealClient) checkRateLimit() {
 // isValidReaction checks if the reaction is valid for GitHub API
 func isValidReaction(reaction string) bool {
 	validReactions := map[string]bool{
-		"+1":      true,
-		"-1":      true,
-		"laugh":   true,
-		"hooray":  true,
+		"+1":       true,
+		"-1":       true,
+		"laugh":    true,
+		"hooray":   true,
 		"confused": true,
-		"heart":   true,
-		"rocket":  true,
-		"eyes":    true,
+		"heart":    true,
+		"rocket":   true,
+		"eyes":     true,
 	}
 	return validReactions[reaction]
 }
@@ -558,6 +652,36 @@ func (c *RealClient) CreateReview(owner, repo string, pr int, review ReviewInput
 		return fmt.Errorf("invalid review event '%s': must be APPROVE, REQUEST_CHANGES, or COMMENT", review.Event)
 	}
 
+	// If there are comments, we need to set commit_id for each one
+	if len(review.Comments) > 0 {
+		// Try to get commit ID from existing review comments first (more efficient)
+		commitID, err := c.getCommitIDFromExistingComments(owner, repo, pr)
+		if err != nil || commitID == "" {
+			// Fallback to fetching PR details for latest commit SHA
+			prDetails, err := c.GetPRDetails(owner, repo, pr)
+			if err != nil {
+				return fmt.Errorf("failed to get PR details for commit ID: %w", err)
+			}
+
+			// Extract the latest commit SHA
+			head, ok := prDetails["head"].(map[string]interface{})
+			if !ok {
+				return fmt.Errorf("invalid PR details: missing head information")
+			}
+
+			latestCommitSHA, ok := head["sha"].(string)
+			if !ok {
+				return fmt.Errorf("invalid PR details: missing commit SHA")
+			}
+			commitID = latestCommitSHA
+		}
+
+		// Add commit_id to each comment
+		for i := range review.Comments {
+			review.Comments[i].CommitID = commitID
+		}
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/reviews", owner, repo, pr)
 
 	body, err := json.Marshal(review)
@@ -567,7 +691,9 @@ func (c *RealClient) CreateReview(owner, repo string, pr int, review ReviewInput
 
 	err = c.restClient.Post(endpoint, bytes.NewReader(body), nil)
 	if err != nil {
-		return c.wrapAPIError(err, "create review on PR #%d in %s/%s", pr, owner, repo)
+		// Provide intelligent error analysis
+		enhancedErr := AnalyzeAndEnhanceError(err, "review", pr)
+		return enhancedErr
 	}
 
 	return nil
@@ -656,4 +782,27 @@ func (c *RealClient) SubmitReview(owner, repo string, pr, reviewID int, body, ev
 	}
 
 	return nil
+}
+
+// getCommitIDFromExistingComments tries to get a commit ID from existing review comments
+// This is more efficient than fetching PR details since we might already have review comments
+func (c *RealClient) getCommitIDFromExistingComments(owner, repo string, pr int) (string, error) {
+	// Get existing review comments
+	comments, err := c.ListReviewComments(owner, repo, pr)
+	if err != nil {
+		return "", err
+	}
+
+	// If we have any review comments, use the commit ID from the most recent one
+	// This assumes that the most recent comment is likely on the latest commit
+	if len(comments) > 0 {
+		// Find the most recent comment with a commit ID
+		for i := len(comments) - 1; i >= 0; i-- {
+			if comments[i].CommitID != "" {
+				return comments[i].CommitID, nil
+			}
+		}
+	}
+
+	return "", nil // No commit ID found
 }

@@ -251,23 +251,7 @@ func TestHelperFunctions(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "getCurrentPR with no environment",
-			function: func() error {
-				// Temporarily unset environment
-				original := os.Getenv("GH_PR")
-				os.Unsetenv("GH_PR")
-				defer func() {
-					if original != "" {
-						os.Setenv("GH_PR", original)
-					}
-				}()
-
-				_, err := getCurrentPR()
-				return err
-			},
-			wantErr: true,
-		},
+		// Removed test that calls real gh CLI - covered by integration tests
 	}
 
 	for _, tt := range tests {
@@ -330,13 +314,5 @@ func TestPRContext(t *testing.T) {
 		}
 	})
 
-	t.Run("missing PR", func(t *testing.T) {
-		// Set repo but clear PR to simulate missing PR flag
-		repo = "owner/repo"
-		prNumber = 0
-
-		_, _, err := getPRContext()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "PR")
-	})
+	// Removed test that calls real gh CLI - covered by integration tests
 }

@@ -257,7 +257,7 @@ func (m *MockReplyClient) FindReviewThreadForComment(owner, repo string, prNumbe
 	return m.findReviewThreadResult, nil
 }
 
-func (m *MockReplyClient) AddReaction(owner, repo string, commentID int, reaction string) error {
+func (m *MockReplyClient) AddReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	m.calls = append(m.calls, "AddReaction")
 	if m.shouldError {
 		return fmt.Errorf("mock error")
@@ -265,7 +265,7 @@ func (m *MockReplyClient) AddReaction(owner, repo string, commentID int, reactio
 	return nil
 }
 
-func (m *MockReplyClient) RemoveReaction(owner, repo string, commentID int, reaction string) error {
+func (m *MockReplyClient) RemoveReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	m.calls = append(m.calls, "RemoveReaction")
 	if m.shouldError {
 		return fmt.Errorf("mock error")
@@ -355,7 +355,7 @@ func runReplyWithMock(cmd *cobra.Command, args []string, mockClient *MockReplyCl
 
 	// Add reaction if specified
 	if reaction != "" {
-		err = mockClient.AddReaction("owner", "repo", commentID, reaction)
+		err = mockClient.AddReaction("owner", "repo", commentID, pr, reaction)
 		if err != nil {
 			return fmt.Errorf("failed to add reaction: %w", err)
 		}
@@ -363,7 +363,7 @@ func runReplyWithMock(cmd *cobra.Command, args []string, mockClient *MockReplyCl
 
 	// Remove reaction if specified
 	if removeReaction != "" {
-		err = mockClient.RemoveReaction("owner", "repo", commentID, removeReaction)
+		err = mockClient.RemoveReaction("owner", "repo", commentID, pr, removeReaction)
 		if err != nil {
 			return fmt.Errorf("failed to remove reaction: %w", err)
 		}

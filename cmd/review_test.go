@@ -556,15 +556,15 @@ func TestReviewWithClientInitialization(t *testing.T) {
 	reviewEventFlag = "APPROVE"
 	reviewCommentsFlag = []string{"src/main.go:1:Good"}
 
-	// This test verifies that when reviewClient is nil, 
+	// This test verifies that when reviewClient is nil,
 	// a RealClient is initialized in production
 	// Since we can't easily test the RealClient without external dependencies,
 	// we'll test that the initialization happens by setting up a mock afterwards
-	
+
 	// First verify the client gets initialized
 	mockClient := github.NewMockClient()
 	reviewClient = mockClient
-	
+
 	err := runReview(nil, []string{"123", "Review body"})
 	assert.NoError(t, err)
 }

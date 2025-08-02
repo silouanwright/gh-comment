@@ -25,14 +25,14 @@ func TestRunAddReviewWithMockClient(t *testing.T) {
 	prNumber = 123
 
 	tests := []struct {
-		name            string
-		args            []string
-		setupComments   []string
-		setupBody       string
-		setupEvent      string
-		wantErr         bool
-		expectedErrMsg  string
-		resetGlobals    bool
+		name           string
+		args           []string
+		setupComments  []string
+		setupBody      string
+		setupEvent     string
+		wantErr        bool
+		expectedErrMsg string
+		resetGlobals   bool
 	}{
 		{
 			name:          "create review with PR and body specified",
@@ -79,8 +79,8 @@ func TestRunAddReviewWithMockClient(t *testing.T) {
 			wantErr:       false,
 		},
 		{
-			name:          "create review with multiple comments",
-			args:          []string{"123", "Multi-comment review"},
+			name: "create review with multiple comments",
+			args: []string{"123", "Multi-comment review"},
 			setupComments: []string{
 				"main.go:42:Single line comment",
 				"test.go:10:15:Range comment",
@@ -159,15 +159,15 @@ func TestParseCommentSpec(t *testing.T) {
 	commitSHA := "abc123def456"
 
 	tests := []struct {
-		name           string
-		spec           string
-		wantPath       string
-		wantLine       int
-		wantStartLine  int
-		wantSide       string
-		wantBody       string
-		wantErr        bool
-		expectedErr    string
+		name          string
+		spec          string
+		wantPath      string
+		wantLine      int
+		wantStartLine int
+		wantSide      string
+		wantBody      string
+		wantErr       bool
+		expectedErr   string
 	}{
 		{
 			name:     "single line comment",
@@ -214,12 +214,12 @@ func TestParseCommentSpec(t *testing.T) {
 			expectedErr: "invalid line number", // Will parse as single line and fail
 		},
 		{
-			name:        "invalid end line in range",
-			spec:        "main.go:10:invalid:message",
-			wantErr:     false, // Will parse as single line with "invalid:message" as body
-			wantPath:    "main.go",
-			wantLine:    10,
-			wantBody:    "invalid:message",
+			name:     "invalid end line in range",
+			spec:     "main.go:10:invalid:message",
+			wantErr:  false, // Will parse as single line with "invalid:message" as body
+			wantPath: "main.go",
+			wantLine: 10,
+			wantBody: "invalid:message",
 		},
 		{
 			name:        "start line greater than end line",
@@ -323,12 +323,12 @@ func TestCreateReviewWithComments(t *testing.T) {
 			wantErr:      false,
 		},
 		{
-			name:         "create review with multiple comments",
-			owner:        "owner",
-			repo:         "repo",
-			pr:           123,
-			body:         "Mixed feedback",
-			event:        "COMMENT",
+			name:  "create review with multiple comments",
+			owner: "owner",
+			repo:  "repo",
+			pr:    123,
+			body:  "Mixed feedback",
+			event: "COMMENT",
 			commentSpecs: []string{
 				"main.go:42:Good",
 				"test.go:10:15:Range comment",

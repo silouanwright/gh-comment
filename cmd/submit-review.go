@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	submitEvent   string
-	submitBody    string
-	submitClient  github.GitHubAPI
+	submitEvent  string
+	submitBody   string
+	submitClient github.GitHubAPI
 )
 
 var submitReviewCmd = &cobra.Command{
@@ -54,7 +54,11 @@ func init() {
 func runSubmitReview(cmd *cobra.Command, args []string) error {
 	// Initialize client if not set (production use)
 	if submitClient == nil {
-		submitClient = &github.RealClient{}
+		client, err := createGitHubClient()
+		if err != nil {
+			return fmt.Errorf("failed to create GitHub client: %w", err)
+		}
+		submitClient = client
 	}
 
 	var pr int

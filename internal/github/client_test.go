@@ -138,21 +138,21 @@ func TestMockClientResolveReviewThreadError(t *testing.T) {
 func TestMockClientAddReaction(t *testing.T) {
 	client := NewMockClient()
 
-	err := client.AddReaction("owner", "repo", 123456, "+1")
+	err := client.AddReaction("owner", "repo", 123456, 123, "+1")
 	assert.NoError(t, err)
 }
 
 func TestMockClientRemoveReaction(t *testing.T) {
 	client := NewMockClient()
 
-	err := client.RemoveReaction("owner", "repo", 123456, "+1")
+	err := client.RemoveReaction("owner", "repo", 123456, 123, "+1")
 	assert.NoError(t, err)
 }
 
 func TestMockClientEditComment(t *testing.T) {
 	client := NewMockClient()
 
-	err := client.EditComment("owner", "repo", 123456, "Updated comment")
+	err := client.EditComment("owner", "repo", 123456, 123, "Updated comment")
 	assert.NoError(t, err)
 }
 
@@ -212,13 +212,13 @@ func TestMockClientCreateReview(t *testing.T) {
 
 func TestMockClientFindPendingReview(t *testing.T) {
 	client := NewMockClient()
-	
+
 	// Test successful case
 	client.PendingReviewID = 456
 	reviewID, err := client.FindPendingReview("owner", "repo", 123)
 	assert.NoError(t, err)
 	assert.Equal(t, 456, reviewID)
-	
+
 	// Test error case
 	client.FindPendingReviewError = assert.AnError
 	reviewID, err = client.FindPendingReview("owner", "repo", 123)
@@ -228,12 +228,12 @@ func TestMockClientFindPendingReview(t *testing.T) {
 
 func TestMockClientSubmitReview(t *testing.T) {
 	client := NewMockClient()
-	
+
 	// Test successful case
 	err := client.SubmitReview("owner", "repo", 123, 456, "LGTM", "APPROVE")
 	assert.NoError(t, err)
 	assert.Equal(t, 456, client.SubmittedReviewID)
-	
+
 	// Test error case
 	client.SubmitReviewError = assert.AnError
 	err = client.SubmitReview("owner", "repo", 123, 789, "LGTM", "APPROVE")

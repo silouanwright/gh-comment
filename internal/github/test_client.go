@@ -237,15 +237,15 @@ func (c *TestClient) ResolveReviewThread(threadID string) error {
 	return fmt.Errorf("not implemented in test client")
 }
 
-func (c *TestClient) AddReaction(owner, repo string, commentID int, reaction string) error {
+func (c *TestClient) AddReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	return fmt.Errorf("not implemented in test client")
 }
 
-func (c *TestClient) RemoveReaction(owner, repo string, commentID int, reaction string) error {
+func (c *TestClient) RemoveReaction(owner, repo string, commentID int, prNumber int, reaction string) error {
 	return fmt.Errorf("not implemented in test client")
 }
 
-func (c *TestClient) EditComment(owner, repo string, commentID int, body string) error {
+func (c *TestClient) EditComment(owner, repo string, commentID int, prNumber int, body string) error {
 	return fmt.Errorf("not implemented in test client")
 }
 

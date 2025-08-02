@@ -214,10 +214,10 @@ func TestAdvancedFiltering(t *testing.T) {
 		}
 
 		tests := []struct {
-			name           string
-			setupFunc      func()
-			expectedCount  int
-			expectedIDs    []int
+			name          string
+			setupFunc     func()
+			expectedCount int
+			expectedIDs   []int
 		}{
 			{
 				name: "No filters - all comments",
@@ -259,7 +259,7 @@ func TestAdvancedFiltering(t *testing.T) {
 				setupFunc: func() {
 					resetListFlags()
 					since = baseTime.AddDate(0, 0, -3).Format("2006-01-02") // 3 days ago
-					validateAndParseFilters() // Parse the date
+					validateAndParseFilters()                               // Parse the date
 				},
 				expectedCount: 2,
 				expectedIDs:   []int{2, 3}, // Comments from 2 days ago and 1 day ago
@@ -269,7 +269,7 @@ func TestAdvancedFiltering(t *testing.T) {
 				setupFunc: func() {
 					resetListFlags()
 					until = baseTime.AddDate(0, 0, -3).Format("2006-01-02") // 3 days ago
-					validateAndParseFilters() // Parse the date
+					validateAndParseFilters()                               // Parse the date
 				},
 				expectedCount: 1,
 				expectedIDs:   []int{1}, // Comment from 5 days ago
@@ -289,10 +289,10 @@ func TestAdvancedFiltering(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				tt.setupFunc()
-				
+
 				filtered := filterComments(testComments)
 				assert.Equal(t, tt.expectedCount, len(filtered), "Expected %d comments, got %d", tt.expectedCount, len(filtered))
-				
+
 				// Check that the right comments were returned
 				for i, expectedID := range tt.expectedIDs {
 					if i < len(filtered) {
@@ -349,7 +349,7 @@ func TestAdvancedFiltering(t *testing.T) {
 
 func TestContainsHelper(t *testing.T) {
 	slice := []string{"apple", "banana", "cherry"}
-	
+
 	assert.True(t, containsString(slice, "banana"))
 	assert.False(t, containsString(slice, "orange"))
 	assert.False(t, containsString([]string{}, "anything"))
