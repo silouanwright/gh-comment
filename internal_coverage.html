@@ -1,0 +1,1283 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>github: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+
+				<option value="file0">github.com/silouanwright/gh-comment/internal/github/client.go (78.9%)</option>
+
+				<option value="file1">github.com/silouanwright/gh-comment/internal/github/real_client.go (42.8%)</option>
+
+				<option value="file2">github.com/silouanwright/gh-comment/internal/github/test_client.go (54.0%)</option>
+
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+
+			</div>
+		</div>
+		<div id="content">
+
+		<pre class="file" id="file0" style="display: none">package github
+
+import (
+        "time"
+)
+
+// GitHubAPI defines the interface for GitHub API operations
+type GitHubAPI interface {
+        // Comment operations
+        ListIssueComments(owner, repo string, prNumber int) ([]Comment, error)
+        ListReviewComments(owner, repo string, prNumber int) ([]Comment, error)
+        CreateIssueComment(owner, repo string, prNumber int, body string) (*Comment, error)
+        CreateReviewCommentReply(owner, repo string, commentID int, body string) (*Comment, error)
+
+        // Reaction operations
+        AddReaction(owner, repo string, commentID int, reaction string) error
+        RemoveReaction(owner, repo string, commentID int, reaction string) error
+
+        // Comment operations
+        EditComment(owner, repo string, commentID int, body string) error
+        AddReviewComment(owner, repo string, pr int, comment ReviewCommentInput) error
+
+        // PR operations
+        FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, error)
+        GetPRDetails(owner, repo string, pr int) (map[string]interface{}, error)
+
+        // Review operations
+        CreateReview(owner, repo string, pr int, review ReviewInput) error
+        FindPendingReview(owner, repo string, pr int) (int, error)
+        SubmitReview(owner, repo string, pr, reviewID int, body, event string) error
+
+        // GraphQL operations
+        ResolveReviewThread(threadID string) error
+        FindReviewThreadForComment(owner, repo string, prNumber, commentID int) (string, error)
+}
+
+// Comment represents a GitHub comment (issue or review)
+type Comment struct {
+        ID        int       `json:"id"`
+        Body      string    `json:"body"`
+        User      User      `json:"user"`
+        CreatedAt time.Time `json:"created_at"`
+        UpdatedAt time.Time `json:"updated_at"`
+
+        // Review comment specific fields
+        Path     string `json:"path,omitempty"`
+        Line     int    `json:"line,omitempty"`
+        Position int    `json:"position,omitempty"`
+
+        // Computed fields
+        Type string `json:"-"` // "issue" or "review"
+}
+
+// User represents a GitHub user
+type User struct {
+        Login     string `json:"login"`
+        ID        int    `json:"id"`
+        AvatarURL string `json:"avatar_url"`
+}
+
+// ReviewCommentInput represents input for creating a review comment
+type ReviewCommentInput struct {
+        Body      string `json:"body"`
+        Path      string `json:"path"`
+        Line      int    `json:"line,omitempty"`
+        StartLine int    `json:"start_line,omitempty"`
+        Side      string `json:"side,omitempty"`
+        CommitID  string `json:"commit_id"`
+}
+
+// ReviewInput represents input for creating a review
+type ReviewInput struct {
+        Body     string               `json:"body,omitempty"`
+        Event    string               `json:"event"`
+        Comments []ReviewCommentInput `json:"comments,omitempty"`
+}
+
+// PullRequestDiff represents PR diff information
+type PullRequestDiff struct {
+        Files []DiffFile
+}
+
+// DiffFile represents a file in a PR diff
+type DiffFile struct {
+        Filename string
+        Lines    map[int]bool // line numbers that exist in the diff
+}
+
+// MockClient implements GitHubAPI for testing
+type MockClient struct {
+        IssueComments  []Comment
+        ReviewComments []Comment
+        CreatedComment *Comment
+        ResolvedThread string
+        PendingReviewID int
+        SubmittedReviewID int
+
+        // Error simulation
+        ListIssueCommentsError    error
+        ListReviewCommentsError   error
+        CreateCommentError        error
+        ResolveThreadError        error
+        FindReviewThreadError     error
+        FindPendingReviewError    error
+        SubmitReviewError         error
+}
+
+// NewMockClient creates a new mock client for testing
+func NewMockClient() *MockClient <span class="cov8" title="1">{
+        return &amp;MockClient{
+                IssueComments: []Comment{
+                        {
+                                ID:        123456,
+                                Body:      "LGTM! Great work on this PR.",
+                                Type:      "issue",
+                                User:      User{Login: "reviewer1"},
+                                CreatedAt: time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC),
+                        },
+                },
+                ReviewComments: []Comment{
+                        {
+                                ID:        654321,
+                                Body:      "Consider using a more descriptive variable name here.",
+                                Type:      "review",
+                                User:      User{Login: "reviewer2"},
+                                CreatedAt: time.Date(2024, 1, 1, 13, 0, 0, 0, time.UTC),
+                                Path:      "main.go",
+                                Line:      42,
+                        },
+                },
+                PendingReviewID: 987654, // Mock pending review ID
+        }
+}</span>
+
+// Mock implementations
+func (m *MockClient) ListIssueComments(owner, repo string, prNumber int) ([]Comment, error) <span class="cov8" title="1">{
+        if m.ListIssueCommentsError != nil </span><span class="cov8" title="1">{
+                return nil, m.ListIssueCommentsError
+        }</span>
+        <span class="cov8" title="1">return m.IssueComments, nil</span>
+}
+
+func (m *MockClient) ListReviewComments(owner, repo string, prNumber int) ([]Comment, error) <span class="cov8" title="1">{
+        if m.ListReviewCommentsError != nil </span><span class="cov8" title="1">{
+                return nil, m.ListReviewCommentsError
+        }</span>
+        <span class="cov8" title="1">return m.ReviewComments, nil</span>
+}
+
+func (m *MockClient) CreateIssueComment(owner, repo string, prNumber int, body string) (*Comment, error) <span class="cov8" title="1">{
+        if m.CreateCommentError != nil </span><span class="cov8" title="1">{
+                return nil, m.CreateCommentError
+        }</span>
+
+        <span class="cov8" title="1">comment := &amp;Comment{
+                ID:        789012,
+                Body:      body,
+                Type:      "issue",
+                User:      User{Login: "testuser"},
+                CreatedAt: time.Now(),
+        }
+        m.CreatedComment = comment
+        return comment, nil</span>
+}
+
+func (m *MockClient) CreateReviewCommentReply(owner, repo string, commentID int, body string) (*Comment, error) <span class="cov8" title="1">{
+        if m.CreateCommentError != nil </span><span class="cov8" title="1">{
+                return nil, m.CreateCommentError
+        }</span>
+
+        <span class="cov8" title="1">comment := &amp;Comment{
+                ID:        345678,
+                Body:      body,
+                Type:      "review",
+                User:      User{Login: "testuser"},
+                CreatedAt: time.Now(),
+        }
+        m.CreatedComment = comment
+        return comment, nil</span>
+}
+
+func (m *MockClient) FindReviewThreadForComment(owner, repo string, prNumber, commentID int) (string, error) <span class="cov8" title="1">{
+        if m.FindReviewThreadError != nil </span><span class="cov0" title="0">{
+                return "", m.FindReviewThreadError
+        }</span>
+        <span class="cov8" title="1">return "RT_123", nil</span>
+}
+
+func (m *MockClient) ResolveReviewThread(threadID string) error <span class="cov8" title="1">{
+        if m.ResolveThreadError != nil </span><span class="cov8" title="1">{
+                return m.ResolveThreadError
+        }</span>
+        <span class="cov8" title="1">m.ResolvedThread = threadID
+        return nil</span>
+}
+
+func (m *MockClient) AddReaction(owner, repo string, commentID int, reaction string) error <span class="cov8" title="1">{
+        return nil
+}</span>
+
+func (m *MockClient) RemoveReaction(owner, repo string, commentID int, reaction string) error <span class="cov8" title="1">{
+        return nil
+}</span>
+
+func (m *MockClient) EditComment(owner, repo string, commentID int, body string) error <span class="cov8" title="1">{
+        return nil
+}</span>
+
+func (m *MockClient) AddReviewComment(owner, repo string, pr int, comment ReviewCommentInput) error <span class="cov8" title="1">{
+        return nil
+}</span>
+
+func (m *MockClient) FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, error) <span class="cov8" title="1">{
+        return &amp;PullRequestDiff{
+                Files: []DiffFile{
+                        {
+                                Filename: "test.go",
+                                Lines:    map[int]bool{42: true, 43: true},
+                        },
+                },
+        }, nil
+}</span>
+
+func (m *MockClient) GetPRDetails(owner, repo string, pr int) (map[string]interface{}, error) <span class="cov8" title="1">{
+        return map[string]interface{}{
+                "number": pr,
+                "state":  "open",
+                "title":  "Test PR",
+                "head": map[string]interface{}{
+                        "sha": "abc123def456",
+                },
+        }, nil
+}</span>
+
+func (m *MockClient) CreateReview(owner, repo string, pr int, review ReviewInput) error <span class="cov8" title="1">{
+        return nil
+}</span>
+
+func (m *MockClient) FindPendingReview(owner, repo string, pr int) (int, error) <span class="cov0" title="0">{
+        if m.FindPendingReviewError != nil </span><span class="cov0" title="0">{
+                return 0, m.FindPendingReviewError
+        }</span>
+        <span class="cov0" title="0">return m.PendingReviewID, nil</span>
+}
+
+func (m *MockClient) SubmitReview(owner, repo string, pr, reviewID int, body, event string) error <span class="cov0" title="0">{
+        if m.SubmitReviewError != nil </span><span class="cov0" title="0">{
+                return m.SubmitReviewError
+        }</span>
+        <span class="cov0" title="0">m.SubmittedReviewID = reviewID
+        return nil</span>
+}
+</pre>
+
+		<pre class="file" id="file1" style="display: none">package github
+
+import (
+        "bytes"
+        "encoding/json"
+        "fmt"
+        "io"
+        "net/http"
+        "strings"
+
+        "github.com/cli/go-gh/v2/pkg/api"
+)
+
+// RealClient implements GitHubAPI using actual GitHub API calls
+type RealClient struct {
+        restClient    *api.RESTClient
+        graphqlClient *api.GraphQLClient
+}
+
+// NewRealClient creates a new GitHub API client
+func NewRealClient() (*RealClient, error) <span class="cov8" title="1">{
+        restClient, err := api.DefaultRESTClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create REST client: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">graphqlClient, err := api.DefaultGraphQLClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create GraphQL client: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;RealClient{
+                restClient:    restClient,
+                graphqlClient: graphqlClient,
+        }, nil</span>
+}
+
+// ListIssueComments fetches all issue comments for a PR
+func (c *RealClient) ListIssueComments(owner, repo string, prNumber int) ([]Comment, error) <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if prNumber &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/issues/%d/comments?per_page=100", owner, repo, prNumber)
+
+        var comments []Comment
+        err := c.restClient.Get(endpoint, &amp;comments)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, c.wrapAPIError(err, "fetch issue comments for PR #%d in %s/%s", prNumber, owner, repo)
+        }</span>
+
+        // Mark as issue comments
+        <span class="cov0" title="0">for i := range comments </span><span class="cov0" title="0">{
+                comments[i].Type = "issue"
+        }</span>
+
+        <span class="cov0" title="0">return comments, nil</span>
+}
+
+// ListReviewComments fetches all review comments for a PR
+func (c *RealClient) ListReviewComments(owner, repo string, prNumber int) ([]Comment, error) <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if prNumber &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/comments?per_page=100", owner, repo, prNumber)
+
+        var comments []Comment
+        err := c.restClient.Get(endpoint, &amp;comments)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, c.wrapAPIError(err, "fetch review comments for PR #%d in %s/%s", prNumber, owner, repo)
+        }</span>
+
+        // Mark as review comments
+        <span class="cov0" title="0">for i := range comments </span><span class="cov0" title="0">{
+                comments[i].Type = "review"
+        }</span>
+
+        <span class="cov0" title="0">return comments, nil</span>
+}
+
+// CreateIssueComment adds a general comment to a PR
+func (c *RealClient) CreateIssueComment(owner, repo string, prNumber int, body string) (*Comment, error) <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if prNumber &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+        }</span>
+        <span class="cov8" title="1">if strings.TrimSpace(body) == "" </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("comment body cannot be empty")
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/issues/%d/comments", owner, repo, prNumber)
+
+        payload := map[string]string{"body": body}
+        bodyBytes, err := json.Marshal(payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to marshal comment payload: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">var comment Comment
+        err = c.restClient.Post(endpoint, bytes.NewReader(bodyBytes), &amp;comment)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, c.wrapAPIError(err, "create issue comment on PR #%d in %s/%s", prNumber, owner, repo)
+        }</span>
+
+        <span class="cov0" title="0">comment.Type = "issue"
+        return &amp;comment, nil</span>
+}
+
+// CreateReviewCommentReply adds a reply to a review comment
+func (c *RealClient) CreateReviewCommentReply(owner, repo string, commentID int, body string) (*Comment, error) <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if commentID &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+        }</span>
+        <span class="cov8" title="1">if strings.TrimSpace(body) == "" </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("reply body cannot be empty")
+        }</span>
+
+        // For review comments, we need to get the PR number first
+        // This is a simplified version - in production, you'd want to cache or pass this info
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/pulls/comments/%d/replies", owner, repo, commentID)
+
+        payload := map[string]string{"body": body}
+        bodyBytes, err := json.Marshal(payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to marshal reply payload: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">var comment Comment
+        err = c.restClient.Post(endpoint, bytes.NewReader(bodyBytes), &amp;comment)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, c.wrapAPIError(err, "create reply to comment #%d in %s/%s", commentID, owner, repo)
+        }</span>
+
+        <span class="cov0" title="0">comment.Type = "review"
+        return &amp;comment, nil</span>
+}
+
+// FindReviewThreadForComment finds the thread ID for a review comment
+func (c *RealClient) FindReviewThreadForComment(owner, repo string, prNumber, commentID int) (string, error) <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+        <span class="cov8" title="1">if prNumber &lt;= 0 </span><span class="cov8" title="1">{
+                return "", fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+        }</span>
+        <span class="cov8" title="1">if commentID &lt;= 0 </span><span class="cov8" title="1">{
+                return "", fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+        }</span>
+        <span class="cov0" title="0">query := `
+                query($owner: String!, $name: String!, $number: Int!) {
+                        repository(owner: $owner, name: $name) {
+                                pullRequest(number: $number) {
+                                        reviewThreads(first: 100) {
+                                                nodes {
+                                                        id
+                                                        comments(first: 10) {
+                                                                nodes {
+                                                                        databaseId
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                }`
+
+        variables := map[string]interface{}{
+                "owner":  owner,
+                "name":   repo,
+                "number": prNumber,
+        }
+
+        var result struct {
+                Repository struct {
+                        PullRequest struct {
+                                ReviewThreads struct {
+                                        Nodes []struct {
+                                                ID       string `json:"id"`
+                                                Comments struct {
+                                                        Nodes []struct {
+                                                                DatabaseID int `json:"databaseId"`
+                                                        } `json:"nodes"`
+                                                } `json:"comments"`
+                                        } `json:"nodes"`
+                                } `json:"reviewThreads"`
+                        } `json:"pullRequest"`
+                } `json:"repository"`
+        }
+
+        err := c.graphqlClient.Do(query, variables, &amp;result)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", c.wrapAPIError(err, "find review thread for comment #%d in PR #%d (%s/%s)", commentID, prNumber, owner, repo)
+        }</span>
+
+        // Find the thread containing our comment
+        <span class="cov0" title="0">for _, thread := range result.Repository.PullRequest.ReviewThreads.Nodes </span><span class="cov0" title="0">{
+                for _, comment := range thread.Comments.Nodes </span><span class="cov0" title="0">{
+                        if comment.DatabaseID == commentID </span><span class="cov0" title="0">{
+                                return thread.ID, nil
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">return "", fmt.Errorf("thread not found for comment %d", commentID)</span>
+}
+
+// ResolveReviewThread resolves a review thread
+func (c *RealClient) ResolveReviewThread(threadID string) error <span class="cov8" title="1">{
+        if strings.TrimSpace(threadID) == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("thread ID cannot be empty")
+        }</span>
+
+        <span class="cov0" title="0">mutation := `
+                mutation($threadId: ID!) {
+                        resolveReviewThread(input: {threadId: $threadId}) {
+                                thread {
+                                        id
+                                }
+                        }
+                }`
+
+        variables := map[string]interface{}{
+                "threadId": threadID,
+        }
+
+        err := c.graphqlClient.Do(mutation, variables, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.wrapAPIError(err, "resolve review thread %s", threadID)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// Additional methods for other operations can be added here as needed...
+
+// AddReaction adds a reaction to a comment
+func (c *RealClient) AddReaction(owner, repo string, commentID int, reaction string) error <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">if commentID &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+        }</span>
+        <span class="cov8" title="1">if !isValidReaction(reaction) </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid reaction '%s': must be one of +1, -1, laugh, hooray, confused, heart, rocket, eyes", reaction)
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions", owner, repo, commentID)
+
+        payload := map[string]string{"content": reaction}
+        body, err := json.Marshal(payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal reaction payload: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">err = c.restClient.Post(endpoint, bytes.NewReader(body), nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.wrapAPIError(err, "add '%s' reaction to comment #%d in %s/%s", reaction, commentID, owner, repo)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// RemoveReaction removes a reaction from a comment
+func (c *RealClient) RemoveReaction(owner, repo string, commentID int, reaction string) error <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">if commentID &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+        }</span>
+        <span class="cov8" title="1">if !isValidReaction(reaction) </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid reaction '%s': must be one of +1, -1, laugh, hooray, confused, heart, rocket, eyes", reaction)
+        }</span>
+
+        // First, get reactions to find the ID to delete
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions", owner, repo, commentID)
+
+        var reactions []struct {
+                ID      int    `json:"id"`
+                Content string `json:"content"`
+                User    User   `json:"user"`
+        }
+
+        err := c.restClient.Get(endpoint, &amp;reactions)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.wrapAPIError(err, "fetch reactions for comment #%d in %s/%s", commentID, owner, repo)
+        }</span>
+
+        // Find current user's reaction
+        <span class="cov0" title="0">var currentUser struct {
+                Login string `json:"login"`
+        }
+        err = c.restClient.Get("user", &amp;currentUser)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.wrapAPIError(err, "get current user info")
+        }</span>
+
+        // Find and delete the reaction
+        <span class="cov0" title="0">for _, r := range reactions </span><span class="cov0" title="0">{
+                if r.Content == reaction &amp;&amp; r.User.Login == currentUser.Login </span><span class="cov0" title="0">{
+                        deleteEndpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions/%d", owner, repo, commentID, r.ID)
+                        err = c.restClient.Delete(deleteEndpoint, nil)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return c.wrapAPIError(err, "remove '%s' reaction from comment #%d in %s/%s", reaction, commentID, owner, repo)
+                        }</span>
+                        <span class="cov0" title="0">return nil</span>
+                }
+        }
+
+        <span class="cov0" title="0">return fmt.Errorf("'%s' reaction not found on comment #%d (you may not have reacted with this emoji)", reaction, commentID)</span>
+}
+
+// EditComment edits an existing comment
+func (c *RealClient) EditComment(owner, repo string, commentID int, body string) error <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">if commentID &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+        }</span>
+        <span class="cov8" title="1">if strings.TrimSpace(body) == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("comment body cannot be empty")
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d", owner, repo, commentID)
+
+        payload := map[string]string{"body": body}
+        bodyBytes, err := json.Marshal(payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal comment payload: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">err = c.restClient.Patch(endpoint, bytes.NewReader(bodyBytes), nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.wrapAPIError(err, "edit comment #%d in %s/%s", commentID, owner, repo)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// AddReviewComment adds a line-specific comment to a PR
+func (c *RealClient) AddReviewComment(owner, repo string, pr int, comment ReviewCommentInput) error <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">if pr &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid PR number %d: must be positive", pr)
+        }</span>
+        <span class="cov8" title="1">if strings.TrimSpace(comment.Body) == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("review comment body cannot be empty")
+        }</span>
+        <span class="cov8" title="1">if comment.Path == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("review comment path cannot be empty")
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/comments", owner, repo, pr)
+
+        body, err := json.Marshal(comment)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal review comment payload: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">err = c.restClient.Post(endpoint, bytes.NewReader(body), nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.wrapAPIError(err, "add review comment to %s:%d in PR #%d (%s/%s)", comment.Path, comment.Line, pr, owner, repo)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// FetchPRDiff fetches the diff for a pull request
+func (c *RealClient) FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, error) <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if pr &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("invalid PR number %d: must be positive", pr)
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d", owner, repo, pr)
+
+        resp, err := c.restClient.Request("GET", endpoint, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, c.wrapAPIError(err, "fetch PR #%d details from %s/%s", pr, owner, repo)
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        // Parse the diff URL from the response
+        var prData struct {
+                DiffURL string `json:"diff_url"`
+        }
+
+        body, err := io.ReadAll(resp.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to read PR response: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">err = json.Unmarshal(body, &amp;prData)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to parse PR data: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">if prData.DiffURL == "" </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("PR #%d does not have a diff URL (may be empty or merged)", pr)
+        }</span>
+
+        // Fetch the actual diff
+        <span class="cov0" title="0">diffResp, err := http.Get(prData.DiffURL)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to fetch diff from GitHub: %w", err)
+        }</span>
+        <span class="cov0" title="0">defer diffResp.Body.Close()
+
+        if diffResp.StatusCode != 200 </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to fetch diff: HTTP %d", diffResp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">diffContent, err := io.ReadAll(diffResp.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to read diff content: %w", err)
+        }</span>
+
+        // Parse the diff to extract file and line information
+        <span class="cov0" title="0">diff := parseDiff(string(diffContent))
+
+        return diff, nil</span>
+}
+
+// validateRepoParams validates repository owner and name parameters
+func validateRepoParams(owner, repo string) error <span class="cov8" title="1">{
+        if owner == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("repository owner cannot be empty")
+        }</span>
+        <span class="cov8" title="1">if repo == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("repository name cannot be empty")
+        }</span>
+        <span class="cov8" title="1">if strings.Contains(owner, "/") || strings.Contains(repo, "/") </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid repository format: use 'owner/repo' format")
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+// checkRateLimit provides rate limit awareness following GitHub CLI patterns
+// This provides user guidance without automatic retries (which GitHub CLI team discourages)
+func (c *RealClient) checkRateLimit() {<span class="cov8" title="1">
+        // This is a placeholder for rate limit checking
+        // In a production implementation, you might:
+        // 1. Check X-RateLimit-Remaining header after requests
+        // 2. Warn when approaching limits (50-75% usage)
+        // 3. Provide proactive guidance to users
+        //
+        // GitHub CLI team prefers user awareness over automatic handling
+}</span>
+
+// isValidReaction checks if the reaction is valid for GitHub API
+func isValidReaction(reaction string) bool <span class="cov8" title="1">{
+        validReactions := map[string]bool{
+                "+1":      true,
+                "-1":      true,
+                "laugh":   true,
+                "hooray":  true,
+                "confused": true,
+                "heart":   true,
+                "rocket":  true,
+                "eyes":    true,
+        }
+        return validReactions[reaction]
+}</span>
+
+// wrapAPIError wraps GitHub API errors with context and rate limit information
+// Following GitHub CLI philosophy: provide helpful guidance instead of automatic retries
+func (c *RealClient) wrapAPIError(err error, operation string, args ...interface{}) error <span class="cov8" title="1">{
+        context := fmt.Sprintf(operation, args...)
+
+        // Check if this is a rate limit error
+        if strings.Contains(err.Error(), "rate limit") || strings.Contains(err.Error(), "403") </span><span class="cov8" title="1">{
+                return fmt.Errorf("rate limit exceeded while trying to %s: %w\n\n💡 Tips:\n   • Wait a few minutes before retrying\n   • Check your rate limit status: gh api rate_limit\n   • Consider reducing API calls if this happens frequently", context, err)
+        }</span>
+
+        // Check for common API errors and provide helpful messages
+        <span class="cov8" title="1">if strings.Contains(err.Error(), "404") </span><span class="cov8" title="1">{
+                return fmt.Errorf("resource not found while trying to %s: %w\n\n💡 Tips:\n   • Verify the repository exists and you have access to it\n   • Check the PR/comment ID is correct\n   • Ensure you have the right permissions", context, err)
+        }</span>
+
+        <span class="cov8" title="1">if strings.Contains(err.Error(), "401") </span><span class="cov8" title="1">{
+                return fmt.Errorf("authentication failed while trying to %s: %w\n\n💡 Tips:\n   • Check your GitHub CLI authentication: gh auth status\n   • Re-authenticate if needed: gh auth login\n   • Verify you have access to this repository", context, err)
+        }</span>
+
+        <span class="cov8" title="1">if strings.Contains(err.Error(), "422") </span><span class="cov8" title="1">{
+                return fmt.Errorf("validation error while trying to %s: %w\n\n💡 Tips:\n   • Check that your input parameters are valid\n   • Verify line numbers exist in the diff\n   • Ensure comment body is not empty", context, err)
+        }</span>
+
+        // Check for secondary rate limits (GitHub doesn't always send proper headers)
+        <span class="cov8" title="1">if strings.Contains(err.Error(), "abuse") || strings.Contains(err.Error(), "secondary") </span><span class="cov8" title="1">{
+                return fmt.Errorf("secondary rate limit triggered while trying to %s: %w\n\n💡 Tips:\n   • This is a temporary protective measure by GitHub\n   • Wait 60 seconds before retrying\n   • Reduce the frequency of API calls", context, err)
+        }</span>
+
+        // Generic API error
+        <span class="cov8" title="1">return fmt.Errorf("GitHub API error while trying to %s: %w", context, err)</span>
+}
+
+// Helper function to parse diff content
+func parseDiff(diffContent string) *PullRequestDiff <span class="cov8" title="1">{
+        // This is a simplified diff parser
+        // In a real implementation, you'd want to use a proper diff parsing library
+        diff := &amp;PullRequestDiff{
+                Files: []DiffFile{},
+        }
+
+        // Basic parsing logic - this would need to be more sophisticated
+        lines := strings.Split(diffContent, "\n")
+        var currentFile *DiffFile
+
+        for _, line := range lines </span><span class="cov8" title="1">{
+                if strings.HasPrefix(line, "diff --git") </span><span class="cov8" title="1">{
+                        // Extract filename
+                        parts := strings.Fields(line)
+                        if len(parts) &gt;= 4 </span><span class="cov8" title="1">{
+                                filename := strings.TrimPrefix(parts[3], "b/")
+                                currentFile = &amp;DiffFile{
+                                        Filename: filename,
+                                        Lines:    make(map[int]bool),
+                                }
+                                diff.Files = append(diff.Files, *currentFile)
+                        }</span>
+                } else<span class="cov8" title="1"> if strings.HasPrefix(line, "@@") &amp;&amp; currentFile != nil </span>{<span class="cov8" title="1">
+                        // Parse line numbers from hunk header
+                        // This is simplified - real implementation would parse the hunk header properly
+                }</span>
+        }
+
+        <span class="cov8" title="1">return diff</span>
+}
+
+// CreateReview creates a new review with comments
+func (c *RealClient) CreateReview(owner, repo string, pr int, review ReviewInput) error <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">if pr &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid PR number %d: must be positive", pr)
+        }</span>
+        // Validate review event if provided
+        <span class="cov8" title="1">if review.Event != "" &amp;&amp; review.Event != "APPROVE" &amp;&amp; review.Event != "REQUEST_CHANGES" &amp;&amp; review.Event != "COMMENT" </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid review event '%s': must be APPROVE, REQUEST_CHANGES, or COMMENT", review.Event)
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/reviews", owner, repo, pr)
+
+        body, err := json.Marshal(review)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal review payload: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">err = c.restClient.Post(endpoint, bytes.NewReader(body), nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.wrapAPIError(err, "create review on PR #%d in %s/%s", pr, owner, repo)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// GetPRDetails fetches basic PR information
+func (c *RealClient) GetPRDetails(owner, repo string, pr int) (map[string]interface{}, error) <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if pr &lt;= 0 </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("invalid PR number %d: must be positive", pr)
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d", owner, repo, pr)
+
+        var result map[string]interface{}
+        err := c.restClient.Get(endpoint, &amp;result)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, c.wrapAPIError(err, "fetch PR #%d details from %s/%s", pr, owner, repo)
+        }</span>
+
+        <span class="cov0" title="0">return result, nil</span>
+}
+
+// FindPendingReview finds a pending review for the current user on a PR
+func (c *RealClient) FindPendingReview(owner, repo string, pr int) (int, error) <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return 0, err
+        }</span>
+        <span class="cov8" title="1">if pr &lt;= 0 </span><span class="cov8" title="1">{
+                return 0, fmt.Errorf("invalid PR number %d: must be positive", pr)
+        }</span>
+
+        // Get existing reviews for this PR
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/reviews", owner, repo, pr)
+
+        var reviews []map[string]interface{}
+        err := c.restClient.Get(endpoint, &amp;reviews)
+        if err != nil </span><span class="cov0" title="0">{
+                return 0, c.wrapAPIError(err, "get reviews for PR #%d in %s/%s", pr, owner, repo)
+        }</span>
+
+        // Look for an existing PENDING review
+        <span class="cov0" title="0">for _, review := range reviews </span><span class="cov0" title="0">{
+                if state, ok := review["state"].(string); ok &amp;&amp; state == "PENDING" </span><span class="cov0" title="0">{
+                        if id, ok := review["id"].(float64); ok </span><span class="cov0" title="0">{
+                                return int(id), nil
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">return 0, nil</span> // No pending review found
+}
+
+// SubmitReview submits a pending review with a body and event
+func (c *RealClient) SubmitReview(owner, repo string, pr, reviewID int, body, event string) error <span class="cov8" title="1">{
+        if err := validateRepoParams(owner, repo); err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">if pr &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid PR number %d: must be positive", pr)
+        }</span>
+        <span class="cov8" title="1">if reviewID &lt;= 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid review ID %d: must be positive", reviewID)
+        }</span>
+        <span class="cov8" title="1">if event != "APPROVE" &amp;&amp; event != "REQUEST_CHANGES" &amp;&amp; event != "COMMENT" </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid review event '%s': must be APPROVE, REQUEST_CHANGES, or COMMENT", event)
+        }</span>
+
+        <span class="cov0" title="0">endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/reviews/%d/events", owner, repo, pr, reviewID)
+
+        payload := map[string]interface{}{
+                "body":  body,
+                "event": event,
+        }
+
+        payloadBytes, err := json.Marshal(payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal submit review payload: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">err = c.restClient.Post(endpoint, bytes.NewReader(payloadBytes), nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return c.wrapAPIError(err, "submit review #%d on PR #%d in %s/%s", reviewID, pr, owner, repo)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+
+		<pre class="file" id="file2" style="display: none">package github
+
+import (
+        "bytes"
+        "encoding/json"
+        "fmt"
+        "net/http"
+        "os"
+        "strings"
+)
+
+// TestClient implements GitHubAPI for testing with a configurable HTTP client
+type TestClient struct {
+        httpClient *http.Client
+        baseURL    string
+        token      string
+}
+
+// NewTestClient creates a GitHub client that can work with mock servers
+func NewTestClient() (*TestClient, error) <span class="cov8" title="1">{
+        // Check if we're in test mode with mock server
+        mockURL := os.Getenv("MOCK_SERVER_URL")
+        ghHost := os.Getenv("GH_HOST")
+
+        var baseURL string
+        if mockURL != "" </span><span class="cov8" title="1">{
+                baseURL = mockURL
+        }</span> else<span class="cov8" title="1"> if ghHost != "" &amp;&amp; !strings.Contains(ghHost, "github.com") </span><span class="cov0" title="0">{
+                // Custom host (like mock server)
+                baseURL = "http://" + ghHost
+        }</span> else<span class="cov8" title="1"> {
+                baseURL = "https://api.github.com"
+        }</span>
+
+        <span class="cov8" title="1">return &amp;TestClient{
+                httpClient: &amp;http.Client{},
+                baseURL:    baseURL,
+                token:      os.Getenv("GH_TOKEN"),
+        }, nil</span>
+}
+
+// doRequest performs an HTTP request to the GitHub API
+func (c *TestClient) doRequest(method, endpoint string, body []byte) (*http.Response, error) <span class="cov8" title="1">{
+        url := c.baseURL + "/" + strings.TrimPrefix(endpoint, "/")
+
+        var req *http.Request
+        var err error
+
+        if body != nil </span><span class="cov8" title="1">{
+                req, err = http.NewRequest(method, url, bytes.NewReader(body))
+        }</span> else<span class="cov8" title="1"> {
+                req, err = http.NewRequest(method, url, nil)
+        }</span>
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create request: %w", err)
+        }</span>
+
+        // Add headers
+        <span class="cov8" title="1">req.Header.Set("Accept", "application/vnd.github+json")
+        req.Header.Set("Content-Type", "application/json")
+        if c.token != "" </span><span class="cov0" title="0">{
+                req.Header.Set("Authorization", "Bearer "+c.token)
+        }</span>
+
+        <span class="cov8" title="1">resp, err := c.httpClient.Do(req)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("request failed: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return resp, nil</span>
+}
+
+// ListIssueComments fetches all issue comments for a PR
+func (c *TestClient) ListIssueComments(owner, repo string, prNumber int) ([]Comment, error) <span class="cov8" title="1">{
+        endpoint := fmt.Sprintf("repos/%s/%s/issues/%d/comments", owner, repo, prNumber)
+
+        resp, err := c.doRequest("GET", endpoint, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">var comments []Comment
+        err = json.NewDecoder(resp.Body).Decode(&amp;comments)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decode response: %w", err)
+        }</span>
+
+        // Mark as issue comments
+        <span class="cov0" title="0">for i := range comments </span><span class="cov0" title="0">{
+                comments[i].Type = "issue"
+        }</span>
+
+        <span class="cov0" title="0">return comments, nil</span>
+}
+
+// ListReviewComments fetches all review comments for a PR
+func (c *TestClient) ListReviewComments(owner, repo string, prNumber int) ([]Comment, error) <span class="cov8" title="1">{
+        endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/comments", owner, repo, prNumber)
+
+        resp, err := c.doRequest("GET", endpoint, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">var comments []Comment
+        err = json.NewDecoder(resp.Body).Decode(&amp;comments)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decode response: %w", err)
+        }</span>
+
+        // Mark as review comments
+        <span class="cov0" title="0">for i := range comments </span><span class="cov0" title="0">{
+                comments[i].Type = "review"
+        }</span>
+
+        <span class="cov0" title="0">return comments, nil</span>
+}
+
+// CreateIssueComment adds a general comment to a PR
+func (c *TestClient) CreateIssueComment(owner, repo string, prNumber int, body string) (*Comment, error) <span class="cov8" title="1">{
+        endpoint := fmt.Sprintf("repos/%s/%s/issues/%d/comments", owner, repo, prNumber)
+
+        payload := map[string]string{"body": body}
+        jsonBody, err := json.Marshal(payload)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to marshal payload: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">resp, err := c.doRequest("POST", endpoint, jsonBody)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode != http.StatusCreated </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">var comment Comment
+        err = json.NewDecoder(resp.Body).Decode(&amp;comment)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decode response: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">comment.Type = "issue"
+        return &amp;comment, nil</span>
+}
+
+// AddReviewComment adds a line-specific comment to a PR
+func (c *TestClient) AddReviewComment(owner, repo string, pr int, comment ReviewCommentInput) error <span class="cov8" title="1">{
+        endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/comments", owner, repo, pr)
+
+        jsonBody, err := json.Marshal(comment)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal comment: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">resp, err := c.doRequest("POST", endpoint, jsonBody)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode != http.StatusCreated </span><span class="cov0" title="0">{
+                return fmt.Errorf("API request failed with status %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// CreateReview creates a new review with comments
+func (c *TestClient) CreateReview(owner, repo string, pr int, review ReviewInput) error <span class="cov8" title="1">{
+        endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/reviews", owner, repo, pr)
+
+        jsonBody, err := json.Marshal(review)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to marshal review: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">resp, err := c.doRequest("POST", endpoint, jsonBody)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode != http.StatusCreated </span><span class="cov0" title="0">{
+                return fmt.Errorf("API request failed with status %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+// GetPRDetails fetches basic PR information
+func (c *TestClient) GetPRDetails(owner, repo string, pr int) (map[string]interface{}, error) <span class="cov8" title="1">{
+        endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d", owner, repo, pr)
+
+        resp, err := c.doRequest("GET", endpoint, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("API request failed with status %d", resp.StatusCode)
+        }</span>
+
+        <span class="cov0" title="0">var result map[string]interface{}
+        err = json.NewDecoder(resp.Body).Decode(&amp;result)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decode response: %w", err)
+        }</span>
+
+        <span class="cov0" title="0">return result, nil</span>
+}
+
+// Stub implementations for methods not needed in tests
+func (c *TestClient) CreateReviewCommentReply(owner, repo string, commentID int, body string) (*Comment, error) <span class="cov8" title="1">{
+        return nil, fmt.Errorf("not implemented in test client")
+}</span>
+
+func (c *TestClient) FindReviewThreadForComment(owner, repo string, prNumber, commentID int) (string, error) <span class="cov8" title="1">{
+        return "", fmt.Errorf("not implemented in test client")
+}</span>
+
+func (c *TestClient) ResolveReviewThread(threadID string) error <span class="cov8" title="1">{
+        return fmt.Errorf("not implemented in test client")
+}</span>
+
+func (c *TestClient) AddReaction(owner, repo string, commentID int, reaction string) error <span class="cov8" title="1">{
+        return fmt.Errorf("not implemented in test client")
+}</span>
+
+func (c *TestClient) RemoveReaction(owner, repo string, commentID int, reaction string) error <span class="cov8" title="1">{
+        return fmt.Errorf("not implemented in test client")
+}</span>
+
+func (c *TestClient) EditComment(owner, repo string, commentID int, body string) error <span class="cov8" title="1">{
+        return fmt.Errorf("not implemented in test client")
+}</span>
+
+func (c *TestClient) FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, error) <span class="cov8" title="1">{
+        return nil, fmt.Errorf("not implemented in test client")
+}</span>
+
+func (c *TestClient) FindPendingReview(owner, repo string, pr int) (int, error) <span class="cov8" title="1">{
+        return 0, fmt.Errorf("not implemented in test client")
+}</span>
+
+func (c *TestClient) SubmitReview(owner, repo string, pr, reviewID int, body, event string) error <span class="cov8" title="1">{
+        return fmt.Errorf("not implemented in test client")
+}</pre>
+
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

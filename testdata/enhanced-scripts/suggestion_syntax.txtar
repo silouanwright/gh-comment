@@ -1,0 +1,50 @@
+# Test code suggestion syntax and expansion
+[!mock-server] skip 'mock server not available'
+
+# Test basic SUGGEST syntax expansion
+exec gh-comment add 123 crypto.js 67 '[SUGGEST: use crypto.randomBytes(32)]' --repo test-owner/test-repo --dry-run
+stdout 'Would add comment'
+# The suggestion should be expanded to GitHub's format (implementation detail)
+! stderr .
+
+# Test multiple suggestions in one comment
+exec gh-comment add 123 validation.js 25 'Security improvements needed: [SUGGEST: if (input) { return sanitize(input); }] and also [SUGGEST: add rate limiting]' --repo test-owner/test-repo --dry-run
+stdout 'Would add comment'
+stdout 'Security improvements needed'
+! stderr .
+
+# Test disabling suggestion expansion
+exec gh-comment add 123 test.js 1 '[SUGGEST: keep this literal]' --no-expand-suggestions --repo test-owner/test-repo --dry-run
+stdout 'Would add comment'
+stdout '\[SUGGEST: keep this literal\]'
+! stderr .
+
+# Test suggestion syntax in review comments
+exec gh-comment review 123 'Code review with suggestions' \
+  --comment 'performance.js:89:Extract calculation [SUGGEST: const result = memoize(expensive_calc)]' \
+  --comment 'security.js:45:Use secure random [SUGGEST: crypto.randomBytes(32)]' \
+  --event COMMENT \
+  --repo test-owner/test-repo \
+  --dry-run
+stdout 'Would create review'
+stdout 'Extract calculation'
+stdout 'Use secure random'
+! stderr .
+
+# Test multiline suggestions using --message flags
+exec gh-comment add 123 algorithm.js 156 --message 'Performance optimization needed:' --message '[SUGGEST: function optimized() {' --message '  return memoizedResult;' --message '}]' --repo test-owner/test-repo --dry-run
+stdout 'Would add comment'
+stdout 'Performance optimization needed'
+stdout 'optimized()'
+! stderr .
+
+# Test suggestion with special characters
+exec gh-comment add 123 regex.js 23 '[SUGGEST: const pattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/]' --repo test-owner/test-repo --dry-run
+stdout 'Would add comment'
+stdout 'pattern ='
+! stderr .
+
+# Test empty suggestion (edge case)
+exec gh-comment add 123 empty.js 1 '[SUGGEST: ]' --repo test-owner/test-repo --dry-run
+stdout 'Would add comment'
+! stderr .

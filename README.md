@@ -180,16 +180,35 @@ Just a couple of questions about the implementation."
 - **Line-specific**: Use `gh comment add <pr> <file> <line>` (gh-comment extension)
 - **General discussion**: Use `gh pr comment <pr> --body` (native GitHub CLI)
 
-### List All Comments (Unified System)
+### List All Comments (Advanced Filtering System)
 
-`gh comment list` shows **ALL** comments on a PR - both general discussion and line-specific code review comments:
+`gh comment list` shows **ALL** comments on a PR with powerful filtering capabilities:
 
 ```bash
 # List all comments on a PR with diff context
 gh comment list 123
 
-# List comments from specific author
-gh comment list 123 --author octocat
+# Filter by author (supports wildcards and partial matching)
+gh comment list 123 --author octocat           # Exact match
+gh comment list 123 --author "octo*"           # Wildcard match
+gh comment list 123 --author "*@company.com"   # Email domain match
+
+# Filter by comment type
+gh comment list 123 --type issue    # General PR comments only
+gh comment list 123 --type review   # Line-specific review comments only
+
+# Filter by date range
+gh comment list 123 --since "2024-01-01"       # Absolute date
+gh comment list 123 --since "3 days ago"       # Relative date
+gh comment list 123 --until "1 week ago"       # Before date
+gh comment list 123 --since "2 days ago" --until "1 day ago"  # Date range
+
+# Filter by status (open/resolved/all)
+gh comment list 123 --status open     # Active comments only
+gh comment list 123 --status resolved # Resolved comments only
+
+# Combine multiple filters
+gh comment list 123 --author "dev*" --type review --since "1 week ago"
 
 # Auto-detect PR from current branch
 gh comment list
@@ -438,7 +457,7 @@ go test ./cmd -run TestE2E
 - ✅ Automated performance regression testing in CI/CD
 - ✅ Local benchmark comparison script for developers
 
-See `TESTING.md` and `E2E_TESTING.md` for detailed testing documentation.
+See `docs/testing/TESTING.md` and `docs/testing/E2E_TESTING.md` for detailed testing documentation.
 
 ### Code Quality
 
@@ -463,7 +482,7 @@ pre-commit install --hook-type commit-msg
 - Dependency management (`go mod tidy`)
 - Conventional commit message format
 
-See `PRE_COMMIT_SETUP.md` for complete setup instructions.
+See `docs/development/PRE_COMMIT_SETUP.md` for complete setup instructions.
 
 ## License
 

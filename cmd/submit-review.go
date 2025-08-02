@@ -1,18 +1,18 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
-	"github.com/cli/go-gh/v2/pkg/api"
+	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 )
 
 var (
-	submitEvent string
-	submitBody  string
+	submitEvent   string
+	submitBody    string
+	submitClient  github.GitHubAPI
 )
 
 var submitReviewCmd = &cobra.Command{
@@ -52,6 +52,11 @@ func init() {
 }
 
 func runSubmitReview(cmd *cobra.Command, args []string) error {
+	// Initialize client if not set (production use)
+	if submitClient == nil {
+		submitClient = &github.RealClient{}
+	}
+
 	var pr int
 	var body string
 	var err error
@@ -71,18 +76,20 @@ func runSubmitReview(cmd *cobra.Command, args []string) error {
 			pr = prNum
 		} else {
 			// It's a review body, auto-detect PR
-			pr, err = getCurrentPR()
+			_, prNum, err := getPRContext()
 			if err != nil {
 				return err
 			}
+			pr = prNum
 			body = args[0]
 		}
 	} else {
 		// Auto-detect PR
-		pr, err = getCurrentPR()
+		_, prNum, err := getPRContext()
 		if err != nil {
 			return err
 		}
+		pr = prNum
 	}
 
 	// Use --body flag if provided, otherwise use positional arg
@@ -103,11 +110,18 @@ func runSubmitReview(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid event type: %s (must be APPROVE, REQUEST_CHANGES, or COMMENT)", submitEvent)
 	}
 
-	// Get repository
-	repository, err := getCurrentRepo()
+	// Get repository and PR context
+	repository, pr, err := getPRContext()
 	if err != nil {
 		return err
 	}
+
+	// Parse owner/repo
+	parts := strings.Split(repository, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+	}
+	owner, repoName := parts[0], parts[1]
 
 	if verbose {
 		fmt.Printf("Repository: %s\n", repository)
@@ -124,20 +138,10 @@ func runSubmitReview(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Find and submit the pending review
-	return submitPendingReview(repository, pr, body, submitEvent)
-}
-
-func submitPendingReview(repo string, pr int, body, event string) error {
-	client, err := api.DefaultRESTClient()
-	if err != nil {
-		return err
-	}
-
 	// Find the pending review
-	reviewID, err := findPendingReviewID(repo, pr)
+	reviewID, err := submitClient.FindPendingReview(owner, repoName, pr)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find pending review: %w", err)
 	}
 
 	if reviewID == 0 {
@@ -149,30 +153,14 @@ func submitPendingReview(repo string, pr int, body, event string) error {
 	}
 
 	// Submit the review
-	submitPayload := map[string]interface{}{
-		"body":  body,
-		"event": event,
-	}
-
-	payloadJSON, err := json.Marshal(submitPayload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal submit payload: %w", err)
-	}
-
-	if verbose {
-		fmt.Printf("Submit payload:\n%s\n\n", string(payloadJSON))
-	}
-
-	// Submit the review using the events endpoint
-	var response map[string]interface{}
-	err = client.Post(fmt.Sprintf("repos/%s/pulls/%d/reviews/%d/events", repo, pr, reviewID), bytes.NewReader(payloadJSON), &response)
+	err = submitClient.SubmitReview(owner, repoName, pr, reviewID, body, submitEvent)
 	if err != nil {
 		return fmt.Errorf("failed to submit review: %w", err)
 	}
 
 	// Display success message
 	eventText := ""
-	switch event {
+	switch submitEvent {
 	case "APPROVE":
 		eventText = "approved"
 	case "REQUEST_CHANGES":
@@ -182,52 +170,5 @@ func submitPendingReview(repo string, pr int, body, event string) error {
 	}
 
 	fmt.Printf("✅ Successfully submitted review and %s PR #%d\n", eventText, pr)
-
-	if verbose {
-		if htmlURL, ok := response["html_url"].(string); ok {
-			fmt.Printf("Review URL: %s\n", htmlURL)
-		}
-	}
-
 	return nil
-}
-
-func findPendingReviewID(repo string, pr int) (int, error) {
-	client, err := api.DefaultRESTClient()
-	if err != nil {
-		return 0, err
-	}
-
-	// Get existing reviews for this PR
-	var reviews []map[string]interface{}
-	err = client.Get(fmt.Sprintf("repos/%s/pulls/%d/reviews", repo, pr), &reviews)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get reviews: %w", err)
-	}
-
-	if verbose {
-		fmt.Printf("Found %d reviews:\n", len(reviews))
-		for i, review := range reviews {
-			state := "unknown"
-			id := "unknown"
-			if s, ok := review["state"].(string); ok {
-				state = s
-			}
-			if reviewID, ok := review["id"].(float64); ok {
-				id = fmt.Sprintf("%.0f", reviewID)
-			}
-			fmt.Printf("  Review %d: ID=%s, State=%s\n", i+1, id, state)
-		}
-	}
-
-	// Look for an existing PENDING review
-	for _, review := range reviews {
-		if state, ok := review["state"].(string); ok && state == "PENDING" {
-			if id, ok := review["id"].(float64); ok {
-				return int(id), nil
-			}
-		}
-	}
-
-	return 0, nil // No pending review found
 }

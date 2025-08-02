@@ -2,10 +2,14 @@ package main
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/rogpeppe/go-internal/testscript"
+	"github.com/silouanwright/gh-comment/cmd"
 )
+
+var mockServer *cmd.MockGitHubServer
 
 func TestMain(m *testing.M) {
 	os.Exit(testscript.RunMain(m, map[string]func() int{
@@ -29,6 +33,42 @@ func TestIntegration(t *testing.T) {
 				_, err := os.Stat("/usr/local/bin/gh")
 				return err == nil, nil
 			default:
+				return false, nil
+			}
+		},
+	})
+}
+
+func TestEnhancedIntegration(t *testing.T) {
+	testscript.Run(t, testscript.Params{
+		Dir: "testdata/enhanced-scripts",
+		Setup: func(env *testscript.Env) error {
+			// Start mock GitHub API server
+			mockServer = cmd.NewMockGitHubServer()
+			
+			// Set up test environment to use mock server
+			env.Setenv("GH_TOKEN", "test-token")
+			env.Setenv("GH_HOST", strings.TrimPrefix(mockServer.URL(), "http://"))
+			env.Setenv("MOCK_SERVER_URL", mockServer.URL())
+			
+			// Set up test repository context
+			env.Setenv("GH_REPO", "test-owner/test-repo")
+			
+			return nil
+		},
+		Condition: func(cond string) (bool, error) {
+			switch cond {
+			case "mock-server":
+				return mockServer != nil, nil
+			default:
+				// Handle scenario conditions like "scenario:basic"
+				if strings.HasPrefix(cond, "scenario:") {
+					scenario := strings.TrimPrefix(cond, "scenario:")
+					if mockServer != nil {
+						mockServer.SetupTestScenario(scenario)
+						return true, nil
+					}
+				}
 				return false, nil
 			}
 		},

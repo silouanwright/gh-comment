@@ -3,8 +3,15 @@ package cmd
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
+	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
+)
+
+var (
+	// Client for dependency injection (tests can override)
+	resolveClient github.GitHubAPI
 )
 
 var resolveCmd = &cobra.Command{
@@ -30,6 +37,11 @@ func init() {
 }
 
 func runResolve(cmd *cobra.Command, args []string) error {
+	// Initialize client if not set (production use)
+	if resolveClient == nil {
+		resolveClient = &github.RealClient{}
+	}
+
 	// Parse comment ID
 	commentID, err := strconv.Atoi(args[0])
 	if err != nil {
@@ -41,6 +53,13 @@ func runResolve(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	// Parse owner/repo
+	parts := strings.Split(repository, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+	}
+	owner, repoName := parts[0], parts[1]
 
 	if verbose {
 		fmt.Printf("Repository: %s\n", repository)
@@ -54,9 +73,18 @@ func runResolve(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// TODO: Refactor resolve functionality to use GitHub client interface
-	return fmt.Errorf("resolve command not yet refactored - will be updated in next iteration")
+	// Find the review thread for this comment
+	threadID, err := resolveClient.FindReviewThreadForComment(owner, repoName, pr, commentID)
+	if err != nil {
+		return fmt.Errorf("failed to find review thread for comment: %w", err)
+	}
 
-	// fmt.Printf("✅ Resolved conversation for comment #%d\n", commentID)
-	// return nil
+	// Resolve the review thread
+	err = resolveClient.ResolveReviewThread(threadID)
+	if err != nil {
+		return fmt.Errorf("failed to resolve conversation: %w", err)
+	}
+
+	fmt.Printf("✅ Resolved conversation for comment #%d\n", commentID)
+	return nil
 }

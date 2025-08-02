@@ -6,7 +6,7 @@ stdout 'Usage:'
 
 # Test root help command
 exec gh-comment --help
-stdout 'gh-comment is the first GitHub CLI extension'
+stdout 'gh-comment provides professional-grade tools'
 stdout 'Available Commands:'
 ! stderr .
 

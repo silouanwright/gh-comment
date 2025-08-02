@@ -1,43 +1,59 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/cli/go-gh/v2/pkg/api"
+	"github.com/MakeNowJust/heredoc"
+	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 )
 
 var (
 	messages            []string
 	noExpandSuggestions bool
+
+	// Client for dependency injection (tests can override)
+	addClient github.GitHubAPI
 )
 
 var addCmd = &cobra.Command{
 	Use:   "add [pr] <file> <line> <comment>",
-	Short: "Add a single line comment to a PR",
-	Long: `Add a targeted comment to a specific line in a pull request.
+	Short: "Add a comment to a pull request",
+	Long: heredoc.Doc(`
+		Add a comment to a pull request. Comments can be general PR comments
+		or line-specific review comments.
 
-The line can be specified as a single line number or a range (start:end).
-Supports both inline comments and multi-line comments using --message flags.
+		For line-specific comments, use file and line arguments to target
+		specific code locations. Supports both single-line and range comments.
 
-Comments are posted immediately to the PR.
+		The comment message supports GitHub markdown formatting and can include
+		code suggestions using the [SUGGEST: code] syntax.
+	`),
+	Example: heredoc.Doc(`
+		# Strategic line-specific commenting
+		$ gh comment add 123 src/api.js 42 "This rate limiting logic needs edge case handling for concurrent requests"
+		$ gh comment add 123 auth.go 15:25 "Consider OAuth2 PKCE flow for mobile clients - current implementation has security gaps"
 
-Examples:
-  # Add single-line comment (posts immediately)
-  gh comment add 123 src/api.js 42 "this handles the rate limiting edge case"
+		# Security-focused reviews
+		$ gh comment add 123 database.py 156 "This query is vulnerable to SQL injection - use parameterized queries"
+		$ gh comment add 123 crypto.js 67 "[SUGGEST: use crypto.randomBytes(32) instead of Math.random()]"
 
-  # Add range comment
-  gh comment add 123 src/api.js 42:45 "this entire block needs review"
+		# Performance optimization suggestions
+		$ gh comment add 123 performance.js 89:95 "Extract this expensive calculation to a cached service - it's called on every render"
+		$ gh comment add 123 db/migrations.sql 23 "Add index on user_id column for faster lookups: CREATE INDEX idx_user_id ON orders(user_id)"
 
-  # Add multi-line comment using --message flags (AI-friendly)
-  gh comment add 123 src/api.js 42 --message "First paragraph" --message "Second paragraph"
+		# Architecture and design feedback
+		$ gh comment add 123 service.go 134:150 "This business logic should be extracted to a domain service layer"
+		$ gh comment add 123 component.tsx 45 "Consider using React.memo() to prevent unnecessary re-renders"
 
-  # Auto-detect PR with --message flags
-  gh comment add src/api.js 42 -m "Line 1" -m "Line 2"`,
+		# Multi-line strategic feedback
+		$ gh comment add 123 error-handler.js 78 -m "**Critical:** This error handling is incomplete" -m "Missing: rate limit errors, network timeouts, auth failures"
+
+		# Auto-detect PR from current branch
+		$ gh comment add src/validation.js 156 "Add input sanitization before database operations"
+	`),
 	Args: cobra.RangeArgs(2, 4),
 	RunE: runAdd,
 }
@@ -49,6 +65,15 @@ func init() {
 }
 
 func runAdd(cmd *cobra.Command, args []string) error {
+	// Initialize client if not set (production use)
+	if addClient == nil {
+		client, err := createGitHubClient()
+		if err != nil {
+			return fmt.Errorf("failed to initialize GitHub client: %w", err)
+		}
+		addClient = client
+	}
+
 	var pr int
 	var file, lineSpec, comment string
 	var err error
@@ -135,8 +160,57 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	// Parse owner/repo
+	parts := strings.Split(repository, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+	}
+	owner, repoName := parts[0], parts[1]
+
+	// Create review comment input
+	reviewComment := github.ReviewCommentInput{
+		Body: transformedComment,
+		Path: file,
+		Line: endLine, // GitHub API uses the end line for ranges
+	}
+
+	// If it's a range, add start_line
+	if startLine != endLine {
+		reviewComment.StartLine = startLine
+		reviewComment.Side = "RIGHT"
+	}
+
+	// We need the commit SHA - get PR details first
+	prDetails, err := addClient.GetPRDetails(owner, repoName, pr)
+	if err != nil {
+		return fmt.Errorf("failed to get PR details: %w", err)
+	}
+
+	// Extract commit SHA from PR details
+	if head, ok := prDetails["head"].(map[string]interface{}); ok {
+		if sha, ok := head["sha"].(string); ok {
+			reviewComment.CommitID = sha
+		} else {
+			return fmt.Errorf("could not extract commit SHA from PR details")
+		}
+	} else {
+		return fmt.Errorf("could not extract head information from PR details")
+	}
+
 	// Add the comment via GitHub API
-	return addLineComment(repository, pr, file, startLine, endLine, transformedComment)
+	err = addClient.AddReviewComment(owner, repoName, pr, reviewComment)
+	if err != nil {
+		return fmt.Errorf("failed to add comment: %w", err)
+	}
+
+	// Success message
+	fmt.Printf("✓ Added comment to %s:%d", file, startLine)
+	if endLine != startLine {
+		fmt.Printf("-%d", endLine)
+	}
+	fmt.Printf(" in PR #%d\n", pr)
+
+	return nil
 }
 
 func parseLineSpec(lineSpec string) (int, int, error) {
@@ -157,6 +231,10 @@ func parseLineSpec(lineSpec string) (int, int, error) {
 			return 0, 0, fmt.Errorf("invalid end line: %s", parts[1])
 		}
 
+		if start <= 0 || end <= 0 {
+			return 0, 0, fmt.Errorf("line numbers must be positive")
+		}
+
 		if start > end {
 			return 0, 0, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", start, end)
 		}
@@ -168,71 +246,9 @@ func parseLineSpec(lineSpec string) (int, int, error) {
 		if err != nil {
 			return 0, 0, fmt.Errorf("invalid line number: %s", lineSpec)
 		}
+		if line <= 0 {
+			return 0, 0, fmt.Errorf("line numbers must be positive")
+		}
 		return line, line, nil
 	}
-}
-
-func addLineComment(repo string, pr int, file string, startLine, endLine int, comment string) error {
-	client, err := api.DefaultRESTClient()
-	if err != nil {
-		return fmt.Errorf("failed to create GitHub client: %w", err)
-	}
-
-	// First, get the PR to find the commit SHA
-	prData := struct {
-		Head struct {
-			SHA string `json:"sha"`
-		} `json:"head"`
-	}{}
-
-	err = client.Get(fmt.Sprintf("repos/%s/pulls/%d", repo, pr), &prData)
-	if err != nil {
-		return fmt.Errorf("failed to get PR data: %w", err)
-	}
-
-	// Create the comment payload
-	payload := map[string]interface{}{
-		"body":      comment,
-		"commit_id": prData.Head.SHA,
-		"path":      file,
-		"line":      endLine, // GitHub API uses the end line for ranges
-	}
-
-	// If it's a range, add start_line
-	if startLine != endLine {
-		payload["start_line"] = startLine
-		payload["start_side"] = "RIGHT"
-	}
-
-	if verbose {
-		payloadJSON, _ := json.MarshalIndent(payload, "", "  ")
-		fmt.Printf("API payload:\n%s\n", payloadJSON)
-	}
-
-	// Marshal payload to JSON
-	payloadJSON, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
-	}
-
-	// Make the immediate API call
-	var response map[string]interface{}
-	err = client.Post(fmt.Sprintf("repos/%s/pulls/%d/comments", repo, pr), bytes.NewReader(payloadJSON), &response)
-	if err != nil {
-		return fmt.Errorf("failed to add comment: %w", err)
-	}
-
-	fmt.Printf("✓ Added comment to %s:%d", file, startLine)
-	if endLine != startLine {
-		fmt.Printf("-%d", endLine)
-	}
-	fmt.Printf(" in PR #%d\n", pr)
-
-	if verbose {
-		if htmlURL, ok := response["html_url"].(string); ok {
-			fmt.Printf("Comment URL: %s\n", htmlURL)
-		}
-	}
-
-	return nil
 }

@@ -6,6 +6,31 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 ### High Priority
 
+- [ ] **Documentation Audit and Organization** - Clean up and organize all markdown files
+  - **Context**: Multiple markdown files exist with potential overlap, outdated content, or poor organization
+  - **Goal**: Create a clean, well-structured documentation system that's easy to navigate and maintain
+  
+  **Phase 1: Audit Current Documentation**
+  - [ ] Inventory all markdown files and their purposes
+  - [ ] Identify outdated or redundant content
+  - [ ] Find overlapping or duplicate information
+  - [ ] Check for inconsistencies between files
+  - [ ] Assess which files are actively used vs. historical
+  
+  **Phase 2: Organization Strategy**
+  - [ ] Consolidate related documentation
+  - [ ] Remove or archive outdated files
+  - [ ] Create logical folder structure (e.g., `/docs`, `/docs/development`, `/docs/testing`)
+  - [ ] Standardize file naming conventions
+  - [ ] Update cross-references between documents
+  
+  **Phase 3: Content Updates**
+  - [ ] Update stale information to reflect current state
+  - [ ] Ensure consistency in formatting and style
+  - [ ] Add missing documentation identified during audit
+  - [ ] Create index/navigation structure
+  - [ ] Update README.md to reference new structure
+
 - [ ] **Real GitHub Integration Tests** - End-to-end workflow testing with actual GitHub PRs
   - **Context**: Current testing uses mocks, but we need to verify the extension works with real GitHub APIs
   - **Strategy**: Create integration tests that open actual PRs, perform command workflows, verify results, then cleanup
@@ -84,18 +109,25 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - [x] Test README with AI systems for completeness
   - [x] Implement chosen optimization approach
 
-### Medium Priority
-- [ ] **Increase Test Coverage to 80%** - Refactor commands with dependency injection
+### Medium Priority  
+- [x] **COMPLETED: Increase Test Coverage to 80%+** - Refactor commands with dependency injection ✅
+  - **Final Coverage**: 80.7% (from 30.6% → 80.7%)
   - [x] Refactor `cmd/list.go` to use new GitHub API client ✅ (Coverage: 12.7% → 23.1%)
   - [x] Refactor `cmd/reply.go` reaction functionality with dependency injection ✅ (Coverage: 23.1% → 30.6%)
-  - [ ] Complete `cmd/reply.go` refactoring (message replies and resolve functionality)
-  - [ ] Refactor `cmd/add.go` to use dependency injection
-  - [ ] Test actual command execution with mocked GitHub API calls
-  - [ ] Test repository and PR detection logic
-  - [ ] Test file operations and output formatting
-  - [ ] Test remaining utility functions
-  - [ ] Add comprehensive unit tests for refactored commands
-  - [ ] Update integration tests to use new structure
+  - [x] Complete `cmd/reply.go` refactoring (message replies and resolve functionality) ✅
+  - [x] Refactor `cmd/add.go` to use dependency injection ✅
+  - [x] Refactor `cmd/add-review.go` to use dependency injection ✅
+  - [x] Refactor `cmd/edit.go` to use dependency injection ✅
+  - [x] Refactor `cmd/resolve.go` to use dependency injection ✅
+  - [x] Refactor `cmd/submit-review.go` to use dependency injection ✅
+  - [x] **NEW**: Implement `cmd/batch.go` command for YAML config processing ✅
+  - [x] **NEW**: Implement `cmd/review.go` command for streamlined review creation ✅
+  - [x] Test actual command execution with mocked GitHub API calls ✅
+  - [x] Test repository and PR detection logic ✅
+  - [x] Test file operations and output formatting ✅
+  - [x] Test remaining utility functions (displayDiffHunk, suggestion expansion) ✅
+  - [x] Add comprehensive unit tests for refactored commands ✅
+  - [x] Create comprehensive testing guide (TESTING_GUIDE.md) ✅
 
 - [ ] **Cross-Platform Testing** - Ensure compatibility across all platforms
   - [ ] Add Windows-specific test scenarios (path separators, line endings)
@@ -127,23 +159,31 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - [ ] Add tests for offset syntax
   - [ ] Update documentation
 
-- [ ] **Advanced filtering** - Filter comments by status, author, date, resolved state
-  - [ ] Add `--status` flag (open, resolved, all)
-  - [ ] Add `--since` and `--until` date filtering
-  - [ ] Add `--resolved` boolean filter
-  - [ ] Extend `--author` filtering capabilities
+- [x] **Advanced filtering** - Filter comments by status, author, date, resolved state ✅
+  - [x] Add `--status` flag (open, resolved, all) ✅
+  - [x] Add `--since` and `--until` date filtering ✅
+  - [x] Add `--resolved` boolean filter ✅
+  - [x] Extend `--author` filtering capabilities (wildcards, partial matching) ✅
 
 - [ ] **Configuration file support** - Default flags and repository settings
   - [ ] Design configuration file format (YAML/JSON)
   - [ ] Implement config file parsing
   - [ ] Add `--config` flag support
   - [ ] Create default config generation command
+  - [ ] Support default author, format, color settings
+  - [ ] Add table style configuration
 
 - [ ] **Template system** - Reusable comment patterns and workflows
   - [ ] Design template file format
   - [ ] Implement template loading and substitution
   - [ ] Add built-in templates for common scenarios
   - [ ] Create template sharing mechanism
+
+- [ ] **Enhanced Help System** - Better help text following GitHub CLI patterns
+  - [ ] Add structured examples with descriptions
+  - [ ] Improve long-form help documentation
+  - [ ] Add contextual help for errors
+  - [ ] Create help builder utilities
 
 ### Quality & Performance
 - [ ] **Cross-Platform Testing** - Ensure compatibility across all platforms
@@ -152,6 +192,12 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - [ ] Verify shell compatibility (bash, zsh, fish, PowerShell)
   - [ ] Add platform-specific golden files if needed
 
+- [ ] **Enhanced Integration Testing Pattern** - Use testscript like golang/go project
+  - [ ] Implement testscript-based integration tests
+  - [ ] Add mock GitHub environment setup
+  - [ ] Create reusable test fixtures
+  - [ ] Follow Go standard library testing patterns
+
 - [ ] **Performance Optimizations**
   - [ ] Optimize comment fetching with pagination
   - [ ] Add caching for frequently accessed data
@@ -159,6 +205,23 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - [ ] Monitor and optimize memory usage
 
 ### User Experience
+- [ ] **Professional Table Output** - Replace manual string formatting with `olekukonko/tablewriter`
+  - [ ] Add table output for `list` command
+  - [ ] Support auto-wrapping and formatting
+  - [ ] Add configurable table styles
+  - [ ] Used by 500+ CLI tools including Kubernetes tools
+
+- [ ] **Color Support** - Add color output with `fatih/color`
+  - [ ] Add color coding for different comment types
+  - [ ] Color code authors, timestamps, and status
+  - [ ] Add `--no-color` flag for compatibility
+  - [ ] Respect terminal color capabilities
+
+- [ ] **Progress Indicators** - Add progress bars for long operations with `schollz/progressbar`
+  - [ ] Show progress when fetching many comments
+  - [ ] Add progress for batch operations
+  - [ ] Display ETA for long-running commands
+
 - [ ] **Batch operations** - Apply operations to multiple comments at once
   - [ ] Design batch operation syntax
   - [ ] Implement batch comment creation
@@ -170,6 +233,7 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - [ ] CSV export for spreadsheet analysis
   - [ ] Markdown export for documentation
   - [ ] HTML export for presentations
+  - [ ] Add `export` subcommand
 
 ## ✅ Recently Completed
 
@@ -214,11 +278,21 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 - [x] **CI/CD Pipeline** - Complete GitHub Actions workflow with multi-platform testing
 - [x] **Coverage Reporting** - Automated coverage tracking and thresholds
 - [x] **Golden File Testing** - CLI output verification system
+- [x] **Date Parsing Library Migration** - Replaced 80+ lines of custom date parsing with `markusmobius/go-dateparser`
+  - [x] Removed custom `parseFlexibleDate` and `parseRelativeTime` functions
+  - [x] Added support for 100+ date formats including natural language ("yesterday", "last month")
+  - [x] Maintained test coverage at 81.1%
+  - [x] Updated all tests to work with new parser
+- [x] **Error Handling Improvements** - Implemented better error patterns throughout codebase
+  - [x] Added consistent error wrapping with context (e.g., "failed to fetch comments for PR #123")
+  - [x] Implemented user-friendly error messages with actionable guidance
+  - [x] Added rate limit handling with clear retry information
+  - [x] Created formatValidationError, formatNotFoundError, and formatAPIError helpers
 
 ## 🎯 Success Metrics
 
 ### Code Quality
-- **Test Coverage**: Currently 16.1% (target: 80%+)
+- **Test Coverage**: Currently 80.7% (exceeded 80% target! 🎉)
 - **Test Success Rate**: 100% passing
 - **Performance**: All benchmarks stable with regression detection
 

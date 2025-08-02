@@ -52,10 +52,9 @@ func TestRunReplyWithMockClient(t *testing.T) {
 			expectedErrMsg: "must be a valid integer",
 		},
 		{
-			name:           "message replies not supported yet",
-			args:           []string{"123456", "Great point!"},
-			wantErr:        true,
-			expectedErrMsg: "message replies not yet refactored",
+			name:    "message reply to review comment",
+			args:    []string{"123456", "Great point!"},
+			wantErr: false,
 		},
 	}
 

@@ -1,0 +1,53 @@
+# Test comprehensive error scenarios and edge cases
+[!mock-server] skip 'mock server not available'
+
+# Test invalid PR number
+! exec gh-comment list invalid-pr --repo test-owner/test-repo
+stderr 'invalid PR number'
+stderr 'must be a valid integer'
+
+# Test missing repository
+! exec gh-comment list 123
+stderr 'failed to get current repository'
+
+# Test invalid repository format
+! exec gh-comment list 123 --repo invalid-format
+stderr 'invalid repository format'
+stderr 'expected owner/repo'
+
+# Test adding comment with invalid line range
+! exec gh-comment add 123 src/test.js 50:40 'Invalid range' --repo test-owner/test-repo --dry-run
+stderr 'start line \(50\) cannot be greater than end line \(40\)'
+
+# Test adding comment with zero line number
+! exec gh-comment add 123 src/test.js 0 'Zero line' --repo test-owner/test-repo --dry-run
+stderr 'line numbers must be positive'
+
+# Test reply with invalid comment ID format
+! exec gh-comment reply invalid-id 'Reply message' --repo test-owner/test-repo
+stderr 'invalid comment ID'
+
+# Test review with invalid event type
+! exec gh-comment review 123 'Review body' --event INVALID_EVENT --repo test-owner/test-repo
+stderr 'invalid event type'
+stderr 'must be APPROVE, REQUEST_CHANGES, or COMMENT'
+
+# Test list with invalid author filter (should work but return no results)
+exec gh-comment list 123 --author 'nonexistent-user' --repo test-owner/test-repo
+stdout 'No comments found'
+! stderr .
+
+# Test list with invalid date format
+! exec gh-comment list 123 --since 'invalid-date' --repo test-owner/test-repo
+stderr 'invalid since date'
+stderr 'unknown format'
+
+# Test command with conflicting flags  
+! exec gh-comment list 123 --since '2024-01-01' --until '2023-01-01' --repo test-owner/test-repo
+stderr 'since date .* cannot be after until date'
+
+# Test very long comment (should work)
+exec gh-comment add 123 'src/test.js' 1 'This is a very long comment that contains a lot of text to test how the system handles longer messages and ensures they are processed correctly without any issues or truncation problems that might occur during transmission or storage in the GitHub API systems.' --repo test-owner/test-repo --dry-run
+stdout 'Would add comment'
+stdout 'very long comment'
+! stderr .

@@ -37,12 +37,19 @@ func NewRealClient() (*RealClient, error) {
 
 // ListIssueComments fetches all issue comments for a PR
 func (c *RealClient) ListIssueComments(owner, repo string, prNumber int) ([]Comment, error) {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return nil, err
+	}
+	if prNumber <= 0 {
+		return nil, fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/issues/%d/comments?per_page=100", owner, repo, prNumber)
 
 	var comments []Comment
 	err := c.restClient.Get(endpoint, &comments)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch issue comments: %w", err)
+		return nil, c.wrapAPIError(err, "fetch issue comments for PR #%d in %s/%s", prNumber, owner, repo)
 	}
 
 	// Mark as issue comments
@@ -55,12 +62,19 @@ func (c *RealClient) ListIssueComments(owner, repo string, prNumber int) ([]Comm
 
 // ListReviewComments fetches all review comments for a PR
 func (c *RealClient) ListReviewComments(owner, repo string, prNumber int) ([]Comment, error) {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return nil, err
+	}
+	if prNumber <= 0 {
+		return nil, fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/comments?per_page=100", owner, repo, prNumber)
 
 	var comments []Comment
 	err := c.restClient.Get(endpoint, &comments)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch review comments: %w", err)
+		return nil, c.wrapAPIError(err, "fetch review comments for PR #%d in %s/%s", prNumber, owner, repo)
 	}
 
 	// Mark as review comments
@@ -73,18 +87,28 @@ func (c *RealClient) ListReviewComments(owner, repo string, prNumber int) ([]Com
 
 // CreateIssueComment adds a general comment to a PR
 func (c *RealClient) CreateIssueComment(owner, repo string, prNumber int, body string) (*Comment, error) {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return nil, err
+	}
+	if prNumber <= 0 {
+		return nil, fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+	}
+	if strings.TrimSpace(body) == "" {
+		return nil, fmt.Errorf("comment body cannot be empty")
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/issues/%d/comments", owner, repo, prNumber)
 
 	payload := map[string]string{"body": body}
 	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal comment: %w", err)
+		return nil, fmt.Errorf("failed to marshal comment payload: %w", err)
 	}
 
 	var comment Comment
 	err = c.restClient.Post(endpoint, bytes.NewReader(bodyBytes), &comment)
 	if err != nil {
-		return nil, fmt.Errorf("failed to add issue comment: %w", err)
+		return nil, c.wrapAPIError(err, "create issue comment on PR #%d in %s/%s", prNumber, owner, repo)
 	}
 
 	comment.Type = "issue"
@@ -93,6 +117,16 @@ func (c *RealClient) CreateIssueComment(owner, repo string, prNumber int, body s
 
 // CreateReviewCommentReply adds a reply to a review comment
 func (c *RealClient) CreateReviewCommentReply(owner, repo string, commentID int, body string) (*Comment, error) {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return nil, err
+	}
+	if commentID <= 0 {
+		return nil, fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+	}
+	if strings.TrimSpace(body) == "" {
+		return nil, fmt.Errorf("reply body cannot be empty")
+	}
+
 	// For review comments, we need to get the PR number first
 	// This is a simplified version - in production, you'd want to cache or pass this info
 	endpoint := fmt.Sprintf("repos/%s/%s/pulls/comments/%d/replies", owner, repo, commentID)
@@ -100,13 +134,13 @@ func (c *RealClient) CreateReviewCommentReply(owner, repo string, commentID int,
 	payload := map[string]string{"body": body}
 	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal reply: %w", err)
+		return nil, fmt.Errorf("failed to marshal reply payload: %w", err)
 	}
 
 	var comment Comment
 	err = c.restClient.Post(endpoint, bytes.NewReader(bodyBytes), &comment)
 	if err != nil {
-		return nil, fmt.Errorf("failed to add review comment reply: %w", err)
+		return nil, c.wrapAPIError(err, "create reply to comment #%d in %s/%s", commentID, owner, repo)
 	}
 
 	comment.Type = "review"
@@ -115,6 +149,15 @@ func (c *RealClient) CreateReviewCommentReply(owner, repo string, commentID int,
 
 // FindReviewThreadForComment finds the thread ID for a review comment
 func (c *RealClient) FindReviewThreadForComment(owner, repo string, prNumber, commentID int) (string, error) {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return "", err
+	}
+	if prNumber <= 0 {
+		return "", fmt.Errorf("invalid PR number %d: must be positive", prNumber)
+	}
+	if commentID <= 0 {
+		return "", fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+	}
 	query := `
 		query($owner: String!, $name: String!, $number: Int!) {
 			repository(owner: $owner, name: $name) {
@@ -158,7 +201,7 @@ func (c *RealClient) FindReviewThreadForComment(owner, repo string, prNumber, co
 
 	err := c.graphqlClient.Do(query, variables, &result)
 	if err != nil {
-		return "", fmt.Errorf("failed to find thread: %w", err)
+		return "", c.wrapAPIError(err, "find review thread for comment #%d in PR #%d (%s/%s)", commentID, prNumber, owner, repo)
 	}
 
 	// Find the thread containing our comment
@@ -175,6 +218,10 @@ func (c *RealClient) FindReviewThreadForComment(owner, repo string, prNumber, co
 
 // ResolveReviewThread resolves a review thread
 func (c *RealClient) ResolveReviewThread(threadID string) error {
+	if strings.TrimSpace(threadID) == "" {
+		return fmt.Errorf("thread ID cannot be empty")
+	}
+
 	mutation := `
 		mutation($threadId: ID!) {
 			resolveReviewThread(input: {threadId: $threadId}) {
@@ -190,7 +237,7 @@ func (c *RealClient) ResolveReviewThread(threadID string) error {
 
 	err := c.graphqlClient.Do(mutation, variables, nil)
 	if err != nil {
-		return fmt.Errorf("failed to resolve thread: %w", err)
+		return c.wrapAPIError(err, "resolve review thread %s", threadID)
 	}
 
 	return nil
@@ -200,17 +247,27 @@ func (c *RealClient) ResolveReviewThread(threadID string) error {
 
 // AddReaction adds a reaction to a comment
 func (c *RealClient) AddReaction(owner, repo string, commentID int, reaction string) error {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return err
+	}
+	if commentID <= 0 {
+		return fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+	}
+	if !isValidReaction(reaction) {
+		return fmt.Errorf("invalid reaction '%s': must be one of +1, -1, laugh, hooray, confused, heart, rocket, eyes", reaction)
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions", owner, repo, commentID)
 
 	payload := map[string]string{"content": reaction}
 	body, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("failed to marshal reaction: %w", err)
+		return fmt.Errorf("failed to marshal reaction payload: %w", err)
 	}
 
 	err = c.restClient.Post(endpoint, bytes.NewReader(body), nil)
 	if err != nil {
-		return fmt.Errorf("failed to add reaction: %w", err)
+		return c.wrapAPIError(err, "add '%s' reaction to comment #%d in %s/%s", reaction, commentID, owner, repo)
 	}
 
 	return nil
@@ -218,6 +275,16 @@ func (c *RealClient) AddReaction(owner, repo string, commentID int, reaction str
 
 // RemoveReaction removes a reaction from a comment
 func (c *RealClient) RemoveReaction(owner, repo string, commentID int, reaction string) error {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return err
+	}
+	if commentID <= 0 {
+		return fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+	}
+	if !isValidReaction(reaction) {
+		return fmt.Errorf("invalid reaction '%s': must be one of +1, -1, laugh, hooray, confused, heart, rocket, eyes", reaction)
+	}
+
 	// First, get reactions to find the ID to delete
 	endpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions", owner, repo, commentID)
 
@@ -229,7 +296,7 @@ func (c *RealClient) RemoveReaction(owner, repo string, commentID int, reaction 
 
 	err := c.restClient.Get(endpoint, &reactions)
 	if err != nil {
-		return fmt.Errorf("failed to fetch reactions: %w", err)
+		return c.wrapAPIError(err, "fetch reactions for comment #%d in %s/%s", commentID, owner, repo)
 	}
 
 	// Find current user's reaction
@@ -238,7 +305,7 @@ func (c *RealClient) RemoveReaction(owner, repo string, commentID int, reaction 
 	}
 	err = c.restClient.Get("user", &currentUser)
 	if err != nil {
-		return fmt.Errorf("failed to get current user: %w", err)
+		return c.wrapAPIError(err, "get current user info")
 	}
 
 	// Find and delete the reaction
@@ -247,28 +314,38 @@ func (c *RealClient) RemoveReaction(owner, repo string, commentID int, reaction 
 			deleteEndpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d/reactions/%d", owner, repo, commentID, r.ID)
 			err = c.restClient.Delete(deleteEndpoint, nil)
 			if err != nil {
-				return fmt.Errorf("failed to remove reaction: %w", err)
+				return c.wrapAPIError(err, "remove '%s' reaction from comment #%d in %s/%s", reaction, commentID, owner, repo)
 			}
 			return nil
 		}
 	}
 
-	return fmt.Errorf("reaction not found")
+	return fmt.Errorf("'%s' reaction not found on comment #%d (you may not have reacted with this emoji)", reaction, commentID)
 }
 
 // EditComment edits an existing comment
 func (c *RealClient) EditComment(owner, repo string, commentID int, body string) error {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return err
+	}
+	if commentID <= 0 {
+		return fmt.Errorf("invalid comment ID %d: must be positive", commentID)
+	}
+	if strings.TrimSpace(body) == "" {
+		return fmt.Errorf("comment body cannot be empty")
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/issues/comments/%d", owner, repo, commentID)
 
 	payload := map[string]string{"body": body}
 	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("failed to marshal comment: %w", err)
+		return fmt.Errorf("failed to marshal comment payload: %w", err)
 	}
 
 	err = c.restClient.Patch(endpoint, bytes.NewReader(bodyBytes), nil)
 	if err != nil {
-		return fmt.Errorf("failed to edit comment: %w", err)
+		return c.wrapAPIError(err, "edit comment #%d in %s/%s", commentID, owner, repo)
 	}
 
 	return nil
@@ -276,16 +353,29 @@ func (c *RealClient) EditComment(owner, repo string, commentID int, body string)
 
 // AddReviewComment adds a line-specific comment to a PR
 func (c *RealClient) AddReviewComment(owner, repo string, pr int, comment ReviewCommentInput) error {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return err
+	}
+	if pr <= 0 {
+		return fmt.Errorf("invalid PR number %d: must be positive", pr)
+	}
+	if strings.TrimSpace(comment.Body) == "" {
+		return fmt.Errorf("review comment body cannot be empty")
+	}
+	if comment.Path == "" {
+		return fmt.Errorf("review comment path cannot be empty")
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/comments", owner, repo, pr)
 
 	body, err := json.Marshal(comment)
 	if err != nil {
-		return fmt.Errorf("failed to marshal comment: %w", err)
+		return fmt.Errorf("failed to marshal review comment payload: %w", err)
 	}
 
 	err = c.restClient.Post(endpoint, bytes.NewReader(body), nil)
 	if err != nil {
-		return fmt.Errorf("failed to add review comment: %w", err)
+		return c.wrapAPIError(err, "add review comment to %s:%d in PR #%d (%s/%s)", comment.Path, comment.Line, pr, owner, repo)
 	}
 
 	return nil
@@ -293,11 +383,18 @@ func (c *RealClient) AddReviewComment(owner, repo string, pr int, comment Review
 
 // FetchPRDiff fetches the diff for a pull request
 func (c *RealClient) FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, error) {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return nil, err
+	}
+	if pr <= 0 {
+		return nil, fmt.Errorf("invalid PR number %d: must be positive", pr)
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d", owner, repo, pr)
 
 	resp, err := c.restClient.Request("GET", endpoint, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch PR: %w", err)
+		return nil, c.wrapAPIError(err, "fetch PR #%d details from %s/%s", pr, owner, repo)
 	}
 	defer resp.Body.Close()
 
@@ -308,7 +405,7 @@ func (c *RealClient) FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, 
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
+		return nil, fmt.Errorf("failed to read PR response: %w", err)
 	}
 
 	err = json.Unmarshal(body, &prData)
@@ -316,22 +413,103 @@ func (c *RealClient) FetchPRDiff(owner, repo string, pr int) (*PullRequestDiff, 
 		return nil, fmt.Errorf("failed to parse PR data: %w", err)
 	}
 
+	if prData.DiffURL == "" {
+		return nil, fmt.Errorf("PR #%d does not have a diff URL (may be empty or merged)", pr)
+	}
+
 	// Fetch the actual diff
 	diffResp, err := http.Get(prData.DiffURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch diff: %w", err)
+		return nil, fmt.Errorf("failed to fetch diff from GitHub: %w", err)
 	}
 	defer diffResp.Body.Close()
 
+	if diffResp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to fetch diff: HTTP %d", diffResp.StatusCode)
+	}
+
 	diffContent, err := io.ReadAll(diffResp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read diff: %w", err)
+		return nil, fmt.Errorf("failed to read diff content: %w", err)
 	}
 
 	// Parse the diff to extract file and line information
 	diff := parseDiff(string(diffContent))
 
 	return diff, nil
+}
+
+// validateRepoParams validates repository owner and name parameters
+func validateRepoParams(owner, repo string) error {
+	if owner == "" {
+		return fmt.Errorf("repository owner cannot be empty")
+	}
+	if repo == "" {
+		return fmt.Errorf("repository name cannot be empty")
+	}
+	if strings.Contains(owner, "/") || strings.Contains(repo, "/") {
+		return fmt.Errorf("invalid repository format: use 'owner/repo' format")
+	}
+	return nil
+}
+
+// checkRateLimit provides rate limit awareness following GitHub CLI patterns
+// This provides user guidance without automatic retries (which GitHub CLI team discourages)
+func (c *RealClient) checkRateLimit() {
+	// This is a placeholder for rate limit checking
+	// In a production implementation, you might:
+	// 1. Check X-RateLimit-Remaining header after requests
+	// 2. Warn when approaching limits (50-75% usage)
+	// 3. Provide proactive guidance to users
+	//
+	// GitHub CLI team prefers user awareness over automatic handling
+}
+
+// isValidReaction checks if the reaction is valid for GitHub API
+func isValidReaction(reaction string) bool {
+	validReactions := map[string]bool{
+		"+1":      true,
+		"-1":      true,
+		"laugh":   true,
+		"hooray":  true,
+		"confused": true,
+		"heart":   true,
+		"rocket":  true,
+		"eyes":    true,
+	}
+	return validReactions[reaction]
+}
+
+// wrapAPIError wraps GitHub API errors with context and rate limit information
+// Following GitHub CLI philosophy: provide helpful guidance instead of automatic retries
+func (c *RealClient) wrapAPIError(err error, operation string, args ...interface{}) error {
+	context := fmt.Sprintf(operation, args...)
+
+	// Check if this is a rate limit error
+	if strings.Contains(err.Error(), "rate limit") || strings.Contains(err.Error(), "403") {
+		return fmt.Errorf("rate limit exceeded while trying to %s: %w\n\n💡 Tips:\n   • Wait a few minutes before retrying\n   • Check your rate limit status: gh api rate_limit\n   • Consider reducing API calls if this happens frequently", context, err)
+	}
+
+	// Check for common API errors and provide helpful messages
+	if strings.Contains(err.Error(), "404") {
+		return fmt.Errorf("resource not found while trying to %s: %w\n\n💡 Tips:\n   • Verify the repository exists and you have access to it\n   • Check the PR/comment ID is correct\n   • Ensure you have the right permissions", context, err)
+	}
+
+	if strings.Contains(err.Error(), "401") {
+		return fmt.Errorf("authentication failed while trying to %s: %w\n\n💡 Tips:\n   • Check your GitHub CLI authentication: gh auth status\n   • Re-authenticate if needed: gh auth login\n   • Verify you have access to this repository", context, err)
+	}
+
+	if strings.Contains(err.Error(), "422") {
+		return fmt.Errorf("validation error while trying to %s: %w\n\n💡 Tips:\n   • Check that your input parameters are valid\n   • Verify line numbers exist in the diff\n   • Ensure comment body is not empty", context, err)
+	}
+
+	// Check for secondary rate limits (GitHub doesn't always send proper headers)
+	if strings.Contains(err.Error(), "abuse") || strings.Contains(err.Error(), "secondary") {
+		return fmt.Errorf("secondary rate limit triggered while trying to %s: %w\n\n💡 Tips:\n   • This is a temporary protective measure by GitHub\n   • Wait 60 seconds before retrying\n   • Reduce the frequency of API calls", context, err)
+	}
+
+	// Generic API error
+	return fmt.Errorf("GitHub API error while trying to %s: %w", context, err)
 }
 
 // Helper function to parse diff content
@@ -369,16 +547,27 @@ func parseDiff(diffContent string) *PullRequestDiff {
 
 // CreateReview creates a new review with comments
 func (c *RealClient) CreateReview(owner, repo string, pr int, review ReviewInput) error {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return err
+	}
+	if pr <= 0 {
+		return fmt.Errorf("invalid PR number %d: must be positive", pr)
+	}
+	// Validate review event if provided
+	if review.Event != "" && review.Event != "APPROVE" && review.Event != "REQUEST_CHANGES" && review.Event != "COMMENT" {
+		return fmt.Errorf("invalid review event '%s': must be APPROVE, REQUEST_CHANGES, or COMMENT", review.Event)
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/reviews", owner, repo, pr)
 
 	body, err := json.Marshal(review)
 	if err != nil {
-		return fmt.Errorf("failed to marshal review: %w", err)
+		return fmt.Errorf("failed to marshal review payload: %w", err)
 	}
 
 	err = c.restClient.Post(endpoint, bytes.NewReader(body), nil)
 	if err != nil {
-		return fmt.Errorf("failed to create review: %w", err)
+		return c.wrapAPIError(err, "create review on PR #%d in %s/%s", pr, owner, repo)
 	}
 
 	return nil
@@ -386,13 +575,85 @@ func (c *RealClient) CreateReview(owner, repo string, pr int, review ReviewInput
 
 // GetPRDetails fetches basic PR information
 func (c *RealClient) GetPRDetails(owner, repo string, pr int) (map[string]interface{}, error) {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return nil, err
+	}
+	if pr <= 0 {
+		return nil, fmt.Errorf("invalid PR number %d: must be positive", pr)
+	}
+
 	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d", owner, repo, pr)
 
 	var result map[string]interface{}
 	err := c.restClient.Get(endpoint, &result)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch PR details: %w", err)
+		return nil, c.wrapAPIError(err, "fetch PR #%d details from %s/%s", pr, owner, repo)
 	}
 
 	return result, nil
+}
+
+// FindPendingReview finds a pending review for the current user on a PR
+func (c *RealClient) FindPendingReview(owner, repo string, pr int) (int, error) {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return 0, err
+	}
+	if pr <= 0 {
+		return 0, fmt.Errorf("invalid PR number %d: must be positive", pr)
+	}
+
+	// Get existing reviews for this PR
+	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/reviews", owner, repo, pr)
+
+	var reviews []map[string]interface{}
+	err := c.restClient.Get(endpoint, &reviews)
+	if err != nil {
+		return 0, c.wrapAPIError(err, "get reviews for PR #%d in %s/%s", pr, owner, repo)
+	}
+
+	// Look for an existing PENDING review
+	for _, review := range reviews {
+		if state, ok := review["state"].(string); ok && state == "PENDING" {
+			if id, ok := review["id"].(float64); ok {
+				return int(id), nil
+			}
+		}
+	}
+
+	return 0, nil // No pending review found
+}
+
+// SubmitReview submits a pending review with a body and event
+func (c *RealClient) SubmitReview(owner, repo string, pr, reviewID int, body, event string) error {
+	if err := validateRepoParams(owner, repo); err != nil {
+		return err
+	}
+	if pr <= 0 {
+		return fmt.Errorf("invalid PR number %d: must be positive", pr)
+	}
+	if reviewID <= 0 {
+		return fmt.Errorf("invalid review ID %d: must be positive", reviewID)
+	}
+	if event != "APPROVE" && event != "REQUEST_CHANGES" && event != "COMMENT" {
+		return fmt.Errorf("invalid review event '%s': must be APPROVE, REQUEST_CHANGES, or COMMENT", event)
+	}
+
+	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/reviews/%d/events", owner, repo, pr, reviewID)
+
+	payload := map[string]interface{}{
+		"body":  body,
+		"event": event,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal submit review payload: %w", err)
+	}
+
+	err = c.restClient.Post(endpoint, bytes.NewReader(payloadBytes), nil)
+	if err != nil {
+		return c.wrapAPIError(err, "submit review #%d on PR #%d in %s/%s", reviewID, pr, owner, repo)
+	}
+
+	return nil
 }

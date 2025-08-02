@@ -161,10 +161,10 @@ func FuzzAuthorFilter(f *testing.F) {
 
 		// If author filter is set, should only return matching comments
 		if authorInput != "" {
-			// Check that all returned comments match the filter
+			// Check that all returned comments match the filter using our enhanced matching
 			for _, comment := range filtered {
-				if comment.Author != authorInput {
-					t.Errorf("Filtered comment has author %q, expected %q", comment.Author, authorInput)
+				if !matchesAuthorFilter(comment.Author, authorInput) {
+					t.Errorf("Filtered comment has author %q, doesn't match filter %q", comment.Author, authorInput)
 				}
 			}
 
@@ -232,12 +232,12 @@ func FuzzSuggestionExpansion(f *testing.F) {
 func containsSuggestion(input string) bool {
 	return len(input) > 0 && (
 	// Look for suggestion markers
-	contains(input, "```suggestion") ||
-		contains(input, "suggestion```"))
+	containsSubstring(input, "```suggestion") ||
+		containsSubstring(input, "suggestion```"))
 }
 
-// contains is a simple substring check
-func contains(s, substr string) bool {
+// containsSubstring is a simple substring check
+func containsSubstring(s, substr string) bool {
 	return len(s) >= len(substr) &&
 		(s == substr ||
 			(len(s) > len(substr) &&

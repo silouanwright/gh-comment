@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/cli/go-gh/v2/pkg/api"
+	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +14,9 @@ var (
 	reviewComments            []string
 	reviewEvent               string
 	noExpandSuggestionsReview bool
+
+	// Client for dependency injection (tests can override)
+	addReviewClient github.GitHubAPI
 )
 
 var addReviewCmd = &cobra.Command{
@@ -57,6 +58,11 @@ func init() {
 }
 
 func runAddReview(cmd *cobra.Command, args []string) error {
+	// Initialize client if not set (production use)
+	if addReviewClient == nil {
+		addReviewClient = &github.RealClient{}
+	}
+
 	var pr int
 	var body string
 	var err error
@@ -126,136 +132,130 @@ func runAddReview(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Create the review with all comments
-	return createReviewWithComments(repository, pr, body, reviewEvent, reviewComments)
+	// Parse owner/repo
+	parts := strings.Split(repository, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+	}
+	owner, repoName := parts[0], parts[1]
+
+	// Create the review with all comments using the client
+	return createReviewWithComments(addReviewClient, owner, repoName, pr, body, reviewEvent, reviewComments)
 }
 
-func createReviewWithComments(repo string, pr int, body, event string, commentSpecs []string) error {
-	client, err := api.DefaultRESTClient()
+func createReviewWithComments(client github.GitHubAPI, owner, repo string, pr int, body, event string, commentSpecs []string) error {
+	// Get PR details for commit SHA
+	prDetails, err := client.GetPRDetails(owner, repo, pr)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get PR details: %w", err)
 	}
 
-	// Get PR data for commit SHA
-	prData := struct {
-		Head struct {
-			SHA string `json:"sha"`
-		} `json:"head"`
-	}{}
-
-	err = client.Get(fmt.Sprintf("repos/%s/pulls/%d", repo, pr), &prData)
-	if err != nil {
-		return fmt.Errorf("failed to get PR data: %w", err)
+	// Extract commit SHA from PR details
+	var commitSHA string
+	if head, ok := prDetails["head"].(map[string]interface{}); ok {
+		if sha, ok := head["sha"].(string); ok {
+			commitSHA = sha
+		} else {
+			return fmt.Errorf("could not extract commit SHA from PR details")
+		}
+	} else {
+		return fmt.Errorf("could not extract head information from PR details")
 	}
 
 	// Parse comment specifications
-	var comments []map[string]interface{}
+	var reviewComments []github.ReviewCommentInput
 	for _, spec := range commentSpecs {
-		comment, err := parseCommentSpec(spec, prData.Head.SHA)
+		comment, err := parseCommentSpec(spec, commitSHA)
 		if err != nil {
 			return fmt.Errorf("invalid comment spec '%s': %w", spec, err)
 		}
-		comments = append(comments, comment)
+		reviewComments = append(reviewComments, comment)
 	}
 
-	// Create review payload
-	reviewPayload := map[string]interface{}{
-		"commit_id": prData.Head.SHA,
-		"body":      body,
-		"comments":  comments,
+	// Create review input
+	reviewInput := github.ReviewInput{
+		Body:     body,
+		Comments: reviewComments,
 	}
 
-	// Add event if specified (otherwise creates pending review)
+	// Set event if specified (otherwise creates pending review)
 	if event != "" {
-		reviewPayload["event"] = event
-	}
-
-	payloadJSON, err := json.Marshal(reviewPayload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal review payload: %w", err)
-	}
-
-	if verbose {
-		fmt.Printf("Review payload:\n%s\n\n", string(payloadJSON))
+		reviewInput.Event = event
+	} else {
+		reviewInput.Event = "COMMENT" // Default for pending review
 	}
 
 	// Create the review
-	var response map[string]interface{}
-	err = client.Post(fmt.Sprintf("repos/%s/pulls/%d/reviews", repo, pr), bytes.NewReader(payloadJSON), &response)
+	err = client.CreateReview(owner, repo, pr, reviewInput)
 	if err != nil {
 		return fmt.Errorf("failed to create review: %w", err)
 	}
 
 	// Display success message
 	if event == "" {
-		fmt.Printf("✅ Created pending review with %d comments on PR #%d\n", len(comments), pr)
+		fmt.Printf("✅ Created pending review with %d comments on PR #%d\n", len(reviewComments), pr)
 		fmt.Printf("💡 Use 'gh pr review --approve/--request-changes/--comment' to submit the review\n")
 	} else {
-		fmt.Printf("✅ Created and submitted %s review with %d comments on PR #%d\n", event, len(comments), pr)
-	}
-
-	if verbose {
-		if htmlURL, ok := response["html_url"].(string); ok {
-			fmt.Printf("Review URL: %s\n", htmlURL)
-		}
+		fmt.Printf("✅ Created and submitted %s review with %d comments on PR #%d\n", event, len(reviewComments), pr)
 	}
 
 	return nil
 }
 
-func parseCommentSpec(spec, commitSHA string) (map[string]interface{}, error) {
+func parseCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, error) {
 	// Format: "file:line:message" or "file:start:end:message"
-	parts := strings.SplitN(spec, ":", 4)
+	parts := strings.Split(spec, ":")
 	if len(parts) < 3 {
-		return nil, fmt.Errorf("format should be 'file:line:message' or 'file:start:end:message'")
+		return github.ReviewCommentInput{}, fmt.Errorf("format should be 'file:line:message' or 'file:start:end:message'")
 	}
 
 	file := parts[0]
 
-	if len(parts) == 3 {
-		// Single line: file:line:message
-		line, err := strconv.Atoi(parts[1])
-		if err != nil {
-			return nil, fmt.Errorf("invalid line number: %s", parts[1])
-		}
-
-		body := parts[2]
-		if !noExpandSuggestionsReview {
-			body = expandSuggestions(body)
-		}
-
-		return map[string]interface{}{
-			"path": file,
-			"line": line,
-			"body": body,
-		}, nil
-	} else {
-		// Range: file:start:end:message
+	// Try to parse as range first (file:start:end:message...)
+	if len(parts) >= 4 {
 		startLine, err := strconv.Atoi(parts[1])
-		if err != nil {
-			return nil, fmt.Errorf("invalid start line: %s", parts[1])
-		}
+		if err == nil {
+			endLine, err := strconv.Atoi(parts[2])
+			if err == nil {
+				// This is a valid range format
+				if startLine > endLine {
+					return github.ReviewCommentInput{}, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", startLine, endLine)
+				}
 
-		endLine, err := strconv.Atoi(parts[2])
-		if err != nil {
-			return nil, fmt.Errorf("invalid end line: %s", parts[2])
-		}
+				// Join remaining parts as the message (in case message contains colons)
+				body := strings.Join(parts[3:], ":")
+				if !noExpandSuggestionsReview {
+					body = expandSuggestions(body)
+				}
 
-		if startLine > endLine {
-			return nil, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", startLine, endLine)
+				return github.ReviewCommentInput{
+					Path:      file,
+					Line:      endLine,
+					StartLine: startLine,
+					Side:      "RIGHT",
+					Body:      body,
+					CommitID:  commitSHA,
+				}, nil
+			}
 		}
-
-		body := parts[3]
-		if !noExpandSuggestionsReview {
-			body = expandSuggestions(body)
-		}
-
-		return map[string]interface{}{
-			"path":       file,
-			"line":       endLine,
-			"start_line": startLine,
-			"start_side": "RIGHT",
-			"body":       body,
-		}, nil
 	}
+
+	// Parse as single line: file:line:message...
+	line, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return github.ReviewCommentInput{}, fmt.Errorf("invalid line number: %s", parts[1])
+	}
+
+	// Join remaining parts as the message (in case message contains colons)
+	body := strings.Join(parts[2:], ":")
+	if !noExpandSuggestionsReview {
+		body = expandSuggestions(body)
+	}
+
+	return github.ReviewCommentInput{
+		Path:     file,
+		Line:     line,
+		Body:     body,
+		CommitID: commitSHA,
+	}, nil
 }

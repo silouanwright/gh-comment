@@ -1,0 +1,40 @@
+# Test security review workflow with comprehensive scenarios
+[!mock-server] skip 'mock server not available'
+[!scenario:security-review] skip 'test scenario not available'
+
+# Test security-focused comment listing
+exec gh-comment list 456 --author security-bot --repo test-owner/test-repo
+stdout 'Security scan detected potential SQL injection vulnerability'
+stdout 'database.py:L156'
+! stderr .
+
+# Test senior developer security feedback
+exec gh-comment list 456 --author senior-dev --repo test-owner/test-repo
+stdout 'Use crypto.randomBytes(32) instead of Math.random()'
+stdout 'auth.go:L67' 
+! stderr .
+
+# Test comprehensive security review creation
+exec gh-comment review 456 'Security audit complete - issues found' \
+  --comment 'validation.js:25:Input sanitization missing - XSS risk' \
+  --comment 'api.js:134:140:Add rate limiting to prevent DoS attacks' \
+  --event REQUEST_CHANGES \
+  --repo test-owner/test-repo \
+  --dry-run
+stdout 'Would create review on PR #456'
+stdout 'Security audit complete - issues found'
+stdout 'Input sanitization missing - XSS risk'
+stdout 'Add rate limiting to prevent DoS attacks'
+stdout 'REQUEST_CHANGES'
+! stderr .
+
+# Test filtering for security team comments  
+exec gh-comment list 456 --author '*security*' --repo test-owner/test-repo
+stdout 'Security scan detected'
+! stderr .
+
+# Test quiet mode for automation
+exec gh-comment list 456 --author security-bot --quiet --repo test-owner/test-repo
+stdout 'Security scan detected'
+! stdout 'database.py:L156' # Quiet mode should hide file info
+! stderr .

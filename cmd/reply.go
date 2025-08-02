@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 )
@@ -22,43 +23,34 @@ var (
 
 var replyCmd = &cobra.Command{
 	Use:   "reply <comment-id> [message]",
-	Short: "Reply to a specific comment on a PR",
-	Long: `Reply to a specific comment on a pull request.
+	Short: "Reply to a comment or add reactions",
+	Long: heredoc.Doc(`
+		Reply to an existing comment with a message or reaction.
 
-You can reply with a message, add/remove reactions, or both. Use the comment ID from the URL
-shown in 'gh comment list' output. Specify the comment type using --type flag:
-- 'review' for line-specific code review comments (default)
-- 'issue' for general PR discussion comments
+		Supports threaded replies to create discussion threads, and emoji
+		reactions for quick feedback. Reactions can be added or removed.
 
-Common use cases:
-- Acknowledge feedback: "Good point, thanks!"
-- Ask for clarification: "What do you mean by this?"
-- Confirm fix: "Fixed in latest commit"
-- Show appreciation with reactions
-- Remove accidental or outdated reactions
-- Resolve conversations after addressing feedback
+		Comment IDs can be found in the output of 'gh comment list'.
+	`),
+	Example: heredoc.Doc(`
+		# Reply with a message
+		$ gh comment reply 123456 "Good point, I'll fix that"
 
-Examples:
-  # Reply to a review comment (line-specific)
-  gh comment reply 2246362251 "Good catch, fixed this!"
+		# Add a thumbs up reaction
+		$ gh comment reply 123456 --reaction +1
 
-  # Reply to an issue comment (general PR comment)
-  gh comment reply 3141344022 "Thanks for the feedback!" --type issue
+		# Remove a reaction
+		$ gh comment reply 123456 --remove-reaction +1
 
-  # Reply and resolve conversation (review comments only)
-  gh comment reply 2246362251 "Fixed in latest commit" --resolve
+		# Reply and resolve conversation
+		$ gh comment reply 123456 "Fixed in latest commit" --resolve
 
-  # Add a thumbs up reaction
-  gh comment reply 2246362251 --reaction +1
+		# Add multiple reactions
+		$ gh comment reply 123456 --reaction +1 --reaction heart
 
-  # Remove a reaction
-  gh comment reply 2246362251 --remove-reaction +1
-
-  # Reply with message, reaction, and resolve
-  gh comment reply 2246362251 "Thanks for the feedback!" --reaction heart --resolve
-
-  # Quick acknowledgment
-  gh comment reply 2246362251 "👍 Fixed"`,
+		# Reply with code suggestion
+		$ gh comment reply 123456 "[SUGGEST: if (condition) { return early; }]"
+	`),
 	Args: cobra.RangeArgs(1, 2),
 	RunE: runReply,
 }
@@ -186,14 +178,51 @@ func runReply(cmd *cobra.Command, args []string) error {
 		fmt.Printf("✅ Removed %s reaction from comment #%d\n", removeReaction, commentID)
 	}
 
-	// TODO: Refactor message reply functionality
+	// Handle message reply
 	if message != "" {
-		return fmt.Errorf("message replies not yet refactored - use reactions for now")
+		// Expand suggestions if enabled
+		if !noExpandSuggestionsReply {
+			message = expandSuggestions(message)
+		}
+
+		var err error
+		if commentType == "issue" {
+			// For issue comments, create a new issue comment (GitHub API doesn't support direct replies to issue comments)
+			// We need the PR number for this - let's get it from context
+			_, prNum, err := getPRContext()
+			if err != nil {
+				return fmt.Errorf("failed to get PR context: %w", err)
+			}
+			_, err = replyClient.CreateIssueComment(owner, repoName, prNum, message)
+		} else {
+			// Reply to review comment
+			_, err = replyClient.CreateReviewCommentReply(owner, repoName, commentID, message)
+		}
+
+		if err != nil {
+			return fmt.Errorf("failed to create reply: %w", err)
+		}
+		fmt.Printf("✅ Replied to comment #%d: %s\n", commentID, message)
 	}
 
-	// TODO: Refactor resolve conversation functionality
+	// Handle resolve conversation
 	if resolveConversation {
-		return fmt.Errorf("resolve conversation not yet refactored - use reactions for now")
+		if commentType == "issue" {
+			return fmt.Errorf("cannot resolve issue comments - only review comments can be resolved")
+		}
+
+		// Find the thread ID for this comment
+		threadID, err := replyClient.FindReviewThreadForComment(owner, repoName, 0, commentID) // PR number not needed for this operation
+		if err != nil {
+			return fmt.Errorf("failed to find review thread: %w", err)
+		}
+
+		// Resolve the thread
+		err = replyClient.ResolveReviewThread(threadID)
+		if err != nil {
+			return fmt.Errorf("failed to resolve conversation: %w", err)
+		}
+		fmt.Printf("✅ Resolved conversation for comment #%d\n", commentID)
 	}
 
 	return nil

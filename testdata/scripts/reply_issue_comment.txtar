@@ -1,6 +1,6 @@
 # Test reply command help
 exec gh-comment reply --help
-stdout 'Reply to a specific comment on a pull request'
+stdout 'Reply to an existing comment with a message or reaction'
 stdout 'Usage:'
 stdout 'Flags:'
 ! stderr .

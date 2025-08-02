@@ -1,18 +1,19 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/cli/go-gh/v2/pkg/api"
+	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 )
 
 var (
 	editMessages []string
+
+	// Client for dependency injection (tests can override)
+	editClient github.GitHubAPI
 )
 
 var editCmd = &cobra.Command{
@@ -50,6 +51,11 @@ func init() {
 }
 
 func runEdit(cmd *cobra.Command, args []string) error {
+	// Initialize client if not set (production use)
+	if editClient == nil {
+		editClient = &github.RealClient{}
+	}
+
 	// Parse comment ID
 	commentID, err := strconv.Atoi(args[0])
 	if err != nil {
@@ -73,6 +79,13 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Parse owner/repo
+	parts := strings.Split(repository, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+	}
+	owner, repoName := parts[0], parts[1]
+
 	if verbose {
 		fmt.Printf("Repository: %s\n", repository)
 		fmt.Printf("Comment ID: %d\n", commentID)
@@ -86,37 +99,12 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// Edit the comment
-	err = editComment(repository, commentID, message)
+	// Edit the comment using the client
+	err = editClient.EditComment(owner, repoName, commentID, message)
 	if err != nil {
 		return fmt.Errorf("failed to edit comment: %w", err)
 	}
 
 	fmt.Printf("✅ Edited comment #%d\n", commentID)
-	return nil
-}
-
-func editComment(repo string, commentID int, newMessage string) error {
-	client, err := api.DefaultRESTClient()
-	if err != nil {
-		return err
-	}
-
-	// GitHub API endpoint for editing pull request review comments
-	payload := map[string]interface{}{
-		"body": newMessage,
-	}
-
-	payloadJSON, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
-	}
-
-	var response map[string]interface{}
-	err = client.Patch(fmt.Sprintf("repos/%s/pulls/comments/%d", repo, commentID), bytes.NewReader(payloadJSON), &response)
-	if err != nil {
-		return fmt.Errorf("failed to edit comment: %w", err)
-	}
-
 	return nil
 }

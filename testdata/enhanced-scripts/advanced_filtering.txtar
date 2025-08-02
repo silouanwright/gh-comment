@@ -1,0 +1,74 @@
+# Test advanced filtering capabilities
+[!mock-server] skip 'mock server not available'
+[!scenario:basic] skip 'test scenario not available'
+
+# Test date-based filtering with relative dates
+exec gh-comment list 123 --since '1 hour ago' --repo test-owner/test-repo
+# Should show recent comments (mock comments are created with current time)
+stdout 'This looks good to me!'
+! stderr .
+
+# Test date-based filtering with absolute dates
+exec gh-comment list 123 --since '2023-01-01' --repo test-owner/test-repo
+stdout 'This looks good to me!'
+! stderr .
+
+# Test date range filtering
+exec gh-comment list 123 --since '2023-01-01' --until '2025-12-31' --repo test-owner/test-repo
+stdout 'This looks good to me!'
+! stderr .
+
+# Test author wildcard patterns
+exec gh-comment list 123 --author 'test*' --repo test-owner/test-repo
+stdout 'This looks good to me!'
+! stderr .
+
+# Test email-style author filtering
+exec gh-comment list 123 --author '*@test.com' --repo test-owner/test-repo
+# No matches expected with current test data
+stdout 'No comments found'
+! stderr .
+
+# Test comment type filtering - review comments only
+exec gh-comment list 123 --type review --repo test-owner/test-repo
+stdout 'Please fix the typo in line 42'
+stdout 'src/main.go:L42'
+! stdout 'This looks good to me!' # This is an issue comment
+! stderr .
+
+# Test comment type filtering - issue comments only  
+exec gh-comment list 123 --type issue --repo test-owner/test-repo
+stdout 'This looks good to me!'
+! stdout 'Please fix the typo' # This is a review comment
+! stderr .
+
+# Test status filtering (open/resolved/all)
+exec gh-comment list 123 --status open --repo test-owner/test-repo
+stdout 'This looks good to me!'
+! stderr .
+
+exec gh-comment list 123 --status all --repo test-owner/test-repo  
+stdout 'This looks good to me!'
+stdout 'Please fix the typo'
+! stderr .
+
+# Test multiple filter combinations
+exec gh-comment list 123 --author 'reviewer' --type review --since '1 day ago' --repo test-owner/test-repo
+stdout 'Please fix the typo in line 42'
+! stdout 'This looks good to me!'
+! stderr .
+
+# Test case-insensitive author matching
+exec gh-comment list 123 --author 'REVIEWER' --repo test-owner/test-repo
+stdout 'Please fix the typo'
+! stderr .
+
+# Test partial author matching
+exec gh-comment list 123 --author 'review' --repo test-owner/test-repo
+stdout 'Please fix the typo'
+! stderr .
+
+# Test filtering with no results
+exec gh-comment list 123 --author 'nonexistent' --repo test-owner/test-repo
+stdout 'No comments found'
+! stderr .

@@ -26,6 +26,8 @@ type GitHubAPI interface {
 
 	// Review operations
 	CreateReview(owner, repo string, pr int, review ReviewInput) error
+	FindPendingReview(owner, repo string, pr int) (int, error)
+	SubmitReview(owner, repo string, pr, reviewID int, body, event string) error
 
 	// GraphQL operations
 	ResolveReviewThread(threadID string) error
@@ -90,12 +92,17 @@ type MockClient struct {
 	ReviewComments []Comment
 	CreatedComment *Comment
 	ResolvedThread string
+	PendingReviewID int
+	SubmittedReviewID int
 
 	// Error simulation
-	ListIssueCommentsError  error
-	ListReviewCommentsError error
-	CreateCommentError      error
-	ResolveThreadError      error
+	ListIssueCommentsError    error
+	ListReviewCommentsError   error
+	CreateCommentError        error
+	ResolveThreadError        error
+	FindReviewThreadError     error
+	FindPendingReviewError    error
+	SubmitReviewError         error
 }
 
 // NewMockClient creates a new mock client for testing
@@ -121,6 +128,7 @@ func NewMockClient() *MockClient {
 				Line:      42,
 			},
 		},
+		PendingReviewID: 987654, // Mock pending review ID
 	}
 }
 
@@ -172,6 +180,9 @@ func (m *MockClient) CreateReviewCommentReply(owner, repo string, commentID int,
 }
 
 func (m *MockClient) FindReviewThreadForComment(owner, repo string, prNumber, commentID int) (string, error) {
+	if m.FindReviewThreadError != nil {
+		return "", m.FindReviewThreadError
+	}
 	return "RT_123", nil
 }
 
@@ -215,9 +226,27 @@ func (m *MockClient) GetPRDetails(owner, repo string, pr int) (map[string]interf
 		"number": pr,
 		"state":  "open",
 		"title":  "Test PR",
+		"head": map[string]interface{}{
+			"sha": "abc123def456",
+		},
 	}, nil
 }
 
 func (m *MockClient) CreateReview(owner, repo string, pr int, review ReviewInput) error {
+	return nil
+}
+
+func (m *MockClient) FindPendingReview(owner, repo string, pr int) (int, error) {
+	if m.FindPendingReviewError != nil {
+		return 0, m.FindPendingReviewError
+	}
+	return m.PendingReviewID, nil
+}
+
+func (m *MockClient) SubmitReview(owner, repo string, pr, reviewID int, body, event string) error {
+	if m.SubmitReviewError != nil {
+		return m.SubmitReviewError
+	}
+	m.SubmittedReviewID = reviewID
 	return nil
 }
