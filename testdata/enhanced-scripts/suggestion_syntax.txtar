@@ -20,15 +20,11 @@ stdout '\[SUGGEST: keep this literal\]'
 ! stderr .
 
 # Test suggestion syntax in review comments
-exec gh-comment review 123 'Code review with suggestions' \
-  --comment 'performance.js:89:Extract calculation [SUGGEST: const result = memoize(expensive_calc)]' \
-  --comment 'security.js:45:Use secure random [SUGGEST: crypto.randomBytes(32)]' \
-  --event COMMENT \
-  --repo test-owner/test-repo \
-  --dry-run
-stdout 'Would create review'
-stdout 'Extract calculation'
-stdout 'Use secure random'
+exec gh-comment review 123 'Code review with suggestions' --comment 'performance.js:89:Extract calculation [SUGGEST: const result = memoize(expensive_calc)]' --comment 'security.js:45:Use secure random [SUGGEST: crypto.randomBytes(32)]' --event COMMENT --repo test-owner/test-repo --dry-run
+stdout 'Would create review on PR #123'
+stdout 'Code review with suggestions'
+stdout 'performance.js:89'
+stdout 'security.js:45'
 ! stderr .
 
 # Test multiline suggestions using --message flags
