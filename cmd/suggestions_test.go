@@ -30,7 +30,7 @@ func TestExpandInlineSuggestions(t *testing.T) {
 		{
 			name:     "nested brackets in suggestion",
 			input:    "[SUGGEST: arr[0] = func() { return true }]",
-			expected: "\n\n```suggestion\narr[0\n```\n\n = func() { return true }]", // Current regex doesn't handle nested brackets
+			expected: "\n\n```suggestion\narr[0] = func() { return true }\n```\n\n", // Fixed: Now handles nested brackets correctly
 		},
 		{
 			name:     "empty suggestion",
@@ -237,7 +237,7 @@ func TestExpandSuggestionsEdgeCases(t *testing.T) {
 		{
 			name:     "suggestion with regex special chars",
 			input:    "[SUGGEST: regex = /.*+?[]{}()|\\^$/]",
-			expected: "\n\n```suggestion\nregex = /.*+?[\n```\n\n{}()|\\^$/]", // Breaks at first ]
+			expected: "\n\n```suggestion\nregex = /.*+?[]{}()|\\^$/\n```\n\n", // Fixed: Now handles special chars correctly
 		},
 		{
 			name:     "very long suggestion",
