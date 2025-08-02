@@ -4,16 +4,20 @@
 
 # Test security-focused comment listing (dry run to avoid API calls)
 exec gh-comment list 456 --author security-bot --repo test-owner/test-repo --dry-run
-stdout 'No comments found on PR #456'
+stdout 'Comments on PR #456'
+stdout 'security-bot'
+stdout 'Security scan detected potential SQL injection vulnerability'
 ! stderr .
 
 # Test senior developer security feedback (dry run)
 exec gh-comment list 456 --author senior-dev --repo test-owner/test-repo --dry-run
-stdout 'No comments found on PR #456'
+stdout 'Comments on PR #456'
+stdout 'senior-dev'
+stdout 'Math.random()'
 ! stderr .
 
 # Test comprehensive security review creation
-exec gh-comment review 456 'Security audit complete - issues found' --comment 'validation.js:25:Input sanitization missing - XSS risk' --comment 'api.js:134:140:Add rate limiting to prevent DoS attacks' --event REQUEST_CHANGES --repo test-owner/test-repo --dry-run
+exec gh-comment review 'Security audit complete - issues found' --comment 'validation.js:25:Input sanitization missing - XSS risk' --comment 'api.js:134:140:Add rate limiting to prevent DoS attacks' --event REQUEST_CHANGES --repo test-owner/test-repo --pr 456 --dry-run
 stdout 'Would create review on PR #456'
 stdout 'Security audit complete - issues found'
 stdout 'Input sanitization missing - XSS risk'
@@ -23,10 +27,14 @@ stdout 'REQUEST_CHANGES'
 
 # Test filtering for security team comments (dry run)
 exec gh-comment list 456 --author '*security*' --repo test-owner/test-repo --dry-run
-stdout 'No comments found on PR #456'
+stdout 'Comments on PR #456'
+stdout 'security-bot'
+stdout 'Security scan detected'
 ! stderr .
 
 # Test quiet mode for automation (dry run)
 exec gh-comment list 456 --author security-bot --repo test-owner/test-repo --dry-run
-stdout 'No comments found on PR #456'
+stdout 'Comments on PR #456'
+stdout 'security-bot'
+stdout 'Security scan detected'
 ! stderr .

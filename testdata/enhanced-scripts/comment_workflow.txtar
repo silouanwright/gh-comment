@@ -4,7 +4,9 @@
 
 # Test listing comments - use dry run to avoid API calls
 exec gh-comment list 123 --repo test-owner/test-repo --dry-run
-stdout 'No comments found on PR #123'
+stdout 'Comments on PR #123'
+stdout 'This looks good to me!'
+stdout 'Please fix the typo'
 ! stderr .
 
 # Test adding a line-specific comment
@@ -20,15 +22,18 @@ stdout 'Would add comment to src/test.js:1'
 
 # Verify list command works with filters (dry run)
 exec gh-comment list 123 --repo test-owner/test-repo --dry-run
-stdout 'No comments found on PR #123'
+stdout 'Comments on PR #123'
+stdout 'This looks good to me!'
 ! stderr .
 
 # Test filtering by author (dry run)
 exec gh-comment list 123 --author test-user --repo test-owner/test-repo --dry-run
-stdout 'No comments found on PR #123'
+stdout 'Comments on PR #123'
+stdout 'This looks good to me!'
 ! stderr .
 
 # Test filtering by author with wildcard (dry run)
 exec gh-comment list 123 --author 'test*' --repo test-owner/test-repo --dry-run
-stdout 'No comments found on PR #123'
+stdout 'Comments on PR #123'
+stdout 'This looks good to me!'
 ! stderr .

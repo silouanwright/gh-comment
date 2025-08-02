@@ -8,6 +8,7 @@ exec gh-comment list 123 --since '1 hour ago' --repo test-owner/test-repo --dry-
 stdout 'Comments on PR #123'
 stdout 'test-user'
 stdout 'This looks good to me!'
+stdout 'Please fix the typo'
 ! stderr .
 
 # Test date-based filtering with absolute dates

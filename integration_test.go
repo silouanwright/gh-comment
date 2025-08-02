@@ -46,6 +46,11 @@ func TestEnhancedIntegration(t *testing.T) {
 			// Start mock GitHub API server
 			mockServer = cmd.NewMockGitHubServer()
 			
+			// DETERMINISTIC SETUP: Always set up all scenarios
+			// This ensures consistent test data regardless of condition checks
+			mockServer.SetupTestScenario("basic")
+			mockServer.SetupTestScenario("security-review")
+			
 			// Set up test environment to use mock server
 			env.Setenv("GH_TOKEN", "test-token")
 			env.Setenv("GH_HOST", strings.TrimPrefix(mockServer.URL(), "http://"))
@@ -60,15 +65,10 @@ func TestEnhancedIntegration(t *testing.T) {
 			switch cond {
 			case "mock-server":
 				return mockServer != nil, nil
+			case "scenario:basic", "scenario:security-review":
+				// Scenarios are always available now
+				return true, nil
 			default:
-				// Handle scenario conditions like "scenario:basic"
-				if strings.HasPrefix(cond, "scenario:") {
-					scenario := strings.TrimPrefix(cond, "scenario:")
-					if mockServer != nil {
-						mockServer.SetupTestScenario(scenario)
-						return true, nil
-					}
-				}
 				return false, nil
 			}
 		},
