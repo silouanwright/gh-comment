@@ -1,0 +1,84 @@
+name: Integration Tests (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      cleanup:
+        description: 'Auto-cleanup test artifacts'
+        required: false
+        default: 'true'
+        type: boolean
+      test_repo:
+        description: 'Test repository (owner/repo format)'
+        required: false
+        default: ''
+        type: string
+      test_pr:
+        description: 'Specific PR number to test against'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  integration:
+    name: Manual Integration Tests
+    runs-on: ubuntu-latest
+    environment: integration-testing
+
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Build binary
+        run: go build -o gh-comment
+
+      - name: Install gh CLI
+        uses: cli/gh-extension-precompile@v2.0.1
+        with:
+          go_version: "1.24"
+
+      - name: Setup test environment
+        run: |
+          echo "Setting up integration test environment..."
+          echo "Cleanup mode: ${{ inputs.cleanup }}"
+          echo "Test repo: ${{ inputs.test_repo || 'auto-detect' }}"
+          echo "Test PR: ${{ inputs.test_pr || 'auto-detect' }}"
+
+      - name: Run integration tests
+        run: go test -v -tags=integration ./...
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INTEGRATION_CLEANUP: ${{ inputs.cleanup }}
+          INTEGRATION_TEST_REPO: ${{ inputs.test_repo }}
+          INTEGRATION_TEST_PR: ${{ inputs.test_pr }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            integration-test-results.txt
+            integration-test-*.log
+          retention-days: 30
+
+      - name: Post test summary
+        if: always()
+        run: |
+          echo "## Integration Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cleanup**: ${{ inputs.cleanup }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Repo**: ${{ inputs.test_repo || 'auto-detected' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test PR**: ${{ inputs.test_pr || 'auto-detected' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ **Note**: Integration tests make real GitHub API calls and should be used sparingly." >> $GITHUB_STEP_SUMMARY

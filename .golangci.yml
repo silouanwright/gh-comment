@@ -4,11 +4,11 @@ run:
 
 linters-settings:
   govet:
-    check-shadowing: true
+    # check-shadowing removed - deprecated option
   gocyclo:
     min-complexity: 15
-  maligned:
-    suggest-new: true
+  # maligned:
+  #   suggest-new: true  # maligned linter is deprecated
   dupl:
     threshold: 100
   goconst:

@@ -65,7 +65,7 @@ gh pr create --title "Integration Test: gh-comment Feature Demonstration" --body
 
 ## Quick Start
 
-Integration tests are **MANUAL-ONLY** by default to prevent accidental API usage:
+Integration tests are **MANUAL-ONLY** and never run in CI to prevent accidental API usage:
 
 ```bash
 # Run all integration tests (FORCE FLAG REQUIRED)
@@ -78,14 +78,24 @@ go run -tags integration . test-integration --force --scenario=comments
 go run -tags integration . test-integration --force --inspect
 ```
 
+## CI/CD Policy
+
+**🚨 IMPORTANT: Integration tests DO NOT run in CI/CD pipelines.**
+
+- **CI Pipeline**: Only unit tests and lint checks run automatically
+- **Integration Tests**: Manual execution only via local commands or GitHub Actions workflow dispatch
+- **GitHub Actions**: Use the manual "Integration Tests (Manual)" workflow for controlled testing
+
 ## Environment Controls
 
 ```bash
-# For CI/automation (always run)
-export GH_COMMENT_INTEGRATION_TESTS=always
-go run -tags integration . test-integration
+# For local manual testing (default behavior)
+go run -tags integration . test-integration --force
 
-# Explicitly disable
+# For GitHub Actions manual workflow
+# Trigger via Actions tab: "Integration Tests (Manual)" workflow
+
+# Explicitly disable (not needed since CI doesn't run them)
 export GH_COMMENT_INTEGRATION_TESTS=never
 go run -tags integration . test-integration  # Will skip
 ```
@@ -160,14 +170,21 @@ Based on `research/code-review-best-practices.md`, all comments should follow th
 
 ## Manual Integration Testing Process
 
-**ALWAYS use the local development version**: `./gh-comment`
+**CRITICAL REQUIREMENTS FOR COMPLETE INTEGRATION TESTING**:
+- **ALWAYS use the local development version**: `./gh-comment`
+- **NO `gh api` commands allowed**: All operations must use `gh-comment` commands only
+- **Comment IDs from list output**: Use the `ID:1234567890` format displayed by `./gh-comment list`
+- **Self-contained workflow**: Integration tests must be completable using only `gh-comment` and standard `gh` commands
 
 ### Step 3: Get PR Number
 
 ```bash
-# Get the PR number for testing
+# Get the PR number for testing (use gh pr command, not gh api)
 PR_NUM=$(gh pr view --json number -q .number)
 echo "Testing with PR #$PR_NUM"
+
+# Alternatively, check current PR from browser URL or use explicit number
+# PR_NUM=123  # Use specific PR number if known
 ```
 
 ### Communication Style
@@ -283,31 +300,34 @@ gh pr view $PR_NUM  # Check in browser that suggestions show properly
 
 ### Scenario 3: Interactive Features  
 ```bash
-# Step 1: Get comment IDs for reactions/replies
+# Step 1: Get comment IDs for reactions/replies using ONLY gh-comment list
 ./gh-comment list $PR_NUM
 
-# Step 2: Add reactions to comments (use actual comment IDs)
-./gh-comment reply COMMENT_ID --reaction +1
-./gh-comment reply COMMENT_ID --reaction heart
+# IMPORTANT: Use the ID numbers shown in format "ID:1234567890" from the list output
+# Example output: [1] ID:2249431211 👤 author • 1 hour ago
 
-# Step 3: Reply to review comments  
-./gh-comment reply COMMENT_ID "Great point! I'll implement this fix right away."
+# Step 2: Add reactions to comments (use actual comment IDs from list output)
+./gh-comment reply 2249431211 --reaction +1  # Use actual ID from list
+./gh-comment reply 2249431211 --reaction heart
+
+# Step 3: Reply to issue comments (review comment replies have GitHub API limitations)
+./gh-comment reply ISSUE_COMMENT_ID --type issue "Great point! I'll implement this fix right away."
 
 # Step 4: Remove reactions to show full functionality
-./gh-comment reply COMMENT_ID --remove-reaction +1
+./gh-comment reply 2249431211 --remove-reaction +1
 ```
 
 ### Scenario 4: Comment Management
 ```bash
-# Step 1: List all comments with filtering
-./gh-comment list $PR_NUM --author $(gh api user -q .login)
+# Step 1: List all comments with filtering (NO gh api usage)
+./gh-comment list $PR_NUM --author YOUR_USERNAME  # Use your actual GitHub username
 ./gh-comment list $PR_NUM --type review
 
-# Step 2: Edit an existing comment (use actual comment ID)
-./gh-comment edit COMMENT_ID "🔧 **Updated**: API key exposed in code! What do you think about using environment variables instead? This prevents secrets from being committed to git and improves security posture."
+# Step 2: Edit an existing comment (use actual comment ID from list output)
+./gh-comment edit 2249431211 "🔧 **Updated**: API key exposed in code! What do you think about using environment variables instead? This prevents secrets from being committed to git and improves security posture."
 
-# Step 3: Resolve conversation threads
-./gh-comment resolve COMMENT_ID --reason "Addressed in latest commit"
+# Step 3: Resolve conversation threads (no --reason flag needed)
+./gh-comment resolve 2249431211
 ```
 
 ## Test File Requirements
@@ -377,6 +397,39 @@ git branch -D $(git branch --show-current)
 # Leave PR open for demonstration purposes
 echo "PR #$PR_NUM left open for showcase: $(gh pr view $PR_NUM --json url -q .url)"
 ```
+
+## Known GitHub API Limitations
+
+### Review Comment Threading
+**Issue**: Direct threaded replies to line-specific review comments fail with GitHub API errors.
+**Workaround**: Use reactions for quick feedback, or create new comments for longer responses.
+```bash
+# ❌ This fails for review comments:
+./gh-comment reply REVIEW_COMMENT_ID "Great suggestion!"
+
+# ✅ Use reactions instead:
+./gh-comment reply REVIEW_COMMENT_ID --reaction +1
+
+# ✅ Or create new comment on same line:
+./gh-comment add $PR_NUM file.js 42 "Thanks for the suggestion! I'll implement that."
+```
+
+### Own PR Restrictions  
+**Issue**: GitHub prevents approving or requesting changes on your own pull requests.
+**Expected Behavior**: `--event APPROVE` and `--event REQUEST_CHANGES` will fail with HTTP 422 errors.
+```bash
+# ❌ These fail for your own PRs:
+./gh-comment review $PR_NUM "Looks good" --event APPROVE
+./gh-comment review $PR_NUM "Needs work" --event REQUEST_CHANGES
+
+# ✅ This works for your own PRs:
+./gh-comment review $PR_NUM "Review complete" --event COMMENT
+```
+
+### Comment ID Requirements
+**Critical**: The `list` command MUST display comment IDs in `ID:1234567890` format for integration testing workflows.
+- **Regression test**: `TestDisplayCommentAlwaysShowsID` prevents this from breaking
+- **Required for**: Reply, edit, resolve, reaction operations
 
 ## Troubleshooting
 
