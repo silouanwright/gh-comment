@@ -20,13 +20,16 @@ var (
 
 var addCmd = &cobra.Command{
 	Use:   "add [pr] <file> <line> <comment>",
-	Short: "Add a comment to a pull request",
+	Short: "Add a line-specific review comment to a pull request",
 	Long: heredoc.Doc(`
-		Add a comment to a pull request. Comments can be general PR comments
-		or line-specific review comments.
+		Add a line-specific review comment to a pull request by creating a minimal review.
 
-		For line-specific comments, use file and line arguments to target
-		specific code locations. Supports both single-line and range comments.
+		This command creates a single-comment review attached to specific code lines.
+		The comment appears in the "Files Changed" tab of the PR, not in the general
+		conversation. Supports both single-line and range comments.
+
+		Note: Creates a review with COMMENT event - not a standalone comment.
+		For general PR discussion comments, use the GitHub CLI: 'gh pr comment'
 
 		The comment message supports GitHub markdown formatting and can include
 		code suggestions using the [SUGGEST: code] syntax.
