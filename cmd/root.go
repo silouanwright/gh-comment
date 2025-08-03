@@ -87,7 +87,7 @@ var rootCmd = &cobra.Command{
 		# Advanced Filtering (Power User Features)
 		$ gh comment list 123 --author "senior-dev*" --status open --since "1 week ago"
 		$ gh comment list 123 --type review --author "*@company.com" --since "deployment-date"
-		$ gh comment list 123 --status resolved --until "2024-01-01" --format json
+		$ gh comment list 123 --status resolved --until "2024-01-01" --quiet
 
 		# Review Workflows (Professional Code Review)
 		$ gh comment review 123 "Migration review complete" \
@@ -111,9 +111,9 @@ var rootCmd = &cobra.Command{
 		$ gh comment resolve --thread 2246362251 --reason "Addressed in latest commit"
 
 		# Data Export & Analysis (Automation)
-		$ gh comment list 123 --format json | jq '.comments[].author' | sort | uniq -c
-		$ gh comment list 123 --format csv --since "2024-01-01" --output q1-review-data.csv
-		$ gh comment list 123 --author "qa-team*" --format json | analyze-feedback.py
+		$ gh comment list 123 --quiet | grep "👤" | cut -d' ' -f2 | sort | uniq -c
+		$ gh comment list 123 --since "2024-01-01" --quiet | tee q1-review-data.txt
+		$ gh comment list 123 --author "qa-team*" --quiet | analyze-feedback.py
 
 		# Automation & CI Integration
 		$ gh comment add 123 src/security.js 67 "[SUGGEST: use crypto.randomBytes(32)]"
@@ -122,7 +122,7 @@ var rootCmd = &cobra.Command{
 
 		# Advanced Comment Management
 		$ gh comment edit 2246362251 "Updated: This rate limiting logic handles concurrent requests properly"
-		$ gh comment list 123 --author "bot*" --format json | jq '.comments[].id' | xargs -I {} gh comment resolve {}
+		$ gh comment list 123 --author "bot*" --quiet | grep "ID:" | cut -d':' -f2 | xargs -I {} gh comment resolve {}
 		$ gh comment add 123 performance.js 89:95 "Consider caching this expensive calculation"
 	`),
 	Version: "1.0.0",

@@ -96,6 +96,9 @@ type MockClient struct {
 	PendingReviewID   int
 	SubmittedReviewID int
 
+	// Call tracking for regression tests
+	CreateReviewCalls []ReviewInput
+
 	// Error simulation
 	ListIssueCommentsError  error
 	ListReviewCommentsError error
@@ -129,8 +132,14 @@ func NewMockClient() *MockClient {
 				Line:      42,
 			},
 		},
-		PendingReviewID: 987654, // Mock pending review ID
+		PendingReviewID:   987654, // Mock pending review ID
+		CreateReviewCalls: make([]ReviewInput, 0),
 	}
+}
+
+// GetCreateReviewCalls returns the tracked CreateReview calls for testing
+func (m *MockClient) GetCreateReviewCalls() []ReviewInput {
+	return m.CreateReviewCalls
 }
 
 // Mock implementations
@@ -234,6 +243,8 @@ func (m *MockClient) GetPRDetails(owner, repo string, pr int) (map[string]interf
 }
 
 func (m *MockClient) CreateReview(owner, repo string, pr int, review ReviewInput) error {
+	// Track the call for regression testing
+	m.CreateReviewCalls = append(m.CreateReviewCalls, review)
 	return nil
 }
 

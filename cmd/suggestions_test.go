@@ -265,3 +265,76 @@ SUGGEST>>>]`,
 		})
 	}
 }
+
+// TestExpandInlineSuggestionsRegressionCases - REGRESSION TESTS
+// These tests prevent the bracket parsing bugs from reoccurring
+func TestExpandInlineSuggestionsRegressionCases(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "deeply nested brackets - REGRESSION TEST for bracket counting",
+			input:    "[SUGGEST: obj[key[nested[deep]]]]",
+			expected: "\n\n```suggestion\nobj[key[nested[deep]]]\n```\n\n",
+		},
+		{
+			name:     "mixed bracket types - REGRESSION TEST",
+			input:    "[SUGGEST: arr[obj.prop] = func() { return data[idx]; }]",
+			expected: "\n\n```suggestion\narr[obj.prop] = func() { return data[idx]; }\n```\n\n",
+		},
+		{
+			name:     "json-like structure - REGRESSION TEST",
+			input:    "[SUGGEST: const config = { items: [1, 2, [3, 4]], nested: { deep: [5] } }]",
+			expected: "\n\n```suggestion\nconst config = { items: [1, 2, [3, 4]], nested: { deep: [5] } }\n```\n\n",
+		},
+		{
+			name:     "regex with brackets - REGRESSION TEST for special chars",
+			input:    "[SUGGEST: const pattern = /[a-zA-Z0-9\\[\\]]+/g]",
+			expected: "\n\n```suggestion\nconst pattern = /[a-zA-Z0-9\\[\\]]+/g\n```\n\n",
+		},
+		{
+			name:     "escaped brackets in strings - REGRESSION TEST",
+			input:    `[SUGGEST: const msg = "Use brackets [like this\] in text"]`,
+			expected: "\n\n```suggestion\nconst msg = \"Use brackets [like this\\] in text\"\n```\n\n",
+		},
+		{
+			name:     "multiple suggestions with complex brackets - REGRESSION TEST",
+			input:    "First: [SUGGEST: arr[0][1]] and Second: [SUGGEST: obj[key][prop]]",
+			expected: "First: \n\n```suggestion\narr[0][1]\n```\n\n and Second: \n\n```suggestion\nobj[key][prop]\n```\n\n",
+		},
+		{
+			name:     "array destructuring - REGRESSION TEST for complex syntax",
+			input:    "[SUGGEST: const [first, ...rest] = items[index][subIndex]]",
+			expected: "\n\n```suggestion\nconst [first, ...rest] = items[index][subIndex]\n```\n\n",
+		},
+		{
+			name:     "typescript generic with brackets - REGRESSION TEST",
+			input:    "[SUGGEST: const result: Array<Map<string, object[]>> = data[key]]",
+			expected: "\n\n```suggestion\nconst result: Array<Map<string, object[]>> = data[key]\n```\n\n",
+		},
+		{
+			name:     "sql-like syntax with brackets - REGRESSION TEST",
+			input:    "[SUGGEST: SELECT * FROM table WHERE col IN [1,2,3] AND other_col = data[idx]]",
+			expected: "\n\n```suggestion\nSELECT * FROM table WHERE col IN [1,2,3] AND other_col = data[idx]\n```\n\n",
+		},
+		{
+			name:     "unterminated suggestion - REGRESSION TEST for incomplete syntax",
+			input:    "Start [SUGGEST: incomplete and [SUGGEST: complete]",
+			expected: "Start [SUGGEST: incomplete and [SUGGEST: complete]", // Correctly leaves incomplete suggestions unchanged
+		},
+		{
+			name:     "suggestion with line breaks - REGRESSION TEST for multiline content",
+			input:    "[SUGGEST: const multiline = [\n  item1,\n  item2[index]\n]]",
+			expected: "\n\n```suggestion\nconst multiline = [\n  item1,\n  item2[index]\n]\n```\n\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := expandInlineSuggestions(tt.input)
+			assert.Equal(t, tt.expected, result, "Regression test failed - bracket counting parser may be broken")
+		})
+	}
+}
