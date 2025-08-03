@@ -27,29 +27,29 @@ var replyCmd = &cobra.Command{
 	Long: heredoc.Doc(`
 		Reply to an existing comment with a message or reaction.
 
-		Supports threaded replies to create discussion threads, and emoji
-		reactions for quick feedback. Reactions can be added or removed.
+		Comment Types:
+		- Issue comments: General PR discussion, support message replies
+		- Review comments: Line-specific feedback, only reactions work for replies
+
+		Note: GitHub API only supports message replies for issue comments.
+		For review comments, use reactions instead of messages.
 
 		Comment IDs can be found in the output of 'gh comment list'.
 	`),
 	Example: heredoc.Doc(`
-		# Reply with a message
+		# Reply to general PR discussion with message (default)
 		$ gh comment reply 123456 "Good point, I'll fix that"
 
-		# Add a thumbs up reaction
+		# Add reactions to any comment type
 		$ gh comment reply 123456 --reaction +1
+		$ gh comment reply 789012 --reaction heart
+
+		# For review comments, use reactions (messages not supported)
+		$ gh comment reply 789012 --reaction +1 --type review
+		$ gh comment reply 789012 --reaction rocket --resolve --type review
 
 		# Remove a reaction
 		$ gh comment reply 123456 --remove-reaction +1
-
-		# Reply and resolve conversation
-		$ gh comment reply 123456 "Fixed in latest commit" --resolve
-
-		# Add multiple reactions
-		$ gh comment reply 123456 --reaction +1 --reaction heart
-
-		# Reply with code suggestion
-		$ gh comment reply 123456 "[SUGGEST: if (condition) { return early; }]"
 	`),
 	Args: cobra.RangeArgs(1, 2),
 	RunE: runReply,
@@ -62,7 +62,7 @@ func init() {
 	replyCmd.Flags().StringVar(&removeReaction, "remove-reaction", "", "Remove reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
 	replyCmd.Flags().BoolVar(&resolveConversation, "resolve", false, "Resolve the conversation after replying")
 	replyCmd.Flags().BoolVar(&noExpandSuggestionsReply, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax")
-	replyCmd.Flags().StringVar(&commentType, "type", "review", "Comment type: 'issue' for general PR comments, 'review' for line-specific comments (default: review)")
+	replyCmd.Flags().StringVar(&commentType, "type", "issue", "Comment type: 'issue' for general PR comments, 'review' for line-specific comments (default: issue)")
 }
 
 func runReply(cmd *cobra.Command, args []string) error {
