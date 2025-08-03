@@ -40,6 +40,8 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 - [ ] **Provide sample YAML files for batch command examples** - Help text references 'comprehensive-review.yaml' and other files that don't exist. Create example files in examples/ directory and update help text with real paths. Enables users to copy-paste working examples. Located in cmd/batch.go help text.
 
+- [ ] **Create separate 'react' command for emoji reactions** - Emoji reactions are conceptually different from text comments/replies. Extract reaction functionality from reply command into dedicated `gh comment react <comment-id> <emoji>` command. This separates text-based communication from emoji reactions, making the interface clearer. Should support both adding and removing reactions.
+
 - [x] **Documentation Audit and Organization** - Clean up and organize all markdown files ✅
   - [x] **Phase 1**: Audited all 26 markdown files, identified overlaps and redundancies
   - [x] **Phase 2**: Consolidated ai-prompts + research into cmd/prompts/, cleaned up duplicates  

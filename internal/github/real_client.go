@@ -127,37 +127,11 @@ func (c *RealClient) CreateReviewCommentReply(owner, repo string, commentID int,
 		return nil, fmt.Errorf("reply body cannot be empty")
 	}
 
-	// First, get the original comment to find PR number, path, and commit
-	originalEndpoint := fmt.Sprintf("repos/%s/%s/pulls/comments/%d", owner, repo, commentID)
-	var originalComment struct {
-		PullRequestURL string `json:"pull_request_url"`
-		Path           string `json:"path"`
-		CommitID       string `json:"commit_id"`
-		Line           int    `json:"line"`
-	}
-
-	err := c.restClient.Get(originalEndpoint, &originalComment)
-	if err != nil {
-		return nil, c.wrapAPIError(err, "get original comment #%d in %s/%s", commentID, owner, repo)
-	}
-
-	// Extract PR number from pull_request_url
-	// URL format: https://api.github.com/repos/owner/repo/pulls/123
-	urlParts := strings.Split(originalComment.PullRequestURL, "/")
-	if len(urlParts) < 1 {
-		return nil, fmt.Errorf("invalid pull request URL format: %s", originalComment.PullRequestURL)
-	}
-	prNumber := urlParts[len(urlParts)-1]
-
-	// Create a new review comment as a reply (with in_reply_to_id)
-	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%s/comments", owner, repo, prNumber)
+	// Use the correct GitHub API endpoint for review comment replies
+	endpoint := fmt.Sprintf("repos/%s/%s/pulls/comments/%d/replies", owner, repo, commentID)
 
 	payload := map[string]interface{}{
-		"body":           body,
-		"path":           originalComment.Path,
-		"line":           originalComment.Line,
-		"commit_id":      originalComment.CommitID,
-		"in_reply_to_id": commentID,
+		"body": body,
 	}
 
 	bodyBytes, err := json.Marshal(payload)
