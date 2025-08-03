@@ -19,45 +19,39 @@ var (
 )
 
 var addCmd = &cobra.Command{
-	Use:   "add [pr] <file> <line> <comment>",
-	Short: "Add a line-specific review comment to a pull request",
+	Use:   "add [pr] <comment>",
+	Short: "Add a general discussion comment to a pull request",
 	Long: heredoc.Doc(`
-		Add a line-specific review comment to a pull request by creating a minimal review.
+		Add a general discussion comment to a pull request conversation.
 
-		This command creates a single-comment review attached to specific code lines.
-		The comment appears in the "Files Changed" tab of the PR, not in the general
-		conversation. Supports both single-line and range comments.
+		This command creates issue-style comments that appear in the main PR conversation,
+		not attached to specific code lines. These comments support threaded replies
+		and are perfect for general discussion, approval, or high-level feedback.
 
-		Note: Creates a review with COMMENT event - not a standalone comment.
-		For general PR discussion comments, use the GitHub CLI: 'gh pr comment'
+		For line-specific code review comments, use: 'gh comment review'
 
 		The comment message supports GitHub markdown formatting and can include
 		code suggestions using the [SUGGEST: code] syntax.
 	`),
 	Example: heredoc.Doc(`
-		# Strategic line-specific commenting
-		$ gh comment add 123 src/api.js 42 "This rate limiting logic needs edge case handling for concurrent requests"
-		$ gh comment add 123 auth.go 15:25 "Consider OAuth2 PKCE flow for mobile clients - current implementation has security gaps"
+		# General PR discussion comments
+		$ gh comment add 123 "LGTM! Just a few minor suggestions below"
+		$ gh comment add 123 "Thanks for addressing the security concerns"
+		$ gh comment add 123 "This looks great - ready to merge after CI passes"
 
-		# Security-focused reviews
-		$ gh comment add 123 database.py 156 "This query is vulnerable to SQL injection - use parameterized queries"
-		$ gh comment add 123 crypto.js 67 "[SUGGEST: use crypto.randomBytes(32) instead of Math.random()]"
-
-		# Performance optimization suggestions
-		$ gh comment add 123 performance.js 89:95 "Extract this expensive calculation to a cached service - it's called on every render"
-		$ gh comment add 123 db/migrations.sql 23 "Add index on user_id column for faster lookups: CREATE INDEX idx_user_id ON orders(user_id)"
-
-		# Architecture and design feedback
-		$ gh comment add 123 service.go 134:150 "This business logic should be extracted to a domain service layer"
-		$ gh comment add 123 component.tsx 45 "Consider using React.memo() to prevent unnecessary re-renders"
-
-		# Multi-line strategic feedback
-		$ gh comment add 123 error-handler.js 78 -m "**Critical:** This error handling is incomplete" -m "Missing: rate limit errors, network timeouts, auth failures"
+		# Multi-line comments with --message flags
+		$ gh comment add 123 -m "Overall this is excellent work!" -m "The architecture is clean and the tests are comprehensive"
 
 		# Auto-detect PR from current branch
-		$ gh comment add src/validation.js 156 "Add input sanitization before database operations"
+		$ gh comment add "Looks good to merge!"
+
+		# Approval with context
+		$ gh comment add 123 "Approved! The performance improvements in this PR will make a huge difference"
+
+		# Request for changes with discussion
+		$ gh comment add 123 "Could you address the failing tests? Otherwise looks good to go"
 	`),
-	Args: cobra.RangeArgs(2, 4),
+	Args: cobra.RangeArgs(1, 2),
 	RunE: runAdd,
 }
 
@@ -78,58 +72,49 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	}
 
 	var pr int
-	var file, lineSpec, comment string
+	var comment string
 	var err error
 
-	// Parse arguments - handle both 3 and 4 arg cases, plus --message flags
-	if len(args) == 4 {
+	// Parse arguments for general PR comments
+	if len(args) == 2 {
 		// PR number provided
 		pr, err = strconv.Atoi(args[0])
 		if err != nil {
 			return formatValidationError("PR number", args[0], "must be a valid integer")
 		}
-		file = args[1]
-		lineSpec = args[2]
-		comment = args[3]
-	} else if len(args) == 3 {
-		// PR number not provided, auto-detect
+		comment = args[1]
+	} else if len(args) == 1 {
+		// Auto-detect PR from current branch
 		pr, err = getCurrentPR()
 		if err != nil {
 			return err
 		}
-		file = args[0]
-		lineSpec = args[1]
-		comment = args[2]
-	} else if len(args) == 2 && len(messages) > 0 {
-		// Using --message flags instead of positional comment
-		pr, err = getCurrentPR()
-		if err != nil {
-			return err
-		}
-		file = args[0]
-		lineSpec = args[1]
-		comment = strings.Join(messages, "\n")
-	} else if len(args) == 3 && len(messages) > 0 {
+		comment = args[0]
+	} else if len(args) == 1 && len(messages) > 0 {
 		// PR provided + --message flags
 		pr, err = strconv.Atoi(args[0])
 		if err != nil {
 			return formatValidationError("PR number", args[0], "must be a valid integer")
 		}
-		file = args[1]
-		lineSpec = args[2]
+		comment = strings.Join(messages, "\n")
+	} else if len(args) == 0 && len(messages) > 0 {
+		// Auto-detect PR + --message flags
+		pr, err = getCurrentPR()
+		if err != nil {
+			return err
+		}
 		comment = strings.Join(messages, "\n")
 	} else {
-		return fmt.Errorf("invalid arguments. Use: gh comment add [pr] <file> <line> <comment> OR gh comment add [pr] <file> <line> --message \"line1\" --message \"line2\"")
+		return fmt.Errorf("invalid arguments. Use: gh comment add [pr] <comment> OR gh comment add [pr] --message \"line1\" --message \"line2\"")
+	}
+
+	// Validate comment
+	if strings.TrimSpace(comment) == "" {
+		return fmt.Errorf("comment cannot be empty")
 	}
 
 	// Get repository
 	repository, err := getCurrentRepo()
-	if err != nil {
-		return err
-	}
-
-	// Parse line specification
-	startLine, endLine, err := parseLineSpec(lineSpec)
 	if err != nil {
 		return err
 	}
@@ -145,21 +130,13 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	if verbose {
 		fmt.Printf("Repository: %s\n", repository)
 		fmt.Printf("PR: %d\n", pr)
-		fmt.Printf("File: %s\n", file)
-		fmt.Printf("Line(s): %d", startLine)
-		if endLine != startLine {
-			fmt.Printf("-%d", endLine)
-		}
-		fmt.Printf("\nOriginal comment: %s\n", comment)
+		fmt.Printf("Comment type: General discussion\n")
+		fmt.Printf("Original comment: %s\n", comment)
 		fmt.Printf("Transformed comment: %s\n", transformedComment)
 	}
 
 	if dryRun {
-		fmt.Printf("Would add comment to %s:%d", file, startLine)
-		if endLine != startLine {
-			fmt.Printf("-%d", endLine)
-		}
-		fmt.Printf(" in PR #%d:\n%s\n", pr, transformedComment)
+		fmt.Printf("Would add general comment to PR #%d:\n%s\n", pr, transformedComment)
 		return nil
 	}
 
@@ -170,78 +147,18 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	}
 	owner, repoName := parts[0], parts[1]
 
-	// Create review comment input
-	reviewComment := github.ReviewCommentInput{
-		Body: transformedComment,
-		Path: file,
-		Line: endLine, // GitHub API uses the end line for ranges
-	}
-
-	// If it's a range, add start_line
-	if startLine != endLine {
-		reviewComment.StartLine = startLine
-		reviewComment.Side = "RIGHT"
-	}
-
-	// GitHub API requires line-specific comments to be part of a review
-	// Create a minimal review with just this comment
-	review := github.ReviewInput{
-		Event:    "COMMENT", // Use COMMENT event for minimal review
-		Comments: []github.ReviewCommentInput{reviewComment},
-	}
-
-	// Add the comment via CreateReview (not AddReviewComment)
-	err = addClient.CreateReview(owner, repoName, pr, review)
+	// Create general issue comment (not review comment)
+	createdComment, err := addClient.CreateIssueComment(owner, repoName, pr, transformedComment)
 	if err != nil {
 		return fmt.Errorf("failed to add comment: %w", err)
 	}
 
 	// Success message
-	fmt.Printf("✓ Added comment to %s:%d", file, startLine)
-	if endLine != startLine {
-		fmt.Printf("-%d", endLine)
+	fmt.Printf("✓ Added comment to PR #%d", pr)
+	if createdComment != nil && createdComment.ID != 0 {
+		fmt.Printf(" (ID: %d)", createdComment.ID)
 	}
-	fmt.Printf(" in PR #%d\n", pr)
+	fmt.Println()
 
 	return nil
-}
-
-func parseLineSpec(lineSpec string) (int, int, error) {
-	if strings.Contains(lineSpec, ":") {
-		// Range specification
-		parts := strings.Split(lineSpec, ":")
-		if len(parts) != 2 {
-			return 0, 0, fmt.Errorf("invalid line range format: %s (use start:end)", lineSpec)
-		}
-
-		start, err := strconv.Atoi(parts[0])
-		if err != nil {
-			return 0, 0, fmt.Errorf("invalid start line: %s", parts[0])
-		}
-
-		end, err := strconv.Atoi(parts[1])
-		if err != nil {
-			return 0, 0, fmt.Errorf("invalid end line: %s", parts[1])
-		}
-
-		if start <= 0 || end <= 0 {
-			return 0, 0, fmt.Errorf("line numbers must be positive")
-		}
-
-		if start > end {
-			return 0, 0, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", start, end)
-		}
-
-		return start, end, nil
-	} else {
-		// Single line
-		line, err := strconv.Atoi(lineSpec)
-		if err != nil {
-			return 0, 0, fmt.Errorf("invalid line number: %s", lineSpec)
-		}
-		if line <= 0 {
-			return 0, 0, fmt.Errorf("line numbers must be positive")
-		}
-		return line, line, nil
-	}
 }

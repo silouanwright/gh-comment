@@ -7,88 +7,85 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRunAddWithMockClient(t *testing.T) {
-	// Save original client and environment
+func TestAddCommand(t *testing.T) {
+	// Save original client
 	originalClient := addClient
-	originalRepo := repo
-	originalPR := prNumber
-	defer func() {
-		addClient = originalClient
-		repo = originalRepo
-		prNumber = originalPR
-	}()
+	defer func() { addClient = originalClient }()
 
-	// Set up mock client and environment
-	mockClient := github.NewMockClient()
-	addClient = mockClient
-	repo = "owner/repo"
-	prNumber = 123
-
+	// Test cases for the new add command (general PR comments)
 	tests := []struct {
-		name           string
-		args           []string
-		setupMessages  []string
-		wantErr        bool
-		expectedErrMsg string
+		name         string
+		args         []string
+		setupMock    func(*github.MockClient)
+		setupGlobals func()
+		wantErr      bool
+		expectedErr  string
 	}{
 		{
-			name:    "add single line comment with PR specified",
-			args:    []string{"123", "main.go", "42", "This needs fixing"},
+			name: "add general comment with PR number",
+			args: []string{"123", "Great work on this PR!"},
+			setupMock: func(m *github.MockClient) {
+				m.CreatedComment = &github.Comment{ID: 12345}
+			},
+			setupGlobals: func() {
+				repo = "test/repo"
+			},
 			wantErr: false,
 		},
 		{
-			name:    "add range comment with PR specified",
-			args:    []string{"123", "main.go", "42:45", "This whole block needs review"},
+			name: "add general comment with auto-detect PR",
+			args: []string{"LGTM!"},
+			setupMock: func(m *github.MockClient) {
+				m.CreatedComment = &github.Comment{ID: 67890}
+			},
+			setupGlobals: func() {
+				prNumber = 456
+				repo = "test/repo"
+			},
 			wantErr: false,
 		},
 		{
-			name:    "add comment with auto-detected PR",
-			args:    []string{"main.go", "42", "Auto-detected PR comment"},
-			wantErr: false,
+			name:        "invalid PR number",
+			args:        []string{"abc", "test comment"},
+			wantErr:     true,
+			expectedErr: "must be a valid integer",
 		},
 		{
-			name:          "add comment with message flags",
-			args:          []string{"main.go", "42"},
-			setupMessages: []string{"First line", "Second line"},
-			wantErr:       false,
+			name:        "empty comment",
+			args:        []string{"123", ""},
+			wantErr:     true,
+			expectedErr: "comment cannot be empty",
 		},
 		{
-			name:           "invalid PR number",
-			args:           []string{"invalid", "main.go", "42", "Comment"},
-			wantErr:        true,
-			expectedErrMsg: "must be a valid integer",
-		},
-		{
-			name:           "invalid line number",
-			args:           []string{"123", "main.go", "invalid", "Comment"},
-			wantErr:        true,
-			expectedErrMsg: "invalid line number",
-		},
-		{
-			name:           "invalid line range",
-			args:           []string{"123", "main.go", "45:42", "Comment"},
-			wantErr:        true,
-			expectedErrMsg: "start line (45) cannot be greater than end line (42)",
-		},
-		{
-			name:           "invalid arguments",
-			args:           []string{"only-one-arg"},
-			wantErr:        true,
-			expectedErrMsg: "invalid arguments",
+			name:        "too many arguments",
+			args:        []string{"123", "file.js", "42", "comment"},
+			wantErr:     true,
+			expectedErr: "invalid arguments",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset global variables
-			messages = tt.setupMessages
-			noExpandSuggestions = false
+			// Setup mock client
+			mockClient := github.NewMockClient()
+			if tt.setupMock != nil {
+				tt.setupMock(mockClient)
+			}
+			addClient = mockClient
 
+			// Setup globals
+			if tt.setupGlobals != nil {
+				tt.setupGlobals()
+			}
+
+			// Run command
 			err := runAdd(nil, tt.args)
+
+			// Check results
 			if tt.wantErr {
 				assert.Error(t, err)
-				if tt.expectedErrMsg != "" {
-					assert.Contains(t, err.Error(), tt.expectedErrMsg)
+				if tt.expectedErr != "" {
+					assert.Contains(t, err.Error(), tt.expectedErr)
 				}
 			} else {
 				assert.NoError(t, err)
@@ -97,74 +94,29 @@ func TestRunAddWithMockClient(t *testing.T) {
 	}
 }
 
-func TestParseLineSpec(t *testing.T) {
-	tests := []struct {
-		name        string
-		lineSpec    string
-		wantStart   int
-		wantEnd     int
-		wantErr     bool
-		expectedErr string
-	}{
-		{
-			name:      "single line",
-			lineSpec:  "42",
-			wantStart: 42,
-			wantEnd:   42,
-			wantErr:   false,
-		},
-		{
-			name:      "valid range",
-			lineSpec:  "42:45",
-			wantStart: 42,
-			wantEnd:   45,
-			wantErr:   false,
-		},
-		{
-			name:        "invalid single line",
-			lineSpec:    "invalid",
-			wantErr:     true,
-			expectedErr: "invalid line number",
-		},
-		{
-			name:        "invalid range format",
-			lineSpec:    "42:45:50",
-			wantErr:     true,
-			expectedErr: "invalid line range format",
-		},
-		{
-			name:        "invalid start line in range",
-			lineSpec:    "invalid:45",
-			wantErr:     true,
-			expectedErr: "invalid start line",
-		},
-		{
-			name:        "invalid end line in range",
-			lineSpec:    "42:invalid",
-			wantErr:     true,
-			expectedErr: "invalid end line",
-		},
-		{
-			name:        "start greater than end",
-			lineSpec:    "45:42",
-			wantErr:     true,
-			expectedErr: "start line (45) cannot be greater than end line (42)",
-		},
-	}
+func TestAddCommandWithMessages(t *testing.T) {
+	// Save original state
+	originalClient := addClient
+	originalMessages := messages
+	defer func() {
+		addClient = originalClient
+		messages = originalMessages
+	}()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			start, end, err := parseLineSpec(tt.lineSpec)
-			if tt.wantErr {
-				assert.Error(t, err)
-				if tt.expectedErr != "" {
-					assert.Contains(t, err.Error(), tt.expectedErr)
-				}
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.wantStart, start)
-				assert.Equal(t, tt.wantEnd, end)
-			}
-		})
-	}
+	// Setup mock
+	mockClient := github.NewMockClient()
+	mockClient.CreatedComment = &github.Comment{ID: 11111}
+	addClient = mockClient
+
+	// Setup globals
+	repo = "test/repo"
+
+	// Test multi-line with --message flags
+	messages = []string{"First line", "Second line"}
+	err := runAdd(nil, []string{"123"})
+	assert.NoError(t, err)
+
+	// Verify the comment was created with joined content
+	// Note: This would need access to the mock's internal state
+	// For now, just verify no error occurred
 }

@@ -9,15 +9,16 @@ stdout 'This looks good to me!'
 stdout 'Please fix the typo'
 ! stderr .
 
-# Test adding a line-specific comment
-exec gh-comment add 123 src/api.js 89 'This rate limiting logic needs improvement' --repo test-owner/test-repo --dry-run
-stdout 'Would add comment to src/api.js:89'
-stdout 'This rate limiting logic needs improvement'
+# Test adding a line-specific comment (now uses review command)
+exec gh-comment review 123 'Code review feedback' --comment src/api.js:89:'This rate limiting logic needs improvement' --repo test-owner/test-repo --dry-run
+stdout 'Would create review on PR #123'
+stdout 'Comments: 1'
 ! stderr .
 
-# Test adding a line-specific comment (dry run only)
-exec gh-comment add 123 src/test.js 1 'Great work on this PR!' --repo test-owner/test-repo --dry-run
-stdout 'Would add comment to src/test.js:1'
+# Test adding a general discussion comment
+exec gh-comment add 123 'Great work on this PR!' --repo test-owner/test-repo --dry-run
+stdout 'Would add general comment to PR #123'
+stdout 'Great work on this PR!'
 ! stderr .
 
 # Verify list command works with filters (dry run)

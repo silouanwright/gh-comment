@@ -21,13 +21,16 @@ var (
 
 var reviewCmd = &cobra.Command{
 	Use:   "review <pr> <body>",
-	Short: "Create a review with multiple comments",
+	Short: "Create a code review with line-specific comments",
 	Long: heredoc.Doc(`
-		Create a review with multiple comments using a streamlined interface.
+		Create a code review with multiple line-specific comments attached to code.
 
-		This command provides a simplified way to create reviews with multiple comments
-		using command-line flags. Perfect for comprehensive code reviews where you
-		want to add several comments and submit a review decision in one operation.
+		This command creates review comments that appear in the "Files Changed" tab,
+		attached to specific lines or ranges. Perfect for comprehensive code reviews
+		where you want to comment on multiple code locations and submit a review
+		decision (APPROVE/REQUEST_CHANGES/COMMENT) in one operation.
+
+		For general PR discussion comments, use: 'gh comment add'
 	`),
 	Example: heredoc.Doc(`
 		# Security-focused comprehensive review
