@@ -68,7 +68,7 @@ var reviewCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(reviewCmd)
 	reviewCmd.Flags().StringVar(&reviewEventFlag, "event", "COMMENT", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT")
-	reviewCmd.Flags().StringArrayVar(&reviewCommentsFlag, "comment", []string{}, "Add comment in format file:line:message or file:start-end:message")
+	reviewCmd.Flags().StringArrayVar(&reviewCommentsFlag, "comment", []string{}, "Add comment in format file:line:message or file:start:end:message (also supports start-end)")
 }
 
 func runReview(cmd *cobra.Command, args []string) error {
