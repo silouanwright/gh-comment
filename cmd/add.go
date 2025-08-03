@@ -180,11 +180,15 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		reviewComment.Side = "RIGHT"
 	}
 
-	// Note: GitHub automatically uses the latest commit SHA for review comments
-	// No need to manually set commit_id
+	// GitHub API requires line-specific comments to be part of a review
+	// Create a minimal review with just this comment
+	review := github.ReviewInput{
+		Event:    "COMMENT", // Use COMMENT event for minimal review
+		Comments: []github.ReviewCommentInput{reviewComment},
+	}
 
-	// Add the comment via GitHub API
-	err = addClient.AddReviewComment(owner, repoName, pr, reviewComment)
+	// Add the comment via CreateReview (not AddReviewComment)
+	err = addClient.CreateReview(owner, repoName, pr, review)
 	if err != nil {
 		return fmt.Errorf("failed to add comment: %w", err)
 	}
