@@ -376,7 +376,7 @@ func TestParseRange(t *testing.T) {
 		{"zero start line", "0-10", 0, 0, true, "line numbers must be positive"},
 		{"zero end line", "10-0", 0, 0, true, "line numbers must be positive"},
 		{"negative start line", "-5-10", 0, 0, true, "range must be in format 'start-end'"},
-		{"start greater than end", "15-10", 0, 0, true, "start line must be <= end line"},
+		{"start greater than end", "15-10", 0, 0, true, "start line (15) cannot be greater than end line (10)"},
 	}
 
 	for _, tt := range tests {

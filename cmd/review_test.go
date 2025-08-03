@@ -432,7 +432,7 @@ func TestParseReviewCommentSpec(t *testing.T) {
 			name:           "start greater than end in range",
 			spec:           "src/main.go:15-10:message",
 			wantErr:        true,
-			expectedErrMsg: "start line must be <= end line",
+			expectedErrMsg: "start line (15) cannot be greater than end line (10)",
 		},
 	}
 

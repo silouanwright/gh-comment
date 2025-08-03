@@ -76,34 +76,38 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	var err error
 
 	// Parse arguments for general PR comments
-	if len(args) == 2 {
-		// PR number provided
+	if len(messages) > 0 {
+		// Using --message flags
+		if len(args) == 1 {
+			// PR provided + --message flags
+			pr, err = strconv.Atoi(args[0])
+			if err != nil {
+				return formatValidationError("PR number", args[0], "must be a valid integer")
+			}
+		} else if len(args) == 0 {
+			// Auto-detect PR + --message flags
+			pr, err = getCurrentPR()
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("invalid arguments when using --message flags: expected [pr] or no args")
+		}
+		comment = strings.Join(messages, "\n")
+	} else if len(args) == 2 {
+		// PR number provided + comment
 		pr, err = strconv.Atoi(args[0])
 		if err != nil {
 			return formatValidationError("PR number", args[0], "must be a valid integer")
 		}
 		comment = args[1]
 	} else if len(args) == 1 {
-		// Auto-detect PR from current branch
+		// Auto-detect PR from current branch + comment
 		pr, err = getCurrentPR()
 		if err != nil {
 			return err
 		}
 		comment = args[0]
-	} else if len(args) == 1 && len(messages) > 0 {
-		// PR provided + --message flags
-		pr, err = strconv.Atoi(args[0])
-		if err != nil {
-			return formatValidationError("PR number", args[0], "must be a valid integer")
-		}
-		comment = strings.Join(messages, "\n")
-	} else if len(args) == 0 && len(messages) > 0 {
-		// Auto-detect PR + --message flags
-		pr, err = getCurrentPR()
-		if err != nil {
-			return err
-		}
-		comment = strings.Join(messages, "\n")
 	} else {
 		return fmt.Errorf("invalid arguments. Use: gh comment add [pr] <comment> OR gh comment add [pr] --message \"line1\" --message \"line2\"")
 	}
