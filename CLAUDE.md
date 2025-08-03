@@ -16,28 +16,11 @@
 
 ## 🏗️ **Current State Summary**
 
-### **Recently Completed (Latest Session)**
-1. **✅ NEW: AI-Powered Prompts Command**:
-   - Implemented `prompts` command with curated professional code review templates
-   - 6 comprehensive prompts: security, performance, architecture, quality, AI assistant, migration
-   - Markdown-based prompt system with YAML frontmatter (maintainable & extensible)
-   - CREG emoji system (🔧🤔♻️📝😃) for structured feedback
-   - Research-backed communication patterns for psychological safety
-
-2. **✅ Comprehensive Regression Testing**:
-   - Added regression tests for commit_id removal bug (prevents GraphQL errors)
-   - Added bracket-counting parser tests (prevents suggestion syntax corruption)
-   - Added API isolation tests (prevents real GitHub API calls in unit tests)
-   - All critical fixes now protected against future regressions
-
-3. **✅ Documentation & Help Text Refinement**:
-   - Updated README with all 12 commands and comprehensive examples
-   - Reviewed and corrected all help text for accuracy
-   - Added prompts command documentation and usage patterns
-   - Removed non-existent flags (--format json) from help text
+Look at @TASKS.md
 
 ### **Architecture Status**
-- **Commands**: 12 total (add, add-review, batch, completion, edit, help, list, **prompts**, reply, resolve, review, submit-review)
+
+- **Commands**: 12 total (use --help to see all of them)
 - **Test Files**: 16+ comprehensive test files with full dependency injection + regression tests
 - **Coverage**: 80.7% (professional-grade level) + comprehensive regression protection
 - **Code Quality**: A+ grade (professional-grade with regression protection)
@@ -126,11 +109,11 @@ func TestCommand(t *testing.T) {
     // Save original state
     originalClient := commandClient
     defer func() { commandClient = originalClient }()
-    
+
     // Set up mock
     mockClient := github.NewMockClient()
     commandClient = mockClient
-    
+
     // Test execution...
 }
 
@@ -211,7 +194,7 @@ go tool cover -html=coverage.out -o coverage.html
 - Mock client system enables reliable testing
 
 ### **Immediate Opportunities**
-- **Low-hanging fruit**: Push coverage from 80.7% to 85%+ 
+- **Low-hanging fruit**: Push coverage from 80.7% to 85%+
 - **High impact**: Add real GitHub integration tests
 - **Infrastructure**: CI/CD pipeline setup
 - **User experience**: Performance optimization and error handling
@@ -225,7 +208,7 @@ go tool cover -html=coverage.out -o coverage.html
 
 ### **Files to Check First**
 1. `README.md` - Comprehensive user documentation with all 12 commands
-2. `cmd/prompts/` - NEW: 6 markdown-based professional prompts 
+2. `cmd/prompts/` - NEW: 6 markdown-based professional prompts
 3. `cmd/prompts.go` - NEW: AI prompt system implementation
 4. `cmd/*_test.go` - Comprehensive test files including regression tests
 5. `docs/testing/TESTING_GUIDE.md` - Established patterns and practices
