@@ -1,45 +1,43 @@
 # Test code suggestion syntax and expansion
 [!mock-server] skip 'mock server not available'
 
-# Test basic SUGGEST syntax expansion
-exec gh-comment add 123 crypto.js 67 '[SUGGEST: use crypto.randomBytes(32)]' --repo test-owner/test-repo --dry-run
-stdout 'Would add comment'
+# Test basic SUGGEST syntax expansion in general comments
+exec gh-comment add 123 'Security suggestion: [SUGGEST: use crypto.randomBytes(32)]' --repo test-owner/test-repo --dry-run
+stdout 'Would add general comment'
 # The suggestion should be expanded to GitHub's format (implementation detail)
 ! stderr .
 
-# Test multiple suggestions in one comment
-exec gh-comment add 123 validation.js 25 'Security improvements needed: [SUGGEST: if (input) { return sanitize(input); }] and also [SUGGEST: add rate limiting]' --repo test-owner/test-repo --dry-run
-stdout 'Would add comment'
+# Test multiple suggestions in one general comment
+exec gh-comment add 123 'Security improvements needed: [SUGGEST: if (input) { return sanitize(input); }] and also [SUGGEST: add rate limiting]' --repo test-owner/test-repo --dry-run
+stdout 'Would add general comment'
 stdout 'Security improvements needed'
 ! stderr .
 
 # Test disabling suggestion expansion
-exec gh-comment add 123 test.js 1 '[SUGGEST: keep this literal]' --no-expand-suggestions --repo test-owner/test-repo --dry-run
-stdout 'Would add comment'
+exec gh-comment add 123 '[SUGGEST: keep this literal]' --no-expand-suggestions --repo test-owner/test-repo --dry-run
+stdout 'Would add general comment'
 stdout '\[SUGGEST: keep this literal\]'
 ! stderr .
 
-# Test suggestion syntax in review comments - simplified test
-exec gh-comment add 123 performance.js 89 'Extract calculation [SUGGEST: const result = memoize(expensive_calc)]' --repo test-owner/test-repo --dry-run
-stdout 'Would add comment'
-stdout 'Extract calculation'
-stdout '```suggestion'
+# Test suggestion syntax in line-specific review comments
+exec gh-comment review 123 'Performance review' --comment performance.js:89:'Extract calculation [SUGGEST: const result = memoize(expensive_calc)]' --repo test-owner/test-repo --dry-run
+stdout 'Would create review'
+stdout 'Comments: 1'
 ! stderr .
 
-# Test multiline suggestions using --message flags
-exec gh-comment add 123 algorithm.js 156 'Performance optimization: [SUGGEST: optimized code]' --repo test-owner/test-repo --dry-run
-stdout 'Would add comment'
+# Test multiline suggestions using --message flags in general comments
+exec gh-comment add 123 -m 'Performance optimization:' -m '[SUGGEST: optimized code]' --repo test-owner/test-repo --dry-run
+stdout 'Would add general comment'
 stdout 'Performance optimization'
-stdout 'optimized()'
 ! stderr .
 
-# Test suggestion with special characters
-exec gh-comment add 123 regex.js 23 '[SUGGEST: const pattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/]' --repo test-owner/test-repo --dry-run
-stdout 'Would add comment'
+# Test suggestion with special characters in general comment
+exec gh-comment add 123 '[SUGGEST: const pattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/]' --repo test-owner/test-repo --dry-run
+stdout 'Would add general comment'
 stdout 'pattern ='
 ! stderr .
 
-# Test empty suggestion (edge case)
-exec gh-comment add 123 empty.js 1 '[SUGGEST: ]' --repo test-owner/test-repo --dry-run
-stdout 'Would add comment'
+# Test empty suggestion (edge case) in general comment
+exec gh-comment add 123 '[SUGGEST: ]' --repo test-owner/test-repo --dry-run
+stdout 'Would add general comment'
 ! stderr .

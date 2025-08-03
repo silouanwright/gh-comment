@@ -360,7 +360,7 @@ func parseRange(rangeStr string) (startLine, endLine int, err error) {
 	}
 
 	if startLine > endLine {
-		return 0, 0, fmt.Errorf("start line must be <= end line")
+		return 0, 0, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", startLine, endLine)
 	}
 
 	return startLine, endLine, nil

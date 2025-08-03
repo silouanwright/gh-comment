@@ -72,8 +72,8 @@ var listCmd = &cobra.Command{
 		$ gh comment list 123 --author "performance-team" --since "load-test-date" --type review
 		$ gh comment list 123 --status open --author "*perf*" --since "1 week ago"
 
-		# Export for further analysis
-		$ gh comment list 123 --author "all-reviewers*" --format json --since "quarter-start"
+		# Export for further analysis and automation
+		$ gh comment list 123 --author "all-reviewers*" --since "quarter-start" --quiet | process-review-data.sh
 		$ gh comment list 123 --quiet --type review --status open | review-metrics.sh
 	`),
 	Args: cobra.MaximumNArgs(1),
@@ -443,9 +443,9 @@ func displayComment(comment Comment, index int) {
 	// Header with author and timestamp
 	timeAgo := formatTimeAgo(comment.CreatedAt)
 	if hideAuthors {
-		fmt.Printf("[%d] 👤 [hidden] • %s", index, timeAgo)
+		fmt.Printf("[%d] ID:%d 👤 [hidden] • %s", index, comment.ID, timeAgo)
 	} else {
-		fmt.Printf("[%d] 👤 %s • %s", index, comment.Author, timeAgo)
+		fmt.Printf("[%d] ID:%d 👤 %s • %s", index, comment.ID, comment.Author, timeAgo)
 	}
 
 	// Show review state for review-level comments

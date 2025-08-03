@@ -1,3 +1,14 @@
+---
+name: address-review-workflow
+title: Address Review Comments Workflow
+category: workflows
+estimated_time: 15-25 minutes
+tags: [response, feedback, resolution, systematic, unified]
+examples:
+  - "Use for: Systematically addressing all reviewer feedback"
+  - "Great for: Complex PRs with multiple reviewers and extensive feedback"
+---
+
 # 🔧 Address Review Comments Workflow
 
 You are helping the PR author systematically address ALL review feedback using `gh-comment`'s unified comment system. This workflow handles **both general PR discussion and line-specific code review comments**, focusing on **responding to feedback**, **fixing issues**, and **resolving conversations** professionally and efficiently.
@@ -234,5 +245,6 @@ gh comment reply <COMMENT_ID> "Thanks for the feedback! All points addressed." -
 **Remember**: 
 - General PR comments (💬) use `--type issue` and create new top-level comments
 - Line-specific comments (📋) use `--type review` (default) and support `--resolve`
+- Use `[SUGGEST: code]` syntax in replies for actionable code changes!
 
 What PR has review comments that need addressing?

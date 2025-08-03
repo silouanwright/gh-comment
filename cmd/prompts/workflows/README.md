@@ -1,3 +1,14 @@
+---
+name: workflow-index
+title: AI Workflow Prompts for gh-comment
+category: workflows
+estimated_time: 2-3 minutes
+tags: [index, overview, workflow-guide]
+examples:
+  - "Use for: Overview of available AI workflow prompts"
+  - "Great for: Getting started with gh-comment AI workflows"
+---
+
 # 🤖 AI Workflow Prompts for gh-comment
 
 This directory contains ready-to-use AI prompts designed to work seamlessly with the `gh-comment` CLI extension. These prompts are optimized for AI assistants to perform common GitHub PR workflows efficiently.
@@ -19,6 +30,9 @@ Systematically respond to reviewer feedback, fix issues, and resolve conversatio
 2. **Paste into your AI assistant** (Claude, ChatGPT, etc.)
 3. **Provide the PR context** (checkout the PR branch first)
 4. **Let AI analyze and comment** using `gh-comment` commands
+
+### 💡 Suggestion Syntax
+Use `[SUGGEST: code]` in your comments for quick code suggestions that can be auto-expanded!
 
 ## 💡 Prerequisites
 

@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/stretchr/testify/assert"
@@ -307,4 +309,118 @@ func TestDisplayDiffHunkFormatting(t *testing.T) {
 			assert.Contains(t, output, tt.line, "Original line content not found")
 		})
 	}
+}
+
+// REGRESSION TEST: Ensure comment IDs are always displayed in list output
+// This prevents the critical bug where users couldn't get comment IDs for replies/edits
+func TestDisplayCommentAlwaysShowsID(t *testing.T) {
+	tests := []struct {
+		name    string
+		comment Comment
+	}{
+		{
+			name: "issue comment with ID",
+			comment: Comment{
+				ID:        12345678,
+				Author:    "testuser",
+				Body:      "Test issue comment",
+				Type:      "issue",
+				CreatedAt: testTime(),
+			},
+		},
+		{
+			name: "review comment with ID",
+			comment: Comment{
+				ID:        87654321,
+				Author:    "reviewer",
+				Body:      "Test review comment",
+				Type:      "review",
+				Path:      "test.go",
+				Line:      42,
+				CreatedAt: testTime(),
+			},
+		},
+		{
+			name: "comment with large ID",
+			comment: Comment{
+				ID:        2249431211, // Real GitHub comment ID format
+				Author:    "realuser",
+				Body:      "Real comment with large ID",
+				Type:      "review",
+				CreatedAt: testTime(),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := captureOutput(func() {
+				displayComment(tt.comment, 1)
+			})
+
+			// CRITICAL: Must contain the actual GitHub comment ID
+			expectedIDFormat := fmt.Sprintf("ID:%d", tt.comment.ID)
+			assert.Contains(t, output, expectedIDFormat,
+				"Comment ID must be displayed in format 'ID:%d' for integration testing workflows")
+
+			// Should also contain the index number
+			assert.Contains(t, output, "[1]", "Should contain index number")
+
+			// Should contain author and body
+			assert.Contains(t, output, tt.comment.Author, "Should contain author")
+			assert.Contains(t, output, tt.comment.Body, "Should contain comment body")
+		})
+	}
+}
+
+// REGRESSION TEST: Ensure comment ID format is consistent
+func TestDisplayCommentIDFormat(t *testing.T) {
+	comment := Comment{
+		ID:        123456789,
+		Author:    "testuser",
+		Body:      "Test comment",
+		Type:      "issue",
+		CreatedAt: testTime(),
+	}
+
+	output := captureOutput(func() {
+		displayComment(comment, 1)
+	})
+
+	// Test exact format: [index] ID:actualID
+	assert.Contains(t, output, "[1] ID:123456789",
+		"Comment must display in exact format: [index] ID:actualID")
+}
+
+// REGRESSION TEST: Verify hideAuthors flag still shows comment IDs
+func TestDisplayCommentWithHideAuthorsStillShowsID(t *testing.T) {
+	// Save original state
+	originalHideAuthors := hideAuthors
+	defer func() { hideAuthors = originalHideAuthors }()
+
+	// Enable hide authors flag
+	hideAuthors = true
+
+	comment := Comment{
+		ID:        999888777,
+		Author:    "secretuser",
+		Body:      "Hidden author comment",
+		Type:      "issue",
+		CreatedAt: testTime(),
+	}
+
+	output := captureOutput(func() {
+		displayComment(comment, 1)
+	})
+
+	// Even with hidden authors, ID must still be visible
+	assert.Contains(t, output, "ID:999888777",
+		"Comment ID must be visible even when authors are hidden")
+	assert.Contains(t, output, "[hidden]", "Author should be hidden")
+	assert.NotContains(t, output, "secretuser", "Author name should not appear")
+}
+
+func testTime() time.Time {
+	// Return a fixed time for consistent testing
+	return time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)
 }

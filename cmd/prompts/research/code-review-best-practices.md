@@ -1,3 +1,14 @@
+---
+name: code-review-best-practices
+title: Human-Centered Code Review Guide
+category: research
+estimated_time: 10-15 minutes
+tags: [psychology, communication, best-practices, creg, suggestions]
+examples:
+  - "Use for: Training reviewers on effective communication patterns"
+  - "Great for: Team leads establishing review culture and psychological safety"
+---
+
 # Human-Centered Code Review Guide
 *Making code reviews feel like collaborative problem-solving, not performance evaluations*
 
@@ -66,6 +77,8 @@ Instead of describing what to change, **show exactly what you want** using GitHu
 - **Less back-and-forth**: Fewer "is this what you meant?" rounds
 
 *[Learn more about GitHub suggestions →](https://docs.github.com/articles/incorporating-feedback-in-your-pull-request)*
+
+**Pro tip**: When using CLI tools like `gh-comment`, you can also use the `[SUGGEST: code]` syntax in your comments for quick code suggestions!
 
 ### [CREG: Code Review Emoji Guide](https://devblogs.microsoft.com/appcenter/how-the-visual-studio-mobile-center-team-does-code-review/)
 

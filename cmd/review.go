@@ -21,13 +21,16 @@ var (
 
 var reviewCmd = &cobra.Command{
 	Use:   "review <pr> <body>",
-	Short: "Create a review with multiple comments",
+	Short: "Create a code review with line-specific comments",
 	Long: heredoc.Doc(`
-		Create a review with multiple comments using a streamlined interface.
+		Create a code review with multiple line-specific comments attached to code.
 
-		This command provides a simplified way to create reviews with multiple comments
-		using command-line flags. Perfect for comprehensive code reviews where you
-		want to add several comments and submit a review decision in one operation.
+		This command creates review comments that appear in the "Files Changed" tab,
+		attached to specific lines or ranges. Perfect for comprehensive code reviews
+		where you want to comment on multiple code locations and submit a review
+		decision (APPROVE/REQUEST_CHANGES/COMMENT) in one operation.
+
+		For general PR discussion comments, use: 'gh comment add'
 	`),
 	Example: heredoc.Doc(`
 		# Security-focused comprehensive review
@@ -65,7 +68,7 @@ var reviewCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(reviewCmd)
 	reviewCmd.Flags().StringVar(&reviewEventFlag, "event", "COMMENT", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT")
-	reviewCmd.Flags().StringArrayVar(&reviewCommentsFlag, "comment", []string{}, "Add comment in format file:line:message or file:start-end:message")
+	reviewCmd.Flags().StringArrayVar(&reviewCommentsFlag, "comment", []string{}, "Add comment in format file:line:message or file:start:end:message (also supports start-end)")
 }
 
 func runReview(cmd *cobra.Command, args []string) error {
@@ -123,10 +126,23 @@ func runReview(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("review must have either a body message or comments (use --comment)")
 	}
 
-	// Get repository and PR context
-	repository, pr, err := getPRContext()
+	// Get repository context
+	repository, err := getCurrentRepo()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get repository: %w", err)
+	}
+
+	// If PR number wasn't parsed from args, try to auto-detect it
+	if pr == 0 {
+		if prNumber > 0 {
+			pr = prNumber
+		} else {
+			detectedPR, err := getCurrentPR()
+			if err != nil {
+				return fmt.Errorf("failed to detect PR number: %w (try specifying --pr)", err)
+			}
+			pr = detectedPR
+		}
 	}
 
 	// Parse owner/repo
@@ -135,6 +151,16 @@ func runReview(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
 	}
 	owner, repoName := parts[0], parts[1]
+
+	// Parse and validate review comments first (before dry run)
+	var reviewCommentInputs []github.ReviewCommentInput
+	for i, commentSpec := range reviewCommentsFlag {
+		commentInput, err := parseReviewCommentSpec(commentSpec)
+		if err != nil {
+			return fmt.Errorf("invalid comment %d (%s): %w", i+1, commentSpec, err)
+		}
+		reviewCommentInputs = append(reviewCommentInputs, commentInput)
+	}
 
 	if verbose {
 		fmt.Printf("Repository: %s\n", repository)
@@ -154,16 +180,6 @@ func runReview(cmd *cobra.Command, args []string) error {
 			fmt.Printf("  %d. %s\n", i+1, comment)
 		}
 		return nil
-	}
-
-	// Parse and create review comments
-	var reviewCommentInputs []github.ReviewCommentInput
-	for i, commentSpec := range reviewCommentsFlag {
-		commentInput, err := parseReviewCommentSpec(commentSpec)
-		if err != nil {
-			return fmt.Errorf("invalid comment %d (%s): %w", i+1, commentSpec, err)
-		}
-		reviewCommentInputs = append(reviewCommentInputs, commentInput)
 	}
 
 	// Create the review
@@ -199,16 +215,69 @@ func runReview(cmd *cobra.Command, args []string) error {
 }
 
 // parseReviewCommentSpec parses a comment specification in the format:
-// file:line:message or file:start-end:message
+// file:line:message or file:start:end:message
 func parseReviewCommentSpec(spec string) (github.ReviewCommentInput, error) {
-	parts := strings.SplitN(spec, ":", 3)
-	if len(parts) < 3 {
-		return github.ReviewCommentInput{}, fmt.Errorf("format must be file:line:message or file:start-end:message")
-	}
+	// Handle quoted messages properly
+	var filePath, lineSpec, message string
 
-	filePath := parts[0]
-	lineSpec := parts[1]
-	message := strings.Join(parts[2:], ":") // Rejoin in case message contains colons
+	// Check if message is quoted
+	if strings.Contains(spec, ":'") && strings.HasSuffix(spec, "'") {
+		// Message is quoted with single quotes
+		quoteIndex := strings.Index(spec, ":'")
+		message = spec[quoteIndex+2 : len(spec)-1] // Remove :' and trailing '
+		fileAndLine := spec[:quoteIndex]
+
+		// Split file and line
+		lastColonIndex := strings.LastIndex(fileAndLine, ":")
+		if lastColonIndex == -1 {
+			return github.ReviewCommentInput{}, fmt.Errorf("format must be file:line:message or file:start:end:message")
+		}
+		filePath = fileAndLine[:lastColonIndex]
+		lineSpec = fileAndLine[lastColonIndex+1:]
+	} else if strings.Contains(spec, ":\"") && strings.HasSuffix(spec, "\"") {
+		// Message is quoted with double quotes
+		quoteIndex := strings.Index(spec, ":\"")
+		message = spec[quoteIndex+2 : len(spec)-1] // Remove :" and trailing "
+		fileAndLine := spec[:quoteIndex]
+
+		// Split file and line
+		lastColonIndex := strings.LastIndex(fileAndLine, ":")
+		if lastColonIndex == -1 {
+			return github.ReviewCommentInput{}, fmt.Errorf("format must be file:line:message or file:start:end:message")
+		}
+		filePath = fileAndLine[:lastColonIndex]
+		lineSpec = fileAndLine[lastColonIndex+1:]
+	} else {
+		// Message is not quoted, use the old logic
+		// Try to parse as range format first
+		colonCount := strings.Count(spec, ":")
+		if colonCount >= 3 {
+			// Try file:start:end:message format
+			parts := strings.SplitN(spec, ":", 4)
+			if len(parts) == 4 {
+				// Check if parts[1] and parts[2] are both numbers
+				if _, err1 := strconv.Atoi(parts[1]); err1 == nil {
+					if _, err2 := strconv.Atoi(parts[2]); err2 == nil {
+						// Valid range format
+						filePath = parts[0]
+						lineSpec = parts[1] + ":" + parts[2]
+						message = parts[3]
+					}
+				}
+			}
+		}
+
+		// If not range format, try simple format
+		if filePath == "" {
+			parts := strings.SplitN(spec, ":", 3)
+			if len(parts) < 3 {
+				return github.ReviewCommentInput{}, fmt.Errorf("format must be file:line:message or file:start:end:message")
+			}
+			filePath = parts[0]
+			lineSpec = parts[1]
+			message = strings.Join(parts[2:], ":")
+		}
+	}
 
 	if filePath == "" {
 		return github.ReviewCommentInput{}, fmt.Errorf("file path cannot be empty")
@@ -224,11 +293,16 @@ func parseReviewCommentSpec(spec string) (github.ReviewCommentInput, error) {
 	}
 
 	// Parse line specification (single line or range)
-	if strings.Contains(lineSpec, "-") {
-		// Range format: start-end
-		rangeParts := strings.Split(lineSpec, "-")
+	if strings.Contains(lineSpec, "-") || strings.Contains(lineSpec, ":") {
+		// Range format: start-end or start:end
+		var rangeParts []string
+		if strings.Contains(lineSpec, "-") {
+			rangeParts = strings.Split(lineSpec, "-")
+		} else {
+			rangeParts = strings.Split(lineSpec, ":")
+		}
 		if len(rangeParts) != 2 {
-			return github.ReviewCommentInput{}, fmt.Errorf("range format must be start-end")
+			return github.ReviewCommentInput{}, fmt.Errorf("range format must be start-end or start:end")
 		}
 
 		startLine, err := strconv.Atoi(strings.TrimSpace(rangeParts[0]))
@@ -246,7 +320,7 @@ func parseReviewCommentSpec(spec string) (github.ReviewCommentInput, error) {
 		}
 
 		if startLine > endLine {
-			return github.ReviewCommentInput{}, fmt.Errorf("start line must be <= end line")
+			return github.ReviewCommentInput{}, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", startLine, endLine)
 		}
 
 		comment.StartLine = startLine

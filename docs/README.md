@@ -33,13 +33,12 @@ These remain in the project root for easy access:
 - **[TASKS.md](../TASKS.md)** - Development roadmap and task tracking  
 - **[CLAUDE.md](../CLAUDE.md)** - AI context and handoff documentation
 
-## AI Workflows
+## AI Workflows & Prompts
 
-- **[ai-prompts/](../ai-prompts/)** - AI workflow prompts and templates
+- **[cmd/prompts/workflows/](../cmd/prompts/workflows/)** - AI workflow prompts and templates
+- **[cmd/prompts/research/](../cmd/prompts/research/)** - Code review best practices and research guides
 
-## Research
-
-- **[research/code-review-best-practices.md](../research/code-review-best-practices.md)** - Practical code review guide (kept as authoritative version)
+*Note: All prompts are now accessible via `gh comment prompts --list` command*
 
 ---
 

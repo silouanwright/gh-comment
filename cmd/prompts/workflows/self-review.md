@@ -1,3 +1,14 @@
+---
+name: self-review-workflow
+title: Self-Review Documentation Workflow
+category: workflows
+estimated_time: 10-15 minutes
+tags: [self-review, documentation, author-comments, proactive]
+examples:
+  - "Use for: PR authors documenting their own changes before review"
+  - "Great for: Complex changes, architectural decisions, non-obvious implementations"
+---
+
 # 📝 Self-Review Documentation Workflow
 
 You are helping the PR author document and explain their own changes using `gh-comment`. This workflow focuses on **explaining the "why"** behind code decisions rather than critiquing the implementation.
@@ -121,5 +132,7 @@ the 72-hour rule here comes from our compliance team - users have 3 business day
 2. **Identify areas that need explanation**
 3. **Prepare context comments for each area**
 4. **Submit all explanatory comments at once**
+
+**Pro tip**: Use `[SUGGEST: code]` in your comments for code suggestions that reviewers can easily apply!
 
 What PR would you like to self-document?

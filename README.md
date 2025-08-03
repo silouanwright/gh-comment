@@ -16,6 +16,10 @@ Strategic line-specific PR commenting for GitHub CLI (optimized for AI)
 - 💬 **Universal reply system**: Reply to any comment type (issue or review) with automatic API selection
 - ✏️ **Edit existing comments**: Update comment text to fix mistakes or add context
 - 😀 **Emoji reactions**: Quick acknowledgments with GitHub reactions
+- 🔍 **Review workflows**: Create draft reviews, submit reviews, and batch operations
+- 📂 **Batch operations**: Process multiple comments from YAML configuration files
+- 🔧 **Conversation management**: Resolve threads and track discussion progress
+- 🎯 **Advanced filtering**: Filter by author (wildcards), date ranges, status, and comment types
 - 🧪 **Dry-run mode**: Preview comments before posting
 - 🔍 **Auto-detection**: Automatically detect current repository and PR
 - 🔊 **Verbose mode**: Detailed API interaction logging
@@ -93,6 +97,30 @@ gh comment --version
 gh comment --help
 ```
 
+## Command Reference
+
+`gh-comment` provides 11 comprehensive commands for professional PR comment management:
+
+| Command | Purpose | Key Features |
+|---------|---------|--------------|
+| **`add`** | Add comments to specific lines or general PR | Line-specific, range comments, suggestion syntax |
+| **`add-review`** | Create draft reviews with multiple comments | Batch comment creation, can be submitted later |
+| **`batch`** | Process comments from YAML configuration | Systematic reviews, automation-friendly |
+| **`edit`** | Modify existing comments | Update text, fix mistakes, add context |
+| **`list`** | List and filter all PR comments | Advanced filtering, unified view, AI-optimized output |
+| **`prompts`** | Get AI-powered code review prompts | Curated professional prompts, CREG system, best practices |
+| **`reply`** | Reply to comments and manage reactions | Universal system, reactions, threaded replies |
+| **`resolve`** | Resolve conversation threads | Thread management, resolution tracking |
+| **`review`** | Create and submit reviews in one operation | Streamlined workflow, immediate submission |
+| **`submit-review`** | Submit pending reviews | Approve, request changes, or comment |
+
+**Global Options Available on All Commands:**
+- `--pr` / `-p`: PR number (auto-detects from current branch)
+- `--repo` / `-R`: Repository in owner/repo format  
+- `--dry-run`: Preview without executing
+- `--verbose` / `-v`: Detailed API interaction logging
+- `--validate`: Validate line exists in diff (default: true)
+
 ## Comment System
 
 `gh-comment` provides unified management for both types of PR comments:
@@ -147,7 +175,7 @@ const result = data.filter(x => x.active);
 
 ### Creating Comments
 
-#### Line-Specific Comments (gh-comment extension)
+#### Line-Specific Comments
 ```bash
 # Add single-line comment to specific code line
 gh comment add 123 src/api.js 42 "this handles the rate limiting edge case"
@@ -160,25 +188,85 @@ Line 3"
 # Add multi-line comment using --message flags (AI-friendly)
 gh comment add 123 src/api.js 42 --message "First paragraph" --message "Second paragraph"
 
+# Range comments (multiple lines)
+gh comment add 123 src/api.js 42:48 "this entire function needs refactoring"
+
 # Auto-detect PR from current branch
 gh comment add src/api.js 42 "quick fix needed"
+
+# With suggestion syntax
+gh comment add 123 src/api.js 42 "Try this: [SUGGEST: const result = data?.filter(x => x.active) || []]"
 ```
 
-#### General PR Comments (native GitHub CLI)
+#### General PR Comments  
 ```bash
 # Add general discussion comment (not tied to specific code)
-gh pr comment 123 --body "LGTM! Just a few minor suggestions below."
+gh comment add 123 "LGTM! Just a few minor suggestions below."
 
 # Multi-line general comment
-gh pr comment 123 --body "Thanks for this PR!
+gh comment add 123 "Thanks for this PR!
 
 I've reviewed the changes and they look good overall.
 Just a couple of questions about the implementation."
 ```
 
-**Key Distinction:**
-- **Line-specific**: Use `gh comment add <pr> <file> <line>` (gh-comment extension)
-- **General discussion**: Use `gh pr comment <pr> --body` (native GitHub CLI)
+#### Review Creation (Professional Workflows)
+```bash
+# Create draft review with multiple comments
+gh comment add-review 123 "Security audit findings" \
+  --comment src/auth.js:67:"Use crypto.randomBytes(32) for tokens" \
+  --comment src/api.js:134:140:"Extract business logic to service layer" \
+  --comment tests/auth_test.js:25:"Add test for token expiration"
+
+# Create and immediately submit review
+gh comment review 123 "Migration review complete" \
+  --comment src/api.js:42:"Add rate limiting middleware" \
+  --comment src/auth.js:15:20:"Update to OAuth2 flow" \
+  --comment tests/api_test.go:100:"Add edge case tests" \
+  --event REQUEST_CHANGES
+
+# Submit pending review
+gh comment submit-review 123 --event APPROVE --body "All issues addressed!"
+
+# Batch operations from YAML config
+gh comment batch comprehensive-review.yaml
+```
+
+**Review Workflow Commands:**
+- **`add-review`**: Create draft review with multiple comments (can be submitted later)
+- **`review`**: Create and optionally submit review in one operation  
+- **`submit-review`**: Submit existing pending review
+- **`batch`**: Process multiple comments from YAML configuration files
+
+#### Batch Operations (YAML Configuration)
+```yaml
+# review-config.yaml
+pr: 123
+review:
+  body: "Comprehensive security and performance review"
+  event: "REQUEST_CHANGES"
+  comments:
+    - file: "src/auth.js"
+      line: 67
+      body: "🔧 Use crypto.randomBytes(32) for secure tokens"
+    - file: "src/api.js" 
+      line_range: [134, 140]
+      body: "♻️ Extract this business logic to a service layer"
+    - file: "tests/auth_test.js"
+      line: 25
+      body: "📝 Add test case for token expiration scenarios"
+```
+
+```bash
+# Process batch review
+gh comment batch review-config.yaml
+
+# Dry run batch operation
+gh comment batch --dry-run security-audit.yaml
+
+# Process with different PR
+gh comment batch review-config.yaml --pr 456
+```
 
 ### List All Comments (Advanced Filtering System)
 
@@ -240,11 +328,70 @@ gh comment reply 2246362251 "Fixed in latest commit" --resolve
 
 # Remove reaction from any comment
 gh comment reply 2246362251 --remove-reaction +1
+
+# Multiple reactions at once
+gh comment reply 2246362251 --reaction +1 --reaction heart
 ```
 
 **Comment Types:**
 - `--type review` (default): Line-specific code review comments - creates threaded replies
 - `--type issue`: General PR discussion comments - creates new top-level comments
+
+### Resolve Conversations
+
+Manage conversation threads and their resolution status:
+
+```bash
+# Resolve a conversation thread
+gh comment resolve 2246362251 --reason "Fixed in commit abc123"
+
+# Resolve conversation by thread ID (for complex cases)
+gh comment resolve --thread thread_abc123 --reason "Addressed in refactor"
+
+# Resolve multiple conversations
+gh comment resolve 2246362251 2246362252 --reason "All issues addressed"
+
+# Use with reply for common workflow
+gh comment reply 2246362251 "Fixed in latest commit" --resolve
+```
+
+### AI-Powered Review Prompts
+
+Access curated, professional code review prompts optimized for AI assistants:
+
+```bash
+# List all available prompts
+gh comment prompts --list
+
+# Get comprehensive security audit prompt
+gh comment prompts security-audit
+
+# Get AI assistant meta-prompt for systematic reviews
+gh comment prompts ai-assistant
+
+# Filter prompts by category
+gh comment prompts --category performance --list
+
+# Available categories: security, performance, architecture, quality, ai
+gh comment prompts performance-optimization
+gh comment prompts architecture-review
+gh comment prompts code-quality
+gh comment prompts migration-review
+```
+
+**Key Features:**
+- **Research-backed communication patterns**: Question-based feedback, psychological safety
+- **CREG emoji system**: 🔧 (critical), 🤔 (questions), ♻️ (refactor), 📝 (educational), 😃 (praise)
+- **Professional frameworks**: Systematic analysis areas for different review types
+- **AI-optimized**: Structured prompts perfect for Claude, ChatGPT, and automation
+- **Ready-to-use**: Copy directly into AI conversations or automation scripts
+
+**Example prompt usage:**
+```bash
+# Use a security prompt to guide your review
+PROMPT=$(gh comment prompts security-audit)
+# Then use with AI: "Using this framework: $PROMPT, please review PR #123"
+```
 
 ### Edit Comments
 
@@ -372,22 +519,28 @@ Queuing individual comments as part of a review would be helpful, but GitHub's A
 ## Roadmap
 
 ### 🚧 In Progress (August 2025)
-- [ ] **Test Coverage to 80%**: Refactoring commands with dependency injection for better testing
+- [ ] **AI-Powered Prompts Command**: Built-in code review prompts and best practices
 - [ ] **Cross-Platform Testing**: Ensuring consistent behavior across Windows, macOS, and Linux
+- [ ] **Enhanced Documentation**: Comprehensive help text review and improvements
 
 ### 📋 Planned Features
 - [ ] **GitLab-style line offset syntax**: Support `[SUGGEST:+2: code]` and `[SUGGEST:-1: code]` for relative line positioning in suggestions
-- [ ] **Advanced filtering**: Filter comments by status, author, date, resolved state
 - [ ] **Configuration file support**: Default flags and repository settings
 - [ ] **Template system**: Reusable comment patterns and workflows
-- [ ] **Batch operations**: Apply operations to multiple comments at once
 - [ ] **Export functionality**: Export comments to various formats (JSON, CSV, Markdown)
+- [ ] **GitHub Copilot Integration**: Native suggestion import from Copilot
+- [ ] **Performance Metrics**: Comment resolution time tracking and team analytics
 - [ ] **What do you want to see?** [Let me know!](https://github.com/silouanwright/gh-comment/issues)
 
-### ✅ Recently Completed
-- [x] **API Abstraction Layer**: Clean separation of GitHub API calls for better testing (August 2025)
-- [x] **Performance Regression Testing**: Automated benchmark comparison on every PR (August 2025)
-- [x] **Pre-commit Hooks**: Automated code quality checks on every commit (August 2025)
+### ✅ Recently Completed (August 2025)
+- [x] **80.7% Test Coverage Achieved**: Comprehensive dependency injection refactoring with professional-grade testing
+- [x] **Regression Prevention**: Added extensive regression tests for commit_id bug and suggestion parsing issues
+- [x] **Review Workflows**: Complete `add-review`, `review`, `submit-review`, and `batch` command implementations
+- [x] **Advanced Filtering**: Full filtering system with author wildcards, date ranges, and status filtering
+- [x] **Suggestion Syntax Robustness**: Bracket-counting parser for complex nested syntax handling
+- [x] **API Abstraction Layer**: Clean separation of GitHub API calls for better testing
+- [x] **Performance Regression Testing**: Automated benchmark comparison on every PR
+- [x] **Pre-commit Hooks**: Automated code quality checks on every commit
 
 ## Contributing
 

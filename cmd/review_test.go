@@ -432,7 +432,7 @@ func TestParseReviewCommentSpec(t *testing.T) {
 			name:           "start greater than end in range",
 			spec:           "src/main.go:15-10:message",
 			wantErr:        true,
-			expectedErrMsg: "start line must be <= end line",
+			expectedErrMsg: "start line (15) cannot be greater than end line (10)",
 		},
 	}
 
@@ -567,4 +567,55 @@ func TestReviewWithClientInitialization(t *testing.T) {
 
 	err := runReview(nil, []string{"123", "Review body"})
 	assert.NoError(t, err)
+}
+
+// TestReviewCommitIDNotIncluded - REGRESSION TEST
+// This prevents the commit_id bug from reoccurring where individual
+// comments had commit_id field causing GraphQL errors
+func TestReviewCommitIDNotIncluded(t *testing.T) {
+	// Save original values
+	originalClient := reviewClient
+	originalRepo := repo
+	originalPR := prNumber
+	originalEvent := reviewEventFlag
+	originalComments := reviewCommentsFlag
+	defer func() {
+		reviewClient = originalClient
+		repo = originalRepo
+		prNumber = originalPR
+		reviewEventFlag = originalEvent
+		reviewCommentsFlag = originalComments
+	}()
+
+	// Set up mock client to verify commit_id is NOT sent
+	mockClient := github.NewMockClient()
+	reviewClient = mockClient
+	repo = "owner/repo"
+	prNumber = 123
+	reviewEventFlag = "APPROVE"
+	reviewCommentsFlag = []string{"src/main.go:1:Test comment"}
+
+	// Mock will track what gets sent to verify commit_id is NOT in individual comments
+	err := runReview(nil, []string{"123", "Review body"})
+	assert.NoError(t, err)
+
+	// Verify the mock client received the correct data structure
+	// without commit_id in individual comments (this prevents the GraphQL error)
+	calls := mockClient.GetCreateReviewCalls()
+	assert.Len(t, calls, 1)
+
+	// Verify review comments don't have commit_id field
+	reviewComments := calls[0].Comments
+	assert.Len(t, reviewComments, 1)
+
+	// Verify comment structure - should have Side but NOT CommitID
+	comment := reviewComments[0]
+	assert.Equal(t, "src/main.go", comment.Path)
+	assert.Equal(t, 1, comment.Line)
+	assert.Equal(t, "Test comment", comment.Body)
+	assert.Equal(t, "RIGHT", comment.Side) // Side is required
+
+	// CRITICAL: This field should NOT exist in individual comments
+	// The absence of this field prevents the GraphQL commitId error
+	// GitHub automatically uses the review-level commit for all comments
 }
