@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -17,6 +18,7 @@ var (
 	validateDiff bool
 	dryRun       bool
 	verbose      bool
+	configPath   string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -166,10 +168,50 @@ func init() {
 	// Global flags
 	rootCmd.PersistentFlags().IntVarP(&prNumber, "pr", "p", 0, "PR number (default: auto-detect from branch)")
 	rootCmd.PersistentFlags().StringVarP(&repo, "repo", "R", "", "Repository in owner/repo format (default: auto-detect from current directory)")
+	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "Configuration file path (default: search standard locations)")
 
 	rootCmd.PersistentFlags().BoolVar(&validateDiff, "validate", true, "Validate line exists in diff before commenting (default: true)")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Show what would be commented without executing (default: false)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show detailed API interactions (default: false)")
+	
+	// Load configuration before command execution
+	cobra.OnInitialize(initializeConfig)
+}
+
+// initializeConfig loads the configuration and applies defaults
+func initializeConfig() {
+	err := LoadGlobalConfig(configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to load configuration: %v\n", err)
+		return
+	}
+
+	config := GetConfig()
+	
+	// Apply config defaults if flags weren't explicitly set
+	applyConfigDefaults(config)
+}
+
+// applyConfigDefaults applies configuration defaults to global variables
+func applyConfigDefaults(config *Config) {
+	// Only apply defaults if values weren't set via flags
+	if repo == "" && config.Defaults.Repository != "" {
+		repo = config.Defaults.Repository
+	}
+	if prNumber == 0 && config.Defaults.PR != 0 {
+		prNumber = config.Defaults.PR
+	}
+	
+	// Apply behavior defaults (these could be overridden by flags)
+	if !rootCmd.PersistentFlags().Changed("dry-run") {
+		dryRun = config.Behavior.DryRun
+	}
+	if !rootCmd.PersistentFlags().Changed("verbose") {
+		verbose = config.Behavior.Verbose
+	}
+	if !rootCmd.PersistentFlags().Changed("validate") {
+		validateDiff = config.Behavior.Validate
+	}
 }
 
 // Helper function to get current repository if not specified

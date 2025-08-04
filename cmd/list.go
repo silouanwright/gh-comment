@@ -88,8 +88,45 @@ var listCmd = &cobra.Command{
 		$ gh comment list 123 --author "all-reviewers*" --since "quarter-start" --quiet | process-review-data.sh
 		$ gh comment list 123 --ids-only --type review --status open | review-metrics.sh
 	`),
-	Args: cobra.MaximumNArgs(1),
-	RunE: runList,
+	Args:  cobra.MaximumNArgs(1),
+	PreRun: applyListConfigDefaults,
+	RunE:   runList,
+}
+
+// applyListConfigDefaults applies configuration defaults to list command flags
+func applyListConfigDefaults(cmd *cobra.Command, args []string) {
+	config := GetConfig()
+	
+	// Apply filter defaults if flags weren't explicitly set
+	if !cmd.Flags().Changed("author") && config.Defaults.Author != "" {
+		author = config.Defaults.Author
+	}
+	if !cmd.Flags().Changed("status") && config.Filters.Status != "" {
+		status = config.Filters.Status
+	}
+	if !cmd.Flags().Changed("type") && config.Filters.Type != "" {
+		listType = config.Filters.Type
+	}
+	if !cmd.Flags().Changed("since") && config.Filters.Since != "" {
+		since = config.Filters.Since
+	}
+	if !cmd.Flags().Changed("until") && config.Filters.Until != "" {
+		until = config.Filters.Until
+	}
+	
+	// Apply display defaults
+	if !cmd.Flags().Changed("format") && config.Display.Format != "table" {
+		// Map config format to list command format
+		switch config.Display.Format {
+		case "json":
+			outputFormat = "json"
+		case "quiet":
+			quiet = true
+		}
+	}
+	if !cmd.Flags().Changed("quiet") && config.Display.Quiet {
+		quiet = config.Display.Quiet
+	}
 }
 
 func init() {
