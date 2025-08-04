@@ -44,3 +44,36 @@ func formatValidationError(field, value, expected string) error {
 func formatNotFoundError(resource string, identifier interface{}) error {
 	return fmt.Errorf("%s not found: %v", resource, identifier)
 }
+
+// lineRange represents a range of consecutive line numbers for display
+type lineRange struct {
+	start, end int
+}
+
+// groupConsecutiveLines groups consecutive line numbers into ranges for better display
+func groupConsecutiveLines(lines []int) []lineRange {
+	if len(lines) == 0 {
+		return nil
+	}
+
+	var ranges []lineRange
+	start := lines[0]
+	end := lines[0]
+
+	for i := 1; i < len(lines); i++ {
+		if lines[i] == end+1 {
+			// Consecutive line, extend the range
+			end = lines[i]
+		} else {
+			// Gap found, close current range and start new one
+			ranges = append(ranges, lineRange{start: start, end: end})
+			start = lines[i]
+			end = lines[i]
+		}
+	}
+
+	// Add the final range
+	ranges = append(ranges, lineRange{start: start, end: end})
+
+	return ranges
+}

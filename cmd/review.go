@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -159,6 +160,14 @@ func runReview(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("invalid comment %d (%s): %w", i+1, commentSpec, err)
 		}
+
+		// Validate line exists in diff if validation is enabled
+		if validateDiff {
+			if err := validateCommentLine(reviewClient, owner, repoName, pr, commentInput); err != nil {
+				return fmt.Errorf("comment %d validation failed (%s): %w", i+1, commentSpec, err)
+			}
+		}
+
 		reviewCommentInputs = append(reviewCommentInputs, commentInput)
 	}
 
@@ -340,4 +349,97 @@ func parseReviewCommentSpec(spec string) (github.ReviewCommentInput, error) {
 	}
 
 	return comment, nil
+}
+
+// validateCommentLine validates that the line(s) specified in a review comment exist in the PR diff
+func validateCommentLine(client github.GitHubAPI, owner, repo string, pr int, comment github.ReviewCommentInput) error {
+	// Fetch PR diff
+	diff, err := client.FetchPRDiff(owner, repo, pr)
+	if err != nil {
+		// If we can't fetch the diff, skip validation rather than blocking the comment
+		if verbose {
+			fmt.Printf("Warning: Could not fetch PR diff for validation: %v\n", err)
+		}
+		return nil
+	}
+
+	// Find the requested file in the diff
+	var targetFile *github.DiffFile
+	for i := range diff.Files {
+		if diff.Files[i].Filename == comment.Path {
+			targetFile = &diff.Files[i]
+			break
+		}
+	}
+
+	if targetFile == nil {
+		// Build helpful error message with available files
+		var availableFiles []string
+		for _, file := range diff.Files {
+			availableFiles = append(availableFiles, file.Filename)
+		}
+
+		errorMsg := fmt.Sprintf("file '%s' not found in PR #%d diff", comment.Path, pr)
+		if len(availableFiles) > 0 {
+			errorMsg += "\n\n💡 Available files in this PR:\n"
+			for _, filename := range availableFiles {
+				errorMsg += fmt.Sprintf("  • %s\n", filename)
+			}
+			errorMsg += fmt.Sprintf("\nTip: Use 'gh comment lines %d <file>' to see commentable lines", pr)
+		}
+		return fmt.Errorf("%s", errorMsg)
+	}
+
+	// Validate line numbers exist in the diff
+	var linesToCheck []int
+	if comment.StartLine > 0 {
+		// Range comment: check all lines from StartLine to Line
+		for line := comment.StartLine; line <= comment.Line; line++ {
+			linesToCheck = append(linesToCheck, line)
+		}
+	} else {
+		// Single line comment
+		linesToCheck = []int{comment.Line}
+	}
+
+	var invalidLines []int
+	for _, line := range linesToCheck {
+		if !targetFile.Lines[line] {
+			invalidLines = append(invalidLines, line)
+		}
+	}
+
+	if len(invalidLines) > 0 {
+		// Build helpful error message with available lines
+		var availableLines []int
+		for lineNum := range targetFile.Lines {
+			availableLines = append(availableLines, lineNum)
+		}
+
+		// Sort available lines for better display
+		sort.Ints(availableLines)
+
+		// Group consecutive lines for cleaner display
+		ranges := groupConsecutiveLines(availableLines)
+
+		var rangeStrings []string
+		for _, r := range ranges {
+			if r.start == r.end {
+				rangeStrings = append(rangeStrings, fmt.Sprintf("%d", r.start))
+			} else {
+				rangeStrings = append(rangeStrings, fmt.Sprintf("%d-%d", r.start, r.end))
+			}
+		}
+
+		errorMsg := fmt.Sprintf("line(s) %v do not exist in diff for file '%s'", invalidLines, comment.Path)
+		if len(availableLines) > 0 {
+			errorMsg += fmt.Sprintf("\n\n💡 Available lines for comments: %s", strings.Join(rangeStrings, ", "))
+			errorMsg += fmt.Sprintf("\n\nTip: Use 'gh comment lines %d %s' to see detailed line information", pr, comment.Path)
+		} else {
+			errorMsg += fmt.Sprintf("\n\n💡 No commentable lines found in '%s' - file may not have changes in this PR", comment.Path)
+		}
+		return fmt.Errorf("%s", errorMsg)
+	}
+
+	return nil
 }

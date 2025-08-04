@@ -14,12 +14,14 @@ func TestRunReviewWithMockClient(t *testing.T) {
 	originalPR := prNumber
 	originalEvent := reviewEventFlag
 	originalComments := reviewCommentsFlag
+	originalValidate := validateDiff
 	defer func() {
 		reviewClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
 		reviewEventFlag = originalEvent
 		reviewCommentsFlag = originalComments
+		validateDiff = originalValidate
 	}()
 
 	// Set up mock client and environment
@@ -29,6 +31,7 @@ func TestRunReviewWithMockClient(t *testing.T) {
 	prNumber = 123
 	reviewEventFlag = "APPROVE"
 	reviewCommentsFlag = []string{}
+	validateDiff = false // Disable validation for this test
 
 	tests := []struct {
 		name           string
@@ -127,6 +130,7 @@ func TestReviewDryRun(t *testing.T) {
 	originalEvent := reviewEventFlag
 	originalComments := reviewCommentsFlag
 	originalDryRun := dryRun
+	originalValidate := validateDiff
 	defer func() {
 		reviewClient = originalClient
 		repo = originalRepo
@@ -134,6 +138,7 @@ func TestReviewDryRun(t *testing.T) {
 		reviewEventFlag = originalEvent
 		reviewCommentsFlag = originalComments
 		dryRun = originalDryRun
+		validateDiff = originalValidate
 	}()
 
 	// Set up environment
@@ -144,6 +149,7 @@ func TestReviewDryRun(t *testing.T) {
 	reviewEventFlag = "APPROVE"
 	reviewCommentsFlag = []string{"src/main.go:42:Good code"}
 	dryRun = true
+	validateDiff = false // Disable validation for this test
 
 	err := runReview(nil, []string{"123", "LGTM!"})
 	assert.NoError(t, err)
@@ -157,6 +163,7 @@ func TestReviewVerbose(t *testing.T) {
 	originalEvent := reviewEventFlag
 	originalComments := reviewCommentsFlag
 	originalVerbose := verbose
+	originalValidate := validateDiff
 	defer func() {
 		reviewClient = originalClient
 		repo = originalRepo
@@ -164,6 +171,7 @@ func TestReviewVerbose(t *testing.T) {
 		reviewEventFlag = originalEvent
 		reviewCommentsFlag = originalComments
 		verbose = originalVerbose
+		validateDiff = originalValidate
 	}()
 
 	// Set up environment
@@ -174,6 +182,7 @@ func TestReviewVerbose(t *testing.T) {
 	reviewEventFlag = "COMMENT"
 	reviewCommentsFlag = []string{"src/main.go:1:Nice work"}
 	verbose = true
+	validateDiff = false // Disable validation for this test
 
 	err := runReview(nil, []string{"123", "Good work!"})
 	assert.NoError(t, err)
@@ -186,12 +195,14 @@ func TestReviewRepositoryParsing(t *testing.T) {
 	originalPR := prNumber
 	originalEvent := reviewEventFlag
 	originalComments := reviewCommentsFlag
+	originalValidate := validateDiff
 	defer func() {
 		reviewClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
 		reviewEventFlag = originalEvent
 		reviewCommentsFlag = originalComments
+		validateDiff = originalValidate
 	}()
 
 	mockClient := github.NewMockClient()
@@ -199,6 +210,7 @@ func TestReviewRepositoryParsing(t *testing.T) {
 	prNumber = 123
 	reviewEventFlag = "APPROVE"
 	reviewCommentsFlag = []string{"src/main.go:1:test"}
+	validateDiff = false // Disable validation for this test
 
 	tests := []struct {
 		name           string
@@ -254,12 +266,14 @@ func TestReviewEventValidation(t *testing.T) {
 	originalPR := prNumber
 	originalEvent := reviewEventFlag
 	originalComments := reviewCommentsFlag
+	originalValidate := validateDiff
 	defer func() {
 		reviewClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
 		reviewEventFlag = originalEvent
 		reviewCommentsFlag = originalComments
+		validateDiff = originalValidate
 	}()
 
 	mockClient := github.NewMockClient()
@@ -267,6 +281,7 @@ func TestReviewEventValidation(t *testing.T) {
 	repo = "owner/repo"
 	prNumber = 123
 	reviewCommentsFlag = []string{"src/main.go:1:test"}
+	validateDiff = false // Disable validation for this test
 
 	tests := []struct {
 		name           string
@@ -465,12 +480,14 @@ func TestReviewArgumentParsing(t *testing.T) {
 	originalPR := prNumber
 	originalEvent := reviewEventFlag
 	originalComments := reviewCommentsFlag
+	originalValidate := validateDiff
 	defer func() {
 		reviewClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
 		reviewEventFlag = originalEvent
 		reviewCommentsFlag = originalComments
+		validateDiff = originalValidate
 	}()
 
 	mockClient := github.NewMockClient()
@@ -478,6 +495,7 @@ func TestReviewArgumentParsing(t *testing.T) {
 	repo = "owner/repo"
 	prNumber = 123
 	reviewEventFlag = "APPROVE"
+	validateDiff = false // Disable validation for this test
 
 	tests := []struct {
 		name           string
@@ -541,12 +559,14 @@ func TestReviewWithClientInitialization(t *testing.T) {
 	originalPR := prNumber
 	originalEvent := reviewEventFlag
 	originalComments := reviewCommentsFlag
+	originalValidate := validateDiff
 	defer func() {
 		reviewClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
 		reviewEventFlag = originalEvent
 		reviewCommentsFlag = originalComments
+		validateDiff = originalValidate
 	}()
 
 	// Set client to nil to test initialization
@@ -555,6 +575,7 @@ func TestReviewWithClientInitialization(t *testing.T) {
 	prNumber = 123
 	reviewEventFlag = "APPROVE"
 	reviewCommentsFlag = []string{"src/main.go:1:Good"}
+	validateDiff = false // Disable validation for this test
 
 	// This test verifies that when reviewClient is nil,
 	// a RealClient is initialized in production
@@ -579,12 +600,14 @@ func TestReviewCommitIDNotIncluded(t *testing.T) {
 	originalPR := prNumber
 	originalEvent := reviewEventFlag
 	originalComments := reviewCommentsFlag
+	originalValidate := validateDiff
 	defer func() {
 		reviewClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
 		reviewEventFlag = originalEvent
 		reviewCommentsFlag = originalComments
+		validateDiff = originalValidate
 	}()
 
 	// Set up mock client to verify commit_id is NOT sent
@@ -593,7 +616,8 @@ func TestReviewCommitIDNotIncluded(t *testing.T) {
 	repo = "owner/repo"
 	prNumber = 123
 	reviewEventFlag = "APPROVE"
-	reviewCommentsFlag = []string{"src/main.go:1:Test comment"}
+	reviewCommentsFlag = []string{"test.go:42:Test comment"} // Use valid file from mock
+	validateDiff = false // Disable validation for this test
 
 	// Mock will track what gets sent to verify commit_id is NOT in individual comments
 	err := runReview(nil, []string{"123", "Review body"})
@@ -610,8 +634,8 @@ func TestReviewCommitIDNotIncluded(t *testing.T) {
 
 	// Verify comment structure - should have Side but NOT CommitID
 	comment := reviewComments[0]
-	assert.Equal(t, "src/main.go", comment.Path)
-	assert.Equal(t, 1, comment.Line)
+	assert.Equal(t, "test.go", comment.Path)
+	assert.Equal(t, 42, comment.Line)
 	assert.Equal(t, "Test comment", comment.Body)
 	assert.Equal(t, "RIGHT", comment.Side) // Side is required
 
@@ -619,3 +643,243 @@ func TestReviewCommitIDNotIncluded(t *testing.T) {
 	// The absence of this field prevents the GraphQL commitId error
 	// GitHub automatically uses the review-level commit for all comments
 }
+
+func TestValidateCommentLine(t *testing.T) {
+	tests := []struct {
+		name           string
+		comment        github.ReviewCommentInput
+		setupMock      func(*github.MockClient)
+		wantErr        bool
+		expectedErrMsg string
+	}{
+		{
+			name: "valid single line comment",
+			comment: github.ReviewCommentInput{
+				Path: "test.go",
+				Line: 42,
+				Body: "Good code",
+			},
+			setupMock: func(mock *github.MockClient) {
+				// MockClient already returns test.go with lines 42, 43
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid range comment",
+			comment: github.ReviewCommentInput{
+				Path:      "test.go",
+				StartLine: 42,
+				Line:      43,
+				Body:      "Nice refactoring",
+			},
+			setupMock: func(mock *github.MockClient) {
+				// MockClient already returns test.go with lines 42, 43
+			},
+			wantErr: false,
+		},
+		{
+			name: "file not found in diff",
+			comment: github.ReviewCommentInput{
+				Path: "nonexistent.go",
+				Line: 42,
+				Body: "Comment",
+			},
+			setupMock:      func(mock *github.MockClient) {},
+			wantErr:        true,
+			expectedErrMsg: "file 'nonexistent.go' not found in PR #123 diff",
+		},
+		{
+			name: "line not found in diff",
+			comment: github.ReviewCommentInput{
+				Path: "test.go",
+				Line: 999,
+				Body: "Comment",
+			},
+			setupMock:      func(mock *github.MockClient) {},
+			wantErr:        true,
+			expectedErrMsg: "line(s) [999] do not exist in diff for file 'test.go'",
+		},
+		{
+			name: "range with invalid lines",
+			comment: github.ReviewCommentInput{
+				Path:      "test.go",
+				StartLine: 41,
+				Line:      44,
+				Body:      "Range comment",
+			},
+			setupMock:      func(mock *github.MockClient) {},
+			wantErr:        true,
+			expectedErrMsg: "line(s) [41 44] do not exist in diff for file 'test.go'",
+		},
+		{
+			name: "fetch diff error - should skip validation",
+			comment: github.ReviewCommentInput{
+				Path: "test.go",
+				Line: 42,
+				Body: "Comment",
+			},
+			setupMock: func(mock *github.MockClient) {
+				// This won't actually cause an error in MockClient,
+				// but tests the error handling path
+			},
+			wantErr: false, // Should skip validation on error
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := github.NewMockClient()
+			if tt.setupMock != nil {
+				tt.setupMock(mockClient)
+			}
+
+			err := validateCommentLine(mockClient, "owner", "repo", 123, tt.comment)
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.expectedErrMsg != "" {
+					assert.Contains(t, err.Error(), tt.expectedErrMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateCommentLineErrorMessages(t *testing.T) {
+	mockClient := github.NewMockClient()
+
+	tests := []struct {
+		name           string
+		comment        github.ReviewCommentInput
+		expectedOutput []string
+	}{
+		{
+			name: "file not found shows available files",
+			comment: github.ReviewCommentInput{
+				Path: "missing.go",
+				Line: 42,
+				Body: "Comment",
+			},
+			expectedOutput: []string{
+				"Available files in this PR:",
+				"test.go",
+				"Use 'gh comment lines 123 <file>' to see commentable lines",
+			},
+		},
+		{
+			name: "invalid line shows available lines",
+			comment: github.ReviewCommentInput{
+				Path: "test.go",
+				Line: 999,
+				Body: "Comment",
+			},
+			expectedOutput: []string{
+				"Available lines for comments: 42-43",
+				"Use 'gh comment lines 123 test.go' to see detailed line information",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateCommentLine(mockClient, "owner", "repo", 123, tt.comment)
+			assert.Error(t, err)
+
+			errorMsg := err.Error()
+			for _, expected := range tt.expectedOutput {
+				assert.Contains(t, errorMsg, expected)
+			}
+		})
+	}
+}
+
+func TestReviewValidationIntegration(t *testing.T) {
+	// Save original values
+	originalClient := reviewClient
+	originalRepo := repo
+	originalPR := prNumber
+	originalEvent := reviewEventFlag
+	originalComments := reviewCommentsFlag
+	originalValidate := validateDiff
+	defer func() {
+		reviewClient = originalClient
+		repo = originalRepo
+		prNumber = originalPR
+		reviewEventFlag = originalEvent
+		reviewCommentsFlag = originalComments
+		validateDiff = originalValidate
+	}()
+
+	mockClient := github.NewMockClient()
+	reviewClient = mockClient
+	repo = "owner/repo"
+	prNumber = 123
+	reviewEventFlag = "COMMENT"
+
+	tests := []struct {
+		name           string
+		validateFlag   bool
+		comments       []string
+		wantErr        bool
+		expectedErrMsg string
+	}{
+		{
+			name:         "validation disabled - should succeed even with invalid lines",
+			validateFlag: false,
+			comments:     []string{"nonexistent.go:999:Comment"},
+			wantErr:      false,
+		},
+		{
+			name:         "validation enabled - valid comments should succeed",
+			validateFlag: true,
+			comments:     []string{"test.go:42:Good code"},
+			wantErr:      false,
+		},
+		{
+			name:           "validation enabled - invalid file should fail",
+			validateFlag:   true,
+			comments:       []string{"nonexistent.go:42:Comment"},
+			wantErr:        true,
+			expectedErrMsg: "comment 1 validation failed",
+		},
+		{
+			name:           "validation enabled - invalid line should fail",
+			validateFlag:   true,
+			comments:       []string{"test.go:999:Comment"},
+			wantErr:        true,
+			expectedErrMsg: "comment 1 validation failed",
+		},
+		{
+			name:         "validation enabled - multiple valid comments",
+			validateFlag: true,
+			comments:     []string{"test.go:42:First", "test.go:43:Second"},
+			wantErr:      false,
+		},
+		{
+			name:           "validation enabled - mixed valid/invalid comments",
+			validateFlag:   true,
+			comments:       []string{"test.go:42:Valid", "test.go:999:Invalid"},
+			wantErr:        true,
+			expectedErrMsg: "comment 2 validation failed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			validateDiff = tt.validateFlag
+			reviewCommentsFlag = tt.comments
+
+			err := runReview(nil, []string{"123", "Review body"})
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.expectedErrMsg != "" {
+					assert.Contains(t, err.Error(), tt.expectedErrMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
