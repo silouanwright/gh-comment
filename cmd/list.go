@@ -41,9 +41,11 @@ var listCmd = &cobra.Command{
 	Long: heredoc.Doc(`
 		List all comments on a pull request with powerful filtering capabilities.
 
-		Supports both general PR comments and line-specific review comments.
-		Comments can be filtered by author, date range, resolution status, and more.
+		Comment Types:
+		- Issue comments: General PR discussion, appear in main conversation tab
+		- Review comments: Line-specific feedback, appear in "Files Changed" tab
 
+		Comments can be filtered by type, author, date range, resolution status, and more.
 		Output can be formatted as tables, JSON, or plain text with color coding.
 		Perfect for code review workflows, comment analysis, and automation.
 	`),

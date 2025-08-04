@@ -30,6 +30,10 @@ var rootCmd = &cobra.Command{
 		Designed for developers, code review leads, and teams who need sophisticated
 		comment workflows beyond GitHub's web interface capabilities.
 
+		Comment Types:
+		• Issue comments: General PR discussion, appear in main conversation tab
+		• Review comments: Line-specific feedback, appear in "Files Changed" tab
+
 		Strategic GitHub PR Commenting - Beyond the Web Interface:
 
 		gh-comment is designed for professional code review workflows that require:
@@ -44,16 +48,14 @@ var rootCmd = &cobra.Command{
 	`),
 	Example: heredoc.Doc(`
 		Commands:
-		  add           Add targeted comments to specific lines
-		  add-review    Create draft reviews with multiple comments
-		  batch         Process comments from YAML configuration files
-		  edit          Modify existing comments
-		  list          List and filter comments with advanced options
-		  reply         Reply to comments and manage reactions
-		  resolve       Resolve conversation threads
-		  review        Create reviews with comments in one operation
-		  submit-review Submit pending reviews with approval/changes
-		  help          Help about any command
+		  add                     Add general PR discussion comments
+		  close-pending-review    Submit GUI-created pending reviews
+		  edit                    Modify existing comments
+		  list                    List and filter comments with advanced options
+		  reply                   Reply to comments and manage reactions
+		  resolve                 Resolve conversation threads
+		  review                  Create line-specific code reviews
+		  help                    Help about any command
 
 		Global Flags:
 		  -p, --pr int        PR number (auto-detect from branch if omitted)
@@ -77,12 +79,18 @@ var rootCmd = &cobra.Command{
 		Examples:
 		# Basic Operations
 		$ gh comment list 123                           List all comments on PR #123
-		$ gh comment add 123 "Looks good overall!"     Add general PR comment
+		$ gh comment add 123 "Looks good overall!"     Add general discussion comment
 
-		# Strategic Line Commenting (Unique Value)
-		$ gh comment add 123 src/api.js 42 "This handles the rate limiting edge case - consider moving to middleware"
-		$ gh comment add 123 auth.go 15:25 "This entire auth flow needs refactoring for OAuth2 compliance"
-		$ gh comment add 123 database.py 156 "This query is vulnerable to SQL injection - use parameterized queries"
+		# Issue Comments (General PR Discussion)
+		$ gh comment add 123 "LGTM! Just waiting for CI to pass"
+		$ gh comment add 123 "Thanks for addressing the security concerns"
+		$ gh comment reply 12345 "Good point, I'll make those changes"
+
+		# Review Comments (Line-Specific Code Feedback)
+		$ gh comment review 123 "Code review complete" \
+		  --comment src/api.js:42:"Add rate limiting middleware" \
+		  --comment auth.go:15:25:"Refactor for OAuth2 compliance" \
+		  --event REQUEST_CHANGES
 
 		# Advanced Filtering (Power User Features)
 		$ gh comment list 123 --author "senior-dev*" --status open --since "1 week ago"
