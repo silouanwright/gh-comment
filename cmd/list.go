@@ -203,7 +203,7 @@ func fetchAllComments(client github.GitHubAPI, repo string, pr int) ([]Comment, 
 	// Fetch general PR comments (issue comments)
 	issueComments, err := client.ListIssueComments(owner, repoName, pr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch issue comments: %w", err)
+		return nil, formatActionableError("issue comments fetch", err)
 	}
 
 	// Convert issue comments
@@ -222,7 +222,7 @@ func fetchAllComments(client github.GitHubAPI, repo string, pr int) ([]Comment, 
 	// Fetch review comments (line-specific)
 	reviewComments, err := client.ListReviewComments(owner, repoName, pr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch review comments: %w", err)
+		return nil, formatActionableError("review comments fetch", err)
 	}
 
 	// Convert review comments

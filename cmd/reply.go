@@ -168,7 +168,7 @@ func runReply(cmd *cobra.Command, args []string) error {
 	if reaction != "" {
 		err = replyClient.AddReaction(owner, repoName, commentID, prNumber, reaction)
 		if err != nil {
-			return fmt.Errorf("failed to add reaction: %w", err)
+			return formatActionableError("reaction addition", err)
 		}
 		fmt.Printf("✅ Added %s reaction to comment #%d\n", reaction, commentID)
 	}
@@ -177,7 +177,7 @@ func runReply(cmd *cobra.Command, args []string) error {
 	if removeReaction != "" {
 		err = replyClient.RemoveReaction(owner, repoName, commentID, prNumber, removeReaction)
 		if err != nil {
-			return fmt.Errorf("failed to remove reaction: %w", err)
+			return formatActionableError("reaction removal", err)
 		}
 		fmt.Printf("✅ Removed %s reaction from comment #%d\n", removeReaction, commentID)
 	}
@@ -204,7 +204,7 @@ func runReply(cmd *cobra.Command, args []string) error {
 		}
 
 		if err != nil {
-			return fmt.Errorf("failed to create reply: %w", err)
+			return formatActionableError("reply creation", err)
 		}
 		fmt.Printf("✅ Replied to comment #%d: %s\n", commentID, message)
 	}
@@ -224,7 +224,7 @@ func runReply(cmd *cobra.Command, args []string) error {
 		// Resolve the thread
 		err = replyClient.ResolveReviewThread(threadID)
 		if err != nil {
-			return fmt.Errorf("failed to resolve conversation: %w", err)
+			return formatActionableError("conversation resolution", err)
 		}
 		fmt.Printf("✅ Resolved conversation for comment #%d\n", commentID)
 	}

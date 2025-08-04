@@ -200,7 +200,7 @@ func runReview(cmd *cobra.Command, args []string) error {
 
 	err = reviewClient.CreateReview(owner, repoName, pr, review)
 	if err != nil {
-		return fmt.Errorf("failed to create review: %w", err)
+		return formatActionableError("review creation", err)
 	}
 
 	// Display success message

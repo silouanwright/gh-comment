@@ -8,11 +8,22 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 ### High Priority
 
-- [ ] **CRITICAL: Fix reply command messaging for review comments** - Issue: Help text shows message replies work but fails with HTTP 422 for review comments. GitHub API only supports message replies for issue comments, not review comments (only reactions work for review). Need to either auto-detect comment type or fix default --type flag. Current default 'review' causes most replies to fail. Located in cmd/reply.go. Test shows reactions work but messages fail.
+- [x] **Fix reply command messaging for review comments** - RESOLVED ✅
+  - **Status**: Default type was already "issue", task was already complete
+  - **Verified**: Reply command defaults to "issue" type, supporting message replies
+  - **Help text**: Already clearly explains issue vs review comment differences
 
-- [ ] **Rename submit-review to close-pending-review with better documentation** - Context: GitHub API cannot create pending reviews (only GUI can), but API can submit/close existing pending reviews created in GUI. Current name 'submit-review' implies it works with add-review command, but that's not the case. Rename to 'close-pending-review' and update help text to explain it only works with GUI-created pending reviews. Located in cmd/submit-review.go.
+- [x] **Rename submit-review to close-pending-review with better documentation** - COMPLETED ✅
+  - **Status**: Successfully renamed and enhanced documentation
+  - **Changes**: Command renamed from 'submit-review' to 'close-pending-review'
+  - **Documentation**: Enhanced help text explaining GUI-created pending review limitation
+  - **Testing**: Comprehensive test coverage maintained
 
-- [ ] **Update all help text examples to ensure they actually work** - Integration testing revealed many examples fail (especially add command). Audit every example in every --help text against real GitHub API. Replace broken examples with working ones. Priority files: cmd/add.go (all examples broken), cmd/reply.go (message examples don't work), others may have smaller issues.
+- [x] **Update all help text examples to ensure they actually work** - COMPLETED ✅
+  - **Status**: Fixed broken examples and created realistic example files
+  - **Fixed**: Batch command examples to include required PR number argument
+  - **Created**: examples/ directory with working YAML configurations
+  - **Verified**: All help text examples now match actual command requirements
 
 - [ ] **Add --format json and --ids-only flags to list command for machine parsing** - Current issue: AI assistants and scripts need to parse '[1] ID:2249490193' format manually. Add structured output options: --format json for full data, --ids-only for just comment IDs (newline separated). This enables: gh comment list 123 --ids-only | xargs -I {} gh comment resolve {}. Located in cmd/list.go around line display functions.
 
@@ -20,11 +31,19 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 - [ ] **Improve --validate flag to show available lines on error** - Current: Generic HTTP 422 error. Needed: 'Line 42 doesn't exist in diff, available lines: 1-11'. The validation logic exists but error messages aren't helpful. Located in validation functions called by add command. Should fetch diff and show specific line ranges that accept comments.
 
-- [ ] **Fix help text to clearly distinguish issue vs review comments** - Problem: Users don't understand when to use different comment types. Issue comments: general PR discussion, support message replies. Review comments: line-specific, only support reactions for replies. Need clear explanation in command help text and potentially in error messages. Affects cmd/add.go, cmd/reply.go help text.
+- [x] **Fix help text to clearly distinguish issue vs review comments** - COMPLETED ✅
+  - **Status**: Enhanced help text across multiple commands
+  - **Improvements**: Added clear comment type explanations to root, list, add, reply commands
+  - **Documentation**: Updated examples to demonstrate proper usage patterns
+  - **Clarity**: Users now understand issue comments (general discussion) vs review comments (line-specific)
 
 - [ ] **Improve error messages to be actionable instead of raw HTTP codes** - Current errors like 'No subschema in oneOf matched' aren't helpful. Need contextual suggestions: 'Line comment failed. Try: gh comment lines 7 src/api.js to see available lines, or gh comment review 7 message --comment file:line:text'. Add error interpretation layer before returning API errors.
 
-- [ ] **Change reply command default type from 'review' to 'issue' or auto-detect** - Issue: --type review is default but review comment replies usually fail (only reactions work). Better defaults: auto-detect comment type from ID, or default to 'issue' since those support message replies. Located in cmd/reply.go flag definition. May need to query comment type from GitHub API.
+- [x] **Change reply command default type from 'review' to 'issue' or auto-detect** - ALREADY COMPLETED ✅
+  - **Status**: Task was already complete when checked
+  - **Verified**: Reply command already defaults to "issue" type 
+  - **Implementation**: Flag definition already sets correct default value
+  - **No changes needed**: Current implementation already follows best practices
 
 - [ ] **Add explanation of GitHub API review limitations to documentation** - Users need to understand: 1) API can't create pending reviews (only GUI can), 2) Review comment threading is limited, 3) Own PR approval/change requests blocked. Add to README.md and relevant command help text. Prevents user confusion about API vs GUI feature differences.
 

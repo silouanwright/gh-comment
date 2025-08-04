@@ -154,7 +154,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	// Create general issue comment (not review comment)
 	createdComment, err := addClient.CreateIssueComment(owner, repoName, pr, transformedComment)
 	if err != nil {
-		return fmt.Errorf("failed to add comment: %w", err)
+		return formatActionableError("comment creation", err)
 	}
 
 	// Success message

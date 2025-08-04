@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Constants for API limits and defaults
@@ -33,6 +34,52 @@ func getPRContext() (repo string, pr int, err error) {
 // formatAPIError creates consistent error messages for API failures
 func formatAPIError(operation, endpoint string, err error) error {
 	return fmt.Errorf("GitHub API error during %s: %w", operation, err)
+}
+
+// formatActionableError creates user-friendly error messages with actionable suggestions
+func formatActionableError(operation string, err error) error {
+	errStr := err.Error()
+
+	// Handle common GitHub API error patterns
+	switch {
+	case containsAny(errStr, []string{"422", "Unprocessable Entity", "validation failed"}):
+		return fmt.Errorf("validation error during %s: %w\n\n💡 Suggestions:\n  • Check if the line number exists in the PR diff\n  • Use 'gh comment lines <pr> <file>' to see commentable lines\n  • Verify the file path is correct in the PR", operation, err)
+
+	case containsAny(errStr, []string{"404", "Not Found"}):
+		return fmt.Errorf("resource not found during %s: %w\n\n💡 Suggestions:\n  • Verify the PR number exists and is accessible\n  • Check if the comment ID is valid\n  • Ensure you have permission to access this repository", operation, err)
+
+	case containsAny(errStr, []string{"403", "Forbidden"}):
+		return fmt.Errorf("permission denied during %s: %w\n\n💡 Suggestions:\n  • Check if you have write access to the repository\n  • Verify your GitHub authentication with 'gh auth status'\n  • You cannot approve your own PR or comment on private repos without access", operation, err)
+
+	case containsAny(errStr, []string{"401", "Unauthorized"}):
+		return fmt.Errorf("authentication failed during %s: %w\n\n💡 Suggestions:\n  • Run 'gh auth login' to authenticate with GitHub\n  • Check if your token has expired\n  • Verify you're authenticated with the correct GitHub account", operation, err)
+
+	case containsAny(errStr, []string{"rate limit", "rate_limit", "too many requests"}):
+		return fmt.Errorf("rate limit exceeded during %s: %w\n\n💡 Suggestions:\n  • Wait a few minutes before trying again\n  • Use authenticated requests (ensure 'gh auth status' shows logged in)\n  • Consider reducing the frequency of API calls", operation, err)
+
+	case containsAny(errStr, []string{"500", "502", "503", "Internal Server Error", "Bad Gateway", "Service Unavailable"}):
+		return fmt.Errorf("GitHub server error during %s: %w\n\n💡 Suggestions:\n  • This is a temporary GitHub server issue\n  • Try again in a few minutes\n  • Check GitHub's status page at https://status.github.com", operation, err)
+
+	case containsAny(errStr, []string{"network", "timeout", "connection"}):
+		return fmt.Errorf("network error during %s: %w\n\n💡 Suggestions:\n  • Check your internet connection\n  • Try again in a moment\n  • Verify GitHub is accessible from your network", operation, err)
+
+	case containsAny(errStr, []string{"No subschema in oneOf matched", "invalid request"}):
+		return fmt.Errorf("invalid request format during %s: %w\n\n💡 Suggestions:\n  • Check the command syntax in --help\n  • Verify all required arguments are provided\n  • For line comments, ensure the line exists in the PR diff", operation, err)
+	}
+
+	// Default case - provide general guidance
+	return fmt.Errorf("error during %s: %w\n\n💡 Suggestions:\n  • Check 'gh comment --help' for correct usage\n  • Verify PR number and file paths are correct\n  • Run with --verbose for more details", operation, err)
+}
+
+// containsAny checks if a string contains any of the provided substrings (case-insensitive)
+func containsAny(str string, substrings []string) bool {
+	lowerStr := strings.ToLower(str)
+	for _, substr := range substrings {
+		if strings.Contains(lowerStr, strings.ToLower(substr)) {
+			return true
+		}
+	}
+	return false
 }
 
 // formatValidationError creates consistent error messages for validation failures

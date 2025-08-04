@@ -106,7 +106,7 @@ func runEdit(cmd *cobra.Command, args []string) error {
 	// Edit the comment using the client
 	err = editClient.EditComment(owner, repoName, commentID, prNumber, message)
 	if err != nil {
-		return fmt.Errorf("failed to edit comment: %w", err)
+		return formatActionableError("comment editing", err)
 	}
 
 	fmt.Printf("✅ Edited comment #%d\n", commentID)

@@ -16,6 +16,90 @@ func TestFormatAPIError(t *testing.T) {
 	assert.Contains(t, formattedErr.Error(), "network timeout")
 }
 
+func TestFormatActionableError(t *testing.T) {
+	tests := []struct {
+		name          string
+		operation     string
+		originalError string
+		expectedText  []string
+	}{
+		{
+			name:          "422 validation error",
+			operation:     "comment creation",
+			originalError: "HTTP 422: Unprocessable Entity - validation failed",
+			expectedText:  []string{"validation error", "comment creation", "gh comment lines", "commentable lines"},
+		},
+		{
+			name:          "404 not found error",
+			operation:     "comment editing",
+			originalError: "HTTP 404: Not Found",
+			expectedText:  []string{"resource not found", "comment editing", "PR number exists", "comment ID is valid"},
+		},
+		{
+			name:          "403 forbidden error",
+			operation:     "review creation",
+			originalError: "HTTP 403: Forbidden",
+			expectedText:  []string{"permission denied", "review creation", "write access", "gh auth status"},
+		},
+		{
+			name:          "401 unauthorized error",
+			operation:     "reaction addition",
+			originalError: "HTTP 401: Unauthorized",
+			expectedText:  []string{"authentication failed", "reaction addition", "gh auth login", "token has expired"},
+		},
+		{
+			name:          "rate limit error",
+			operation:     "comment fetch",
+			originalError: "rate limit exceeded: too many requests",
+			expectedText:  []string{"rate limit exceeded", "comment fetch", "Wait a few minutes", "authenticated requests"},
+		},
+		{
+			name:          "server error",
+			operation:     "reply creation",
+			originalError: "HTTP 500: Internal Server Error",
+			expectedText:  []string{"GitHub server error", "reply creation", "temporary GitHub", "status.github.com"},
+		},
+		{
+			name:          "network error",
+			operation:     "list comments",
+			originalError: "network timeout connecting to api.github.com",
+			expectedText:  []string{"network error", "list comments", "internet connection", "Try again"},
+		},
+		{
+			name:          "schema validation error",
+			operation:     "review submission",
+			originalError: "No subschema in oneOf matched",
+			expectedText:  []string{"invalid request format", "review submission", "command syntax", "required arguments"},
+		},
+		{
+			name:          "generic error",
+			operation:     "unknown operation",
+			originalError: "some unexpected error message",
+			expectedText:  []string{"error during unknown operation", "gh comment --help", "PR number", "verbose"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			originalErr := errors.New(tt.originalError)
+			formattedErr := formatActionableError(tt.operation, originalErr)
+
+			assert.Error(t, formattedErr)
+			errStr := formattedErr.Error()
+
+			for _, expectedText := range tt.expectedText {
+				assert.Contains(t, errStr, expectedText, "Error should contain: %s", expectedText)
+			}
+
+			// Should contain the original error
+			assert.Contains(t, errStr, tt.originalError)
+
+			// Should contain suggestions
+			assert.Contains(t, errStr, "💡 Suggestions:")
+		})
+	}
+}
+
 func TestFormatValidationError(t *testing.T) {
 	tests := []struct {
 		name     string
