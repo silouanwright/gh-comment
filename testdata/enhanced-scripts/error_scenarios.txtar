@@ -23,8 +23,8 @@ stderr 'start line \(50\) cannot be greater than end line \(40\)'
 ! exec gh-comment add 123 extra arg comment --repo test-owner/test-repo --dry-run
 stderr 'accepts between 1 and 2 arg\(s\), received'
 
-# Test reply with invalid comment ID format
-! exec gh-comment reply invalid-id 'Reply message' --repo test-owner/test-repo
+# Test react with invalid comment ID format
+! exec gh-comment react invalid-id +1 --repo test-owner/test-repo
 stderr 'invalid comment ID'
 
 # Test review with invalid event type

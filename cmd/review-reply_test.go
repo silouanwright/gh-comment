@@ -7,66 +7,68 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRunReplyWithMockClient(t *testing.T) {
+func TestRunReviewReplyWithMockClient(t *testing.T) {
 	// Save original client and environment
-	originalClient := replyClient
+	originalClient := reviewReplyClient
 	originalRepo := repo
 	originalPR := prNumber
 	defer func() {
-		replyClient = originalClient
+		reviewReplyClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
 	}()
 
 	// Set up mock client and environment
 	mockClient := github.NewMockClient()
-	replyClient = mockClient
+	reviewReplyClient = mockClient
 	repo = "owner/repo"
 	prNumber = 123
 
 	tests := []struct {
 		name           string
 		args           []string
-		setupReaction  string
-		setupRemove    string
+		setupResolve   bool
 		wantErr        bool
 		expectedErrMsg string
 	}{
 		{
-			name:          "add reaction to comment",
-			args:          []string{"123456"},
-			setupReaction: "+1",
-			wantErr:       false,
+			name:    "reply to review comment with message",
+			args:    []string{"123456", "test message"},
+			wantErr: false,
 		},
 		{
-			name:        "remove reaction from comment",
-			args:        []string{"123456"},
-			setupRemove: "heart",
-			wantErr:     false,
+			name:         "reply to review comment and resolve",
+			args:         []string{"123456", "Great point!"},
+			setupResolve: true,
+			wantErr:      false,
+		},
+		{
+			name:         "resolve review comment without message",
+			args:         []string{"123456"},
+			setupResolve: true,
+			wantErr:      false,
 		},
 		{
 			name:           "invalid comment ID",
-			args:           []string{"invalid"},
-			setupReaction:  "+1",
+			args:           []string{"invalid-id", "message"},
 			wantErr:        true,
-			expectedErrMsg: "must be a valid integer",
+			expectedErrMsg: "invalid comment ID",
 		},
 		{
-			name:    "message reply to review comment",
-			args:    []string{"123456", "Great point!"},
-			wantErr: false,
+			name:           "missing message and resolve flag",
+			args:           []string{"123456"},
+			wantErr:        true,
+			expectedErrMsg: "must provide either a message or --resolve",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset global variables
-			reaction = tt.setupReaction
-			removeReaction = tt.setupRemove
-			resolveConversation = false
-			commentType = "review"
+			// Set up resolve flag
+			resolveConversationReviewReply = tt.setupResolve
 
-			err := runReply(nil, tt.args)
+			err := runReviewReply(nil, tt.args)
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErrMsg != "" {
@@ -80,63 +82,56 @@ func TestRunReplyWithMockClient(t *testing.T) {
 }
 
 // INTEGRATION TEST: Document GitHub API limitation for review comment threading
-func TestReplyToReviewCommentKnownLimitations(t *testing.T) {
+func TestReviewReplyToReviewCommentKnownLimitations(t *testing.T) {
 	// Save original client
-	originalClient := replyClient
-	defer func() { replyClient = originalClient }()
+	originalClient := reviewReplyClient
+	defer func() { reviewReplyClient = originalClient }()
 
 	// Set up mock client (mock client allows operations that real GitHub would reject)
 	mockClient := github.NewMockClient()
-	replyClient = mockClient
+	reviewReplyClient = mockClient
 
 	// Save original globals
 	originalRepo := repo
 	originalPR := prNumber
+	originalResolveConversation := resolveConversationReviewReply
 	defer func() {
 		repo = originalRepo
 		prNumber = originalPR
+		resolveConversationReviewReply = originalResolveConversation
 	}()
 
 	repo = "owner/repo"
 	prNumber = 123
+	resolveConversationReviewReply = false // Reset flag for this test
 
 	tests := []struct {
 		name        string
 		commentID   string
 		message     string
-		commentType string
 		description string
 	}{
 		{
 			name:        "review comment threading limitation",
 			commentID:   "123456",
 			message:     "This would fail in real GitHub",
-			commentType: "review",
 			description: "GitHub API doesn't support direct threading for review comments",
 		},
 		{
-			name:        "issue comment should work",
+			name:        "review comment should work",
 			commentID:   "123456",
 			message:     "This should work fine",
-			commentType: "issue",
-			description: "Issue comment threading is supported by GitHub",
+			description: "Review comment threading is supported by GitHub",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Reset comment type
-			commentType = tt.commentType
-
 			// This test documents the limitation - real implementation would handle the error
-			err := runReply(nil, []string{tt.commentID, tt.message})
+			err := runReviewReply(nil, []string{tt.commentID, tt.message})
 
 			// For now, mock client allows it, but real GitHub would reject review comment threading
-			if tt.commentType == "review" {
-				// In a real scenario, this would fail with HTTP 422
-				// We document this limitation in the integration guide
-				t.Logf("LIMITATION: %s", tt.description)
-			}
+			t.Logf("LIMITATION: %s", tt.description)
 
 			// Mock client succeeds, but real API has limitations
 			assert.NoError(t, err, "Mock client allows all operations, real GitHub has limitations")

@@ -52,7 +52,8 @@ var rootCmd = &cobra.Command{
 		  close-pending-review    Submit GUI-created pending reviews
 		  edit                    Modify existing comments
 		  list                    List and filter comments with advanced options
-		  reply                   Reply to comments and manage reactions
+		  react                   Add or remove emoji reactions to comments
+		  reply                   Reply to comments with text messages
 		  resolve                 Resolve conversation threads
 		  review                  Create line-specific code reviews
 		  help                    Help about any command
@@ -115,7 +116,9 @@ var rootCmd = &cobra.Command{
 
 		# Conversation Management
 		$ gh comment reply 2246362251 "Fixed in commit abc123" --resolve
-		$ gh comment reply 3141344022 "Great catch! This would have caused issues in production" --reaction +1
+		$ gh comment react 3141344022 +1
+		$ gh comment react 2246362251 rocket
+		$ gh comment react 3141344022 heart --remove
 		$ gh comment resolve --thread 2246362251 --reason "Addressed in latest commit"
 
 		# Data Export & Analysis (Automation)

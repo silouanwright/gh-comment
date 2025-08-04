@@ -6,6 +6,37 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 ### 🚨 URGENT BLOCKERS
 
+- [ ] **CRITICAL: Port Integration Branch Features to Main** - Rescue months of completed development work from integration branch
+  - **Status**: Integration branch contains substantial improvements that were developed but never merged
+  - **Impact**: Missing critical features, lower test coverage (73.3% vs 85%+), incomplete command architecture
+  - **Discovery**: Integration branch has 20+ additional test files, enhanced error handling, working examples, new commands
+  
+  **Phase 1: Command Architecture Restructuring (2 hours)**
+  - [ ] Import `react.go` and `review-reply.go` commands from integration branch 
+  - [ ] Remove deprecated `reply.go` command (functionality now split between add/review-reply/react)
+  - [ ] Update root command help text and command registration
+  - [ ] Run tests and ensure all pass after each change
+  
+  **Phase 2: Enhanced Infrastructure (1 hour)**
+  - [ ] Import `examples/` directory with working YAML configurations
+  - [ ] Import enhanced `cmd/helpers.go` with actionable error handling
+  - [ ] Import comprehensive `docs/testing/INTEGRATION_TESTING.md`
+  - [ ] Run tests and commit after each import
+  
+  **Phase 3: Test Coverage Boost (3 hours)**
+  - [ ] Import 20+ missing test files from integration branch
+  - [ ] Verify coverage increases from 73.3% → 85%+
+  - [ ] Ensure all imported tests pass without modification
+  - [ ] Update coverage tracking in CLAUDE.md
+  
+  **Phase 4: Documentation & Polish (1 hour)**
+  - [ ] Update TASKS.md to mark rescued tasks as completed
+  - [ ] Update CLAUDE.md to reflect new command structure
+  - [ ] Update README.md if new commands need documentation
+  
+  **Risk Assessment**: Low risk, high value - all integration branch code follows established patterns
+  **Estimated Value**: Solves 8+ high-priority tasks immediately, boosts coverage to industry-leading levels
+
 ### High Priority
 
 - [x] **Fix reply command messaging for review comments** - RESOLVED ✅
@@ -297,6 +328,152 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - [ ] Markdown export for documentation
   - [ ] HTML export for presentations
   - [ ] Add `export` subcommand
+
+## 🔍 INTEGRATION BRANCH AUDIT - Missing Features & Functionality
+
+### **CRITICAL DISCOVERY: Major Architectural Changes in Integration Branch**
+
+The integration branch (integration-test-20250802-224635) contains significant architectural improvements and features that were developed but never merged to main. This comprehensive audit reveals:
+
+### **1. Command Architecture Restructuring - PARTIALLY COMPLETE**
+- **COMPLETED**: ✅ `react` command extracted for emoji reactions
+- **COMPLETED**: ✅ `review-reply` command created for review comment threading
+- **MISSING**: ❌ `reply` command still exists on main (should be removed)
+- **ACTION**: Delete `reply.go` and its tests, as functionality is now split between:
+  - `add` → Issue comments (general discussion)
+  - `review-reply` → Review comment replies (line-specific)
+  - `react` → Emoji reactions
+
+### **2. Enhanced Commands & Features - Files that differ:**
+```
+cmd/add.go               - Enhanced validation and error handling
+cmd/batch.go            - Improved YAML processing and validation
+cmd/close-pending-review.go - Better documentation and examples
+cmd/edit.go             - Enhanced message handling
+cmd/helpers.go          - New helper functions for validation
+cmd/lines.go            - Better line grouping and display
+cmd/list.go             - Improved filtering and output formatting
+cmd/review.go           - Enhanced review creation workflow
+cmd/root.go             - Updated help text and examples
+```
+
+### **3. Missing Test Files & Coverage:**
+```
+cmd/batch_test.go            - Enhanced batch command tests
+cmd/close-pending-review_test.go - Comprehensive pending review tests
+cmd/command_execution_test.go - Integration command execution tests
+cmd/dependency_injection_test.go - DI pattern tests
+cmd/e2e_test.go              - End-to-end test scenarios
+cmd/helpers_test.go          - Helper function tests
+cmd/integration-scenarios_test.go - Complex workflow tests
+cmd/lines_test.go            - Lines command tests
+cmd/list_comprehensive_test.go - Comprehensive list tests
+cmd/react_test.go            - React command tests (copied)
+cmd/reply_integration_test.go - Reply integration tests
+cmd/reply_targeted_test.go   - Targeted reply tests
+cmd/review_test.go           - Review command tests
+cmd/review-reply_test.go     - Review-reply tests (copied)
+cmd/review-reply_targeted_test.go - Targeted review-reply tests
+cmd/utility_functions_test.go - Utility function tests
+```
+
+### **4. Documentation & Examples - Missing from main:**
+```
+docs/testing/INTEGRATION_TESTING_GUIDE.md - Comprehensive testing guide
+examples/comprehensive-review.yaml - Review workflow example
+examples/performance-review.yaml   - Performance review template
+examples/security-audit.yaml       - Security audit template
+src/api.js                        - Example API file for testing
+src/main.go                       - Example Go file for testing
+tests/auth_test.js                - Example test file
+```
+
+### **5. Internal Package Improvements:**
+```
+internal/github/client.go     - Enhanced GitHubAPI interface
+internal/github/real_client.go - Improved real client implementation
+internal/github/test_client.go - Better test client for mocking
+```
+
+### **6. Test Data & Scenarios:**
+```
+testdata/enhanced-scripts/error_scenarios.txtar - Error handling tests
+testdata/golden/help_text.txt - Golden file for help text validation
+testdata/scripts/error_handling.txtar - Error scenario tests
+testdata/scripts/reply_issue_comment.txtar - Reply command tests
+```
+
+### **7. Integration Branch Commits (not on main):**
+```
+798744a feat(lines): add new command to show commentable lines in PR files
+6c61cbd fix(help): update command examples to use realistic values
+df646be fix(integration): update remaining submit-review references
+59b1470 fix(batch): fix argument structure and create example YAML files
+e047f52 feat: rename submit-review to close-pending-review
+5cb5c3f fix(tests): complete unit test fixes for review-reply command
+f911e3c fix(tests): complete unit test fixes for review-reply command
+07a820c feat: rename reply command to review-reply (Phase 3 complete)
+31ec442 fix(tests): reset resolveConversation flag in reply test
+a406e3d feat: extract react command from reply command
+```
+
+### **8. Lost Functionality Analysis:**
+
+**Command Improvements:**
+- Better error messages with actionable suggestions
+- Enhanced validation for all inputs
+- Improved help text with working examples
+- Consistent PR auto-detection across commands
+- Better line validation with helpful errors
+
+**Testing Improvements:**
+- Comprehensive test coverage (integration branch likely >80%)
+- Integration test scenarios
+- E2E test framework
+- Better mock clients
+- Regression test prevention
+
+**Documentation:**
+- Working YAML examples
+- Integration testing guide
+- Better command examples
+- API limitation documentation
+
+### **9. Priority Actions Required:**
+
+1. **IMMEDIATE**: Complete command architecture restructuring
+   - Delete `reply.go` and related tests
+   - Ensure all functionality properly distributed
+
+2. **HIGH**: Port all test improvements
+   - Copy missing test files
+   - Merge test enhancements
+   - Run coverage analysis
+
+3. **HIGH**: Port documentation
+   - Copy examples directory content
+   - Update testing guides
+   - Merge help text improvements
+
+4. **MEDIUM**: Cherry-pick or manually port commits
+   - Review each commit for valuable changes
+   - Port bug fixes and enhancements
+   - Maintain commit history where possible
+
+### **10. Risk Assessment:**
+
+**Without these changes:**
+- Missing critical bug fixes
+- Lower test coverage (73.3% vs likely >80%)
+- Incomplete command architecture
+- Missing user-friendly features
+- Documentation gaps
+
+**Integration Strategy:**
+1. Complete command restructuring first
+2. Port all tests to ensure safety
+3. Cherry-pick feature improvements
+4. Update documentation last
 
 ## ✅ Recently Completed
 

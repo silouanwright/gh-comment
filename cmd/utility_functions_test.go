@@ -7,34 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidateReaction(t *testing.T) {
-	tests := []struct {
-		reaction string
-		valid    bool
-	}{
-		{"+1", true},
-		{"-1", true},
-		{"laugh", true},
-		{"confused", true},
-		{"heart", true},
-		{"hooray", true},
-		{"rocket", true},
-		{"eyes", true},
-		{"invalid", false},
-		{"thumbsup", false},   // This is different from +1
-		{"thumbsdown", false}, // This is different from -1
-		{"", false},
-		{"LAUGH", false}, // Case sensitive
-		{"Heart", false}, // Case sensitive
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.reaction, func(t *testing.T) {
-			result := validateReaction(tt.reaction)
-			assert.Equal(t, tt.valid, result, "validateReaction(%q) should be %v", tt.reaction, tt.valid)
-		})
-	}
-}
+// TestValidateReaction is now in react_test.go, so we skip it here to avoid duplication
 
 // These functions are already tested in helpers_test.go, so we skip them here
 

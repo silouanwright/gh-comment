@@ -1,15 +1,8 @@
 # Test error scenarios
-! exec gh-comment reply
-stderr 'Error:'
-stderr 'accepts between 1 and 2 arg'
-
 # Test invalid command
 ! exec gh-comment invalid-command
 stderr 'Error:'
 stderr 'unknown command'
-
-! exec gh-comment reply 123456 'message' --type invalid
-stderr 'invalid type'
 
 ! exec gh-comment list invalid
 stderr 'invalid PR number'
