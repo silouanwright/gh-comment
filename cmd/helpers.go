@@ -56,33 +56,48 @@ func formatActionableError(operation string, err error) error {
 
 	// Handle common GitHub API error patterns
 	switch {
+	// Check more specific patterns first before generic ones
+	case containsAny(errStr, []string{"No subschema in oneOf matched", "invalid request"}):
+		return fmt.Errorf("invalid request format during %s: %w\n\n💡 Suggestions:\n  • Check the command syntax in --help\n  • Verify all required arguments are provided\n  • For line comments, ensure the line exists in the PR diff\n  • Documentation: https://docs.github.com/en/rest/reference", operation, err)
+
+	// Command-specific error patterns - check these before generic HTTP codes
+	case containsAny(errStr, []string{"line not in diff", "line not part of", "comment line"}):
+		return fmt.Errorf("line not commentable during %s: %w\n\n💡 Suggestions:\n  • Use 'gh comment lines <pr> <file>' to see which lines can have comments\n  • Only lines that were modified in the PR can have review comments\n  • For general comments, use 'gh comment add' without line numbers\n  • Documentation: https://docs.github.com/en/rest/pulls/comments#create-a-review-comment-for-a-pull-request", operation, err)
+
+	case containsAny(errStr, []string{"file not found", "file not in PR", "path not found"}):
+		return fmt.Errorf("file not found in PR during %s: %w\n\n💡 Suggestions:\n  • Verify the file path is correct and exists in the PR\n  • Use relative paths from repository root\n  • Check 'gh pr diff' to see modified files\n  • File paths are case-sensitive\n  • Documentation: https://docs.github.com/en/rest/pulls/files", operation, err)
+
+	case containsAny(errStr, []string{"pending review", "review state", "already reviewing"}):
+		return fmt.Errorf("review state conflict during %s: %w\n\n💡 Suggestions:\n  • You may have a pending review that needs to be submitted\n  • Use 'gh comment close-pending-review' to discard pending review\n  • Submit your pending review before creating a new one\n  • Documentation: https://docs.github.com/en/rest/pulls/reviews", operation, err)
+
+	case containsAny(errStr, []string{"yaml", "json", "parse", "unmarshal", "decode"}):
+		return fmt.Errorf("configuration parsing error during %s: %w\n\n💡 Suggestions:\n  • Check YAML/JSON syntax for errors\n  • Validate indentation (YAML is sensitive to spaces)\n  • Use a YAML/JSON validator to check your file\n  • Ensure all required fields are present\n  • Documentation: https://yaml.org/spec/", operation, err)
+
+	// Generic HTTP error codes
 	case containsAny(errStr, []string{"422", "Unprocessable Entity", "validation failed"}):
-		return fmt.Errorf("validation error during %s: %w\n\n💡 Suggestions:\n  • Check if the line number exists in the PR diff\n  • Use 'gh comment lines <pr> <file>' to see commentable lines\n  • Verify the file path is correct in the PR\n  • For line-specific comments, ensure the line was modified in this PR", operation, err)
+		return fmt.Errorf("validation error during %s: %w\n\n💡 Suggestions:\n  • Check if the line number exists in the PR diff\n  • Use 'gh comment lines <pr> <file>' to see commentable lines\n  • Verify the file path is correct in the PR\n  • For line-specific comments, ensure the line was modified in this PR\n  • Documentation: https://docs.github.com/en/rest/pulls/comments", operation, err)
 
 	case containsAny(errStr, []string{"404", "Not Found"}):
-		return fmt.Errorf("resource not found during %s: %w\n\n💡 Suggestions:\n  • Verify the PR number exists and is accessible\n  • Check if the comment ID is valid\n  • Ensure you have permission to access this repository", operation, err)
+		return fmt.Errorf("resource not found during %s: %w\n\n💡 Suggestions:\n  • Verify the PR number exists and is accessible\n  • Check if the comment ID is valid\n  • Ensure you have permission to access this repository\n  • Verify repository exists and PR number is correct\n  • Documentation: https://docs.github.com/en/rest/reference/pulls", operation, err)
 
 	case containsAny(errStr, []string{"403", "Forbidden"}):
-		return fmt.Errorf("permission denied during %s: %w\n\n💡 Suggestions:\n  • Check if you have write access to the repository\n  • Verify your GitHub authentication with 'gh auth status'\n  • You cannot approve your own PR or comment on private repos without access", operation, err)
+		return fmt.Errorf("permission denied during %s: %w\n\n💡 Suggestions:\n  • Check if you have write access to the repository\n  • Verify your GitHub authentication with 'gh auth status'\n  • You cannot approve your own PR or comment on private repos without access\n  • Check repository access permissions\n  • Documentation: https://docs.github.com/en/rest/overview/permissions-required-for-github-apps", operation, err)
 
 	case containsAny(errStr, []string{"401", "Unauthorized"}):
-		return fmt.Errorf("authentication failed during %s: %w\n\n💡 Suggestions:\n  • Run 'gh auth login' to authenticate with GitHub\n  • Check if your token has expired\n  • Verify you're authenticated with the correct GitHub account", operation, err)
+		return fmt.Errorf("authentication failed during %s: %w\n\n💡 Suggestions:\n  • Run 'gh auth login' to authenticate with GitHub\n  • Check if your token has expired with 'gh auth status'\n  • Verify you're authenticated with the correct GitHub account\n  • Run 'gh auth status' to verify login\n  • Documentation: https://cli.github.com/manual/gh_auth_login", operation, err)
 
-	case containsAny(errStr, []string{"rate limit", "rate_limit", "too many requests"}):
-		return fmt.Errorf("rate limit exceeded during %s: %w\n\n💡 Suggestions:\n  • Wait a few minutes before trying again\n  • Use authenticated requests (ensure 'gh auth status' shows logged in)\n  • Consider reducing the frequency of API calls", operation, err)
+	case containsAny(errStr, []string{"rate limit", "rate_limit", "too many requests", "429"}):
+		return fmt.Errorf("rate limit exceeded during %s: %w\n\n💡 Suggestions:\n  • Wait a few minutes before trying again\n  • Use authenticated requests (ensure 'gh auth status' shows logged in)\n  • Consider reducing the frequency of API calls\n  • Use smaller batch sizes for bulk operations\n  • Check rate limit status: 'gh api rate_limit'\n  • Documentation: https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting", operation, err)
 
 	case containsAny(errStr, []string{"500", "502", "503", "Internal Server Error", "Bad Gateway", "Service Unavailable"}):
-		return fmt.Errorf("GitHub server error during %s: %w\n\n💡 Suggestions:\n  • This is a temporary GitHub server issue\n  • Try again in a few minutes\n  • Check GitHub's status page at https://status.github.com", operation, err)
+		return fmt.Errorf("GitHub server error during %s: %w\n\n💡 Suggestions:\n  • This is a temporary GitHub server issue\n  • Try again in a few minutes\n  • Check GitHub's status page at https://status.github.com\n  • Documentation: https://www.githubstatus.com", operation, err)
 
-	case containsAny(errStr, []string{"network", "timeout", "connection"}):
-		return fmt.Errorf("network error during %s: %w\n\n💡 Suggestions:\n  • Check your internet connection\n  • Try again in a moment\n  • Verify GitHub is accessible from your network", operation, err)
-
-	case containsAny(errStr, []string{"No subschema in oneOf matched", "invalid request"}):
-		return fmt.Errorf("invalid request format during %s: %w\n\n💡 Suggestions:\n  • Check the command syntax in --help\n  • Verify all required arguments are provided\n  • For line comments, ensure the line exists in the PR diff", operation, err)
+	case containsAny(errStr, []string{"network", "timeout", "connection", "EOF", "broken pipe"}):
+		return fmt.Errorf("network error during %s: %w\n\n💡 Suggestions:\n  • Check your internet connection\n  • Try again in a moment\n  • Verify GitHub is accessible from your network\n  • Try with --verbose flag for more details\n  • Check proxy settings if behind corporate firewall\n  • Documentation: https://docs.github.com/en/rest/overview/troubleshooting", operation, err)
 	}
 
 	// Default case - provide general guidance
-	return fmt.Errorf("error during %s: %w\n\n💡 Suggestions:\n  • Check 'gh comment --help' for correct usage\n  • Verify PR number and file paths are correct\n  • Run with --verbose for more details", operation, err)
+	return fmt.Errorf("error during %s: %w\n\n💡 Suggestions:\n  • Check 'gh comment --help' for correct usage\n  • Verify PR number and file paths are correct\n  • Run with --verbose for more details\n  • Documentation: https://github.com/your-org/gh-comment#readme", operation, err)
 }
 
 // containsAny checks if a string contains any of the provided substrings (case-insensitive)

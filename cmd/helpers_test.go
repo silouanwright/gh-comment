@@ -78,6 +78,54 @@ func TestFormatActionableError(t *testing.T) {
 			originalError: "some unexpected error message",
 			expectedText:  []string{"error during unknown operation", "gh comment --help", "PR number", "verbose"},
 		},
+		{
+			name:          "429 rate limit error",
+			operation:     "batch processing",
+			originalError: "HTTP 429: Too Many Requests",
+			expectedText:  []string{"rate limit exceeded", "batch processing", "smaller batch sizes", "gh api rate_limit"},
+		},
+		{
+			name:          "EOF network error",
+			operation:     "comment upload",
+			originalError: "unexpected EOF during request",
+			expectedText:  []string{"network error", "comment upload", "Check your internet", "verbose flag"},
+		},
+		{
+			name:          "broken pipe error",
+			operation:     "large file upload",
+			originalError: "write tcp: broken pipe",
+			expectedText:  []string{"network error", "large file upload", "proxy settings", "corporate firewall"},
+		},
+		{
+			name:          "line not in diff error",
+			operation:     "review comment",
+			originalError: "line not in diff for file src/main.go",
+			expectedText:  []string{"line not commentable", "review comment", "gh comment lines", "lines that were modified"},
+		},
+		{
+			name:          "file not found in PR",
+			operation:     "comment addition",
+			originalError: "file not found: src/missing.go",
+			expectedText:  []string{"file not found in PR", "comment addition", "relative paths", "case-sensitive"},
+		},
+		{
+			name:          "pending review conflict",
+			operation:     "review creation",
+			originalError: "you already have a pending review on this PR",
+			expectedText:  []string{"review state conflict", "review creation", "pending review", "close-pending-review"},
+		},
+		{
+			name:          "YAML parsing error",
+			operation:     "batch processing",
+			originalError: "yaml: line 5: found character that cannot start any token",
+			expectedText:  []string{"configuration parsing error", "batch processing", "YAML/JSON syntax", "indentation"},
+		},
+		{
+			name:          "JSON decode error",
+			operation:     "config loading",
+			originalError: "json: cannot unmarshal string into Go value",
+			expectedText:  []string{"configuration parsing error", "config loading", "JSON validator", "required fields"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -97,6 +145,11 @@ func TestFormatActionableError(t *testing.T) {
 
 			// Should contain suggestions
 			assert.Contains(t, errStr, "💡 Suggestions:")
+			
+			// Most errors should contain documentation links
+			if tt.name != "generic error" {
+				assert.Contains(t, errStr, "Documentation:", "Error should contain documentation link")
+			}
 		})
 	}
 }

@@ -391,11 +391,7 @@ func updateIntegrationRunCount(count int) {
 
 // getIntegrationCounterFile returns the path to the counter file
 func getIntegrationCounterFile() string {
-	// Try to use a system temp directory that persists across runs
-	tempDir := os.Getenv("TMPDIR")
-	if tempDir == "" {
-		tempDir = "/tmp"
-	}
-
+	// Use Go's cross-platform temp directory
+	tempDir := os.TempDir()
 	return filepath.Join(tempDir, ".gh-comment-integration-counter")
 }

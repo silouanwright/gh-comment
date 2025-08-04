@@ -248,7 +248,7 @@ github.com/silouanwright/gh-comment/cmd/colors.go:104.34,106.3 1 1
 github.com/silouanwright/gh-comment/cmd/colors.go:108.2,108.13 1 1
 github.com/silouanwright/gh-comment/cmd/colors.go:112.24,114.33 1 1
 github.com/silouanwright/gh-comment/cmd/colors.go:114.33,116.3 1 1
-github.com/silouanwright/gh-comment/cmd/colors.go:118.2,119.51 2 0
+github.com/silouanwright/gh-comment/cmd/colors.go:118.2,119.51 2 1
 github.com/silouanwright/gh-comment/cmd/colors.go:123.22,127.2 3 1
 github.com/silouanwright/gh-comment/cmd/colors.go:130.21,157.2 17 1
 github.com/silouanwright/gh-comment/cmd/colors.go:162.53,163.21 1 1
