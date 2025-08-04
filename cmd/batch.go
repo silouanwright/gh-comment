@@ -249,6 +249,13 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
 			reviewComment.Line = comment.Line
 		}
 
+		// Validate line exists in diff if validation is enabled
+		if validateDiff {
+			if err := validateCommentLine(client, owner, repo, pr, reviewComment); err != nil {
+				return fmt.Errorf("review comment validation failed: %w", err)
+			}
+		}
+
 		reviewComments = append(reviewComments, reviewComment)
 	}
 
@@ -308,6 +315,13 @@ func processIndividualComments(client github.GitHubAPI, owner, repo string, pr i
 				reviewComment.Line = endLine
 			} else {
 				reviewComment.Line = comment.Line
+			}
+
+			// Validate line exists in diff if validation is enabled
+			if validateDiff {
+				if err := validateCommentLine(client, owner, repo, pr, reviewComment); err != nil {
+					return fmt.Errorf("comment %d validation failed: %w", i+1, err)
+				}
 			}
 
 			err = client.AddReviewComment(owner, repo, pr, reviewComment)

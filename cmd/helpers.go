@@ -43,7 +43,7 @@ func formatActionableError(operation string, err error) error {
 	// Handle common GitHub API error patterns
 	switch {
 	case containsAny(errStr, []string{"422", "Unprocessable Entity", "validation failed"}):
-		return fmt.Errorf("validation error during %s: %w\n\n💡 Suggestions:\n  • Check if the line number exists in the PR diff\n  • Use 'gh comment lines <pr> <file>' to see commentable lines\n  • Verify the file path is correct in the PR", operation, err)
+		return fmt.Errorf("validation error during %s: %w\n\n💡 Suggestions:\n  • Check if the line number exists in the PR diff\n  • Use 'gh comment lines <pr> <file>' to see commentable lines\n  • Verify the file path is correct in the PR\n  • For line-specific comments, ensure the line was modified in this PR", operation, err)
 
 	case containsAny(errStr, []string{"404", "Not Found"}):
 		return fmt.Errorf("resource not found during %s: %w\n\n💡 Suggestions:\n  • Verify the PR number exists and is accessible\n  • Check if the comment ID is valid\n  • Ensure you have permission to access this repository", operation, err)

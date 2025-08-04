@@ -15,10 +15,12 @@ func TestRunBatchWithMockClient(t *testing.T) {
 	originalClient := batchClient
 	originalRepo := repo
 	originalPR := prNumber
+	originalValidateDiff := validateDiff
 	defer func() {
 		batchClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
+		validateDiff = originalValidateDiff
 	}()
 
 	// Set up mock client and environment
@@ -26,6 +28,7 @@ func TestRunBatchWithMockClient(t *testing.T) {
 	batchClient = mockClient
 	repo = "owner/repo"
 	prNumber = 123
+	validateDiff = false // Disable validation for tests
 
 	tests := []struct {
 		name           string
@@ -231,11 +234,13 @@ func TestBatchVerbose(t *testing.T) {
 	originalRepo := repo
 	originalPR := prNumber
 	originalVerbose := verbose
+	originalValidateDiff := validateDiff
 	defer func() {
 		batchClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
 		verbose = originalVerbose
+		validateDiff = originalValidateDiff
 	}()
 
 	// Set up environment
@@ -244,6 +249,7 @@ func TestBatchVerbose(t *testing.T) {
 	repo = "owner/repo"
 	prNumber = 123
 	verbose = true
+	validateDiff = false // Disable validation for tests
 
 	// Create temporary config file
 	tempDir, err := ioutil.TempDir("", "batch_test")
@@ -414,15 +420,18 @@ func TestBatchRepositoryParsing(t *testing.T) {
 	originalClient := batchClient
 	originalRepo := repo
 	originalPR := prNumber
+	originalValidateDiff := validateDiff
 	defer func() {
 		batchClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
+		validateDiff = originalValidateDiff
 	}()
 
 	mockClient := github.NewMockClient()
 	batchClient = mockClient
 	prNumber = 123
+	validateDiff = false // Disable validation for tests
 
 	tests := []struct {
 		name           string
@@ -492,16 +501,19 @@ func TestBatchWithClientInitialization(t *testing.T) {
 	originalClient := batchClient
 	originalRepo := repo
 	originalPR := prNumber
+	originalValidateDiff := validateDiff
 	defer func() {
 		batchClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
+		validateDiff = originalValidateDiff
 	}()
 
 	// Set client to nil to test initialization
 	batchClient = nil
 	repo = "owner/repo"
 	prNumber = 123
+	validateDiff = false // Disable validation for tests
 
 	// This test verifies that when batchClient is nil,
 	// a RealClient is initialized in production

@@ -164,7 +164,7 @@ func TestLinesCommandWithClientInitialization(t *testing.T) {
 
 	// Should not error due to client initialization
 	// Note: In real scenario, this would create a RealClient, but we're testing the initialization path
-	assert.Error(t, err) // Expected since we don't have real GitHub API access
+	assert.Error(t, err)          // Expected since we don't have real GitHub API access
 	assert.NotNil(t, linesClient) // Client should have been initialized
 }
 

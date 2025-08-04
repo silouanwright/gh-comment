@@ -25,9 +25,19 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - **Created**: examples/ directory with working YAML configurations
   - **Verified**: All help text examples now match actual command requirements
 
-- [ ] **Add --format json and --ids-only flags to list command for machine parsing** - Current issue: AI assistants and scripts need to parse '[1] ID:2249490193' format manually. Add structured output options: --format json for full data, --ids-only for just comment IDs (newline separated). This enables: gh comment list 123 --ids-only | xargs -I {} gh comment resolve {}. Located in cmd/list.go around line display functions.
+- [x] **Add --format json and --ids-only flags to list command for machine parsing** - COMPLETED ✅
+  - **Status**: Successfully implemented structured output options for automation
+  - **Features**: Added --format json for full structured data, --ids-only for machine-parseable IDs
+  - **Automation**: Enables workflows like `gh comment list 123 --ids-only | xargs -I {} gh comment resolve {}`
+  - **Validation**: Prevents conflicting flag usage with clear error messages
+  - **Testing**: All existing tests pass, maintains backward compatibility
 
-- [ ] **Add 'gh comment lines <pr> <file>' command to show commentable lines** - Issue: Users get cryptic HTTP 422 when commenting on non-existent lines. Need command to show which lines in a file can receive comments (based on diff). Should output line numbers and optionally show the actual code. Helps debug add command failures. Would go in new cmd/lines.go file following existing command patterns.
+- [x] **Add 'gh comment lines <pr> <file>' command to show commentable lines** - COMPLETED ✅
+  - **Status**: Command was already implemented and working, added comprehensive test coverage
+  - **Features**: Shows which lines in a file can receive comments based on PR diff
+  - **Functionality**: Lists available files when target file not found, groups consecutive line ranges
+  - **Testing**: Added 5 comprehensive test functions covering all scenarios
+  - **Integration**: Properly registered in command structure with help text and examples
 
 - [ ] **Improve --validate flag to show available lines on error** - Current: Generic HTTP 422 error. Needed: 'Line 42 doesn't exist in diff, available lines: 1-11'. The validation logic exists but error messages aren't helpful. Located in validation functions called by add command. Should fetch diff and show specific line ranges that accept comments.
 
