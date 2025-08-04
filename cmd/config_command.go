@@ -265,6 +265,11 @@ func runConfigValidate(cmd *cobra.Command, args []string) error {
 }
 
 func showConfigWarnings(config *Config) {
+	// Handle nil config gracefully
+	if config == nil {
+		return
+	}
+
 	warnings := []string{}
 
 	// Check for potentially problematic values

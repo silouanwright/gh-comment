@@ -52,6 +52,113 @@ func TestFetchAllComments(t *testing.T) {
 	assert.Equal(t, 42, comments[1].Line)
 }
 
+func TestApplyListConfigDefaults(t *testing.T) {
+	// Save original state
+	originalAuthor := author
+	originalStatus := status
+	originalListType := listType
+	originalSince := since
+	originalUntil := until
+	originalOutputFormat := outputFormat
+	originalQuiet := quiet
+	originalConfig := globalConfig
+	
+	defer func() {
+		author = originalAuthor
+		status = originalStatus
+		listType = originalListType  
+		since = originalSince
+		until = originalUntil
+		outputFormat = originalOutputFormat
+		quiet = originalQuiet
+		globalConfig = originalConfig
+	}()
+
+	// Create a test config with defaults
+	testConfig := &Config{
+		Defaults: DefaultsConfig{
+			Author: "default-author",
+		},
+		Filters: FiltersConfig{
+			Status: "open",
+			Type:   "review", 
+			Since:  "1 week ago",
+			Until:  "now",
+		},
+		Display: DisplayConfig{
+			Format: "json",
+			Quiet:  true,
+		},
+	}
+	globalConfig = testConfig
+
+	// Use the actual listCmd which is already a *cobra.Command
+	cmd := listCmd
+	
+	// Reset variables to empty
+	author = ""
+	status = ""
+	listType = ""
+	since = ""
+	until = ""
+	outputFormat = ""
+	quiet = false
+
+	t.Run("applies config defaults when flags not set", func(t *testing.T) {
+		// Apply defaults
+		applyListConfigDefaults(cmd, []string{})
+
+		// Check that defaults were applied
+		assert.Equal(t, "default-author", author)
+		assert.Equal(t, "open", status)
+		assert.Equal(t, "review", listType)
+		assert.Equal(t, "1 week ago", since)
+		assert.Equal(t, "now", until)
+		assert.Equal(t, "json", outputFormat)
+		assert.True(t, quiet)
+	})
+
+	t.Run("does not override explicitly set flags", func(t *testing.T) {
+		// Simulate flags being explicitly set
+		cmd.Flags().Set("author", "explicit-author")
+		cmd.Flags().Set("status", "closed")
+		
+		// Reset variables to empty again
+		author = "explicit-author"
+		status = "closed"
+		listType = ""
+		since = ""
+		until = ""
+
+		// Apply defaults
+		applyListConfigDefaults(cmd, []string{})
+
+		// Check that explicit flags were not overridden
+		assert.Equal(t, "explicit-author", author)
+		assert.Equal(t, "closed", status)
+		// But config defaults should still apply to non-explicit flags
+		assert.Equal(t, "review", listType)
+		assert.Equal(t, "1 week ago", since)
+		assert.Equal(t, "now", until)
+	})
+
+	t.Run("handles quiet format config", func(t *testing.T) {
+		// Test quiet format specifically
+		testConfig.Display.Format = "quiet"
+		testConfig.Display.Quiet = false // Set to false to test the quiet format logic
+		
+		// Reset variables
+		outputFormat = ""
+		quiet = false
+
+		// Apply defaults  
+		applyListConfigDefaults(cmd, []string{})
+
+		// Should set quiet = true when format is "quiet"
+		assert.True(t, quiet)
+	})
+}
+
 func TestFetchAllCommentsInvalidRepo(t *testing.T) {
 	mockClient := &github.MockClient{}
 

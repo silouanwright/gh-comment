@@ -164,6 +164,114 @@ func TestExportFormats(t *testing.T) {
 		assert.NotContains(t, result[0], "type")
 	})
 
+	t.Run("JSON with all field types", func(t *testing.T) {
+		// Test all possible field types in the filter
+		exportInclude = []string{"id", "type", "author", "body", "file", "line", "created_at", "updated_at", "url", "diff_hunk", "commit_id", "in_reply_to", "resolved"}
+		defer func() { exportInclude = []string{} }()
+		
+		var buf bytes.Buffer
+		err := exportJSON(&buf, comments)
+		assert.NoError(t, err)
+		
+		var result []map[string]interface{}
+		err = json.Unmarshal(buf.Bytes(), &result)
+		assert.NoError(t, err)
+		assert.Len(t, result, 2)
+		
+		// Check first comment (issue comment)
+		comment := result[0]
+		assert.Equal(t, float64(123), comment["id"])
+		assert.Equal(t, "issue", comment["type"]) 
+		assert.Equal(t, "alice", comment["author"])
+		assert.Equal(t, "Test issue comment", comment["body"])
+		assert.Contains(t, comment, "created_at")
+		assert.Contains(t, comment, "url")
+		assert.Equal(t, false, comment["resolved"])
+		// File and line should not be present for issue comment
+		assert.NotContains(t, comment, "file")
+		assert.NotContains(t, comment, "line")
+		
+		// Check second comment (review comment)
+		reviewComment := result[1]
+		assert.Equal(t, float64(456), reviewComment["id"])
+		assert.Equal(t, "review", reviewComment["type"])
+		assert.Equal(t, "bob", reviewComment["author"])
+		assert.Equal(t, "main.go", reviewComment["file"])
+		assert.Equal(t, float64(42), reviewComment["line"])
+		assert.Equal(t, "@@ -40,4 +40,4 @@\n func main() {\n-    fmt.Println(\"old\")\n+    fmt.Println(\"new\")\n }", reviewComment["diff_hunk"])
+		assert.Equal(t, true, reviewComment["resolved"])
+	})
+
+	t.Run("JSON with empty field values", func(t *testing.T) {
+		exportInclude = []string{"file", "line", "diff_hunk", "commit_id", "in_reply_to"}
+		defer func() { exportInclude = []string{} }()
+		
+		// Use the issue comment which has empty file/line/diff_hunk
+		var buf bytes.Buffer
+		err := exportJSON(&buf, []ExportComment{comments[0]}) // Only issue comment
+		assert.NoError(t, err)
+		
+		var result []map[string]interface{}
+		err = json.Unmarshal(buf.Bytes(), &result)
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+		
+		// Empty/zero fields should not be included
+		comment := result[0]
+		assert.NotContains(t, comment, "file")
+		assert.NotContains(t, comment, "line")
+		assert.NotContains(t, comment, "diff_hunk")
+		assert.NotContains(t, comment, "commit_id")
+		assert.NotContains(t, comment, "in_reply_to")
+	})
+
+	t.Run("JSON with single field filter", func(t *testing.T) {
+		exportInclude = []string{"id"}
+		defer func() { exportInclude = []string{} }()
+		
+		var buf bytes.Buffer
+		err := exportJSON(&buf, comments)
+		assert.NoError(t, err)
+		
+		var result []map[string]interface{}
+		err = json.Unmarshal(buf.Bytes(), &result)
+		assert.NoError(t, err)
+		assert.Len(t, result, 2)
+		
+		// Should only contain ID field
+		comment := result[0]
+		assert.Len(t, comment, 1)
+		assert.Contains(t, comment, "id")
+		assert.Equal(t, float64(123), comment["id"])
+	})
+
+	t.Run("JSON with mixed field types", func(t *testing.T) {
+		exportInclude = []string{"author", "resolved", "line"}
+		defer func() { exportInclude = []string{} }()
+		
+		var buf bytes.Buffer
+		err := exportJSON(&buf, comments)
+		assert.NoError(t, err)
+		
+		var result []map[string]interface{}
+		err = json.Unmarshal(buf.Bytes(), &result)
+		assert.NoError(t, err)
+		assert.Len(t, result, 2)
+		
+		// First comment (issue) - no line field
+		comment := result[0]
+		assert.Contains(t, comment, "author")
+		assert.Contains(t, comment, "resolved")
+		assert.NotContains(t, comment, "line") // Issue comment has no line
+		
+		// Second comment (review) - has line field
+		reviewComment := result[1]
+		assert.Contains(t, reviewComment, "author")
+		assert.Contains(t, reviewComment, "resolved")
+		assert.Contains(t, reviewComment, "line")
+		assert.Equal(t, float64(42), reviewComment["line"])
+	})
+
 	t.Run("CSV export", func(t *testing.T) {
 		var buf bytes.Buffer
 		err := exportCSV(&buf, comments)

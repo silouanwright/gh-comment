@@ -10,6 +10,9 @@ var (
 	// Color settings
 	colorEnabled = true
 
+	// Test override for terminal detection (used in testing)
+	testTerminalOverride *bool
+
 	// Color definitions for different types of output
 	ColorCommentID    *color.Color
 	ColorAuthor       *color.Color
@@ -33,6 +36,9 @@ func InitColors() {
 	colorEnabled = ShouldUseColor()
 
 	if colorEnabled {
+		// Enable colors globally
+		color.NoColor = false
+
 		// Comment-related colors
 		ColorCommentID = color.New(color.FgCyan, color.Bold)
 		ColorAuthor = color.New(color.FgGreen, color.Bold)
@@ -104,6 +110,11 @@ func ShouldUseColor() bool {
 
 // isTerminal checks if output is going to a terminal
 func isTerminal() bool {
+	// Use test override if set (for testing purposes)
+	if testTerminalOverride != nil {
+		return *testTerminalOverride
+	}
+
 	fileInfo, _ := os.Stdout.Stat()
 	return (fileInfo.Mode() & os.ModeCharDevice) != 0
 }
@@ -119,7 +130,30 @@ func DisableColors() {
 func EnableColors() {
 	colorEnabled = true
 	color.NoColor = false
-	InitColors()
+	noColor = false // Reset the flag too
+
+	// Force initialize colors without checking ShouldUseColor()
+	// Comment-related colors
+	ColorCommentID = color.New(color.FgCyan, color.Bold)
+	ColorAuthor = color.New(color.FgGreen, color.Bold)
+	ColorTimestamp = color.New(color.FgBlue)
+	ColorFilePath = color.New(color.FgYellow)
+	ColorLineNumber = color.New(color.FgYellow, color.Bold)
+	ColorURL = color.New(color.FgBlue, color.Underline)
+
+	// Status colors
+	ColorSuccess = color.New(color.FgGreen, color.Bold)
+	ColorError = color.New(color.FgRed, color.Bold)
+	ColorWarning = color.New(color.FgYellow, color.Bold)
+
+	// Section headers
+	ColorHeader = color.New(color.FgMagenta, color.Bold)
+	ColorReviewState = color.New(color.FgCyan)
+	ColorCommitSHA = color.New(color.FgBlue)
+
+	// Comment type colors
+	ColorIssueComment = color.New(color.FgGreen)
+	ColorReviewComment = color.New(color.FgYellow)
 }
 
 // Helper functions for common color patterns
@@ -128,9 +162,15 @@ func EnableColors() {
 func ColorizeCommentType(commentType string) string {
 	switch commentType {
 	case "issue":
-		return ColorIssueComment.Sprintf("💬 General PR Comments")
+		if ColorIssueComment != nil {
+			return ColorIssueComment.Sprintf("💬 General PR Comments")
+		}
+		return "💬 General PR Comments"
 	case "review":
-		return ColorReviewComment.Sprintf("📋 Review Comments")
+		if ColorReviewComment != nil {
+			return ColorReviewComment.Sprintf("📋 Review Comments")
+		}
+		return "📋 Review Comments"
 	default:
 		return commentType
 	}
