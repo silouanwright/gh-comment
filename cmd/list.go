@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -26,6 +28,10 @@ var (
 	until    string
 	resolved string
 	listType string
+
+	// Output format flags
+	outputFormat string
+	idsOnly      bool
 
 	// Parsed time values
 	sinceTime *time.Time
@@ -58,6 +64,11 @@ var listCmd = &cobra.Command{
 		$ gh comment list 123 --author "security-team*" --since "2024-01-01" --type review
 		$ gh comment list 123 --author "bot*" --since "3 days ago" --quiet
 
+		# Structured output for automation
+		$ gh comment list 123 --format json | jq '.comments[].id'
+		$ gh comment list 123 --ids-only | xargs -I {} gh comment resolve {}
+		$ gh comment list 123 --format json --author "security*" > security-comments.json
+
 		# Code review workflow optimization
 		$ gh comment list 123 --status open --since "sprint-start" --author "lead*"
 		$ gh comment list 123 --until "release-date" --type issue --status resolved
@@ -76,7 +87,7 @@ var listCmd = &cobra.Command{
 
 		# Export for further analysis and automation
 		$ gh comment list 123 --author "all-reviewers*" --since "quarter-start" --quiet | process-review-data.sh
-		$ gh comment list 123 --quiet --type review --status open | review-metrics.sh
+		$ gh comment list 123 --ids-only --type review --status open | review-metrics.sh
 	`),
 	Args: cobra.MaximumNArgs(1),
 	RunE: runList,
@@ -100,6 +111,10 @@ func init() {
 	// Display options
 	listCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Minimal output without URLs and IDs (default shows full context for AI)")
 	listCmd.Flags().BoolVar(&hideAuthors, "hide-authors", false, "Hide author names for privacy")
+
+	// Output format options
+	listCmd.Flags().StringVar(&outputFormat, "format", "default", "Output format: default, json")
+	listCmd.Flags().BoolVar(&idsOnly, "ids-only", false, "Output only comment IDs (one per line)")
 }
 
 func runList(cmd *cobra.Command, args []string) error {
@@ -162,8 +177,16 @@ func runList(cmd *cobra.Command, args []string) error {
 	// Filter comments
 	filteredComments := filterComments(comments)
 
-	// Display comments
-	displayComments(filteredComments, pr)
+	// Handle different output formats
+	if idsOnly {
+		displayIDsOnly(filteredComments)
+	} else if outputFormat == "json" {
+		if err := displayCommentsJSON(filteredComments, pr); err != nil {
+			return fmt.Errorf("failed to encode JSON output: %w", err)
+		}
+	} else {
+		displayComments(filteredComments, pr)
+	}
 
 	return nil
 }
@@ -255,6 +278,17 @@ func validateAndParseFilters() error {
 	validTypes := []string{"all", "issue", "review"}
 	if listType != "" && !containsString(validTypes, listType) {
 		return fmt.Errorf("invalid type '%s'. Must be one of: %s", listType, strings.Join(validTypes, ", "))
+	}
+
+	// Validate output format flag
+	validFormats := []string{"default", "json"}
+	if outputFormat != "" && !containsString(validFormats, outputFormat) {
+		return fmt.Errorf("invalid format '%s'. Must be one of: %s", outputFormat, strings.Join(validFormats, ", "))
+	}
+
+	// Handle conflicting output options
+	if idsOnly && outputFormat == "json" {
+		return fmt.Errorf("cannot use --ids-only with --format json (use --format json to get structured data including IDs)")
 	}
 
 	// Parse since date
@@ -561,4 +595,28 @@ func displayDiffHunk(diffHunk string) {
 		}
 	}
 	fmt.Println()
+}
+
+// displayIDsOnly outputs only comment IDs, one per line
+func displayIDsOnly(comments []Comment) {
+	for _, comment := range comments {
+		fmt.Printf("%d\n", comment.ID)
+	}
+}
+
+// displayCommentsJSON outputs comments as JSON
+func displayCommentsJSON(comments []Comment, pr int) error {
+	output := struct {
+		PR       int       `json:"pr"`
+		Total    int       `json:"total"`
+		Comments []Comment `json:"comments"`
+	}{
+		PR:       pr,
+		Total:    len(comments),
+		Comments: comments,
+	}
+
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(output)
 }

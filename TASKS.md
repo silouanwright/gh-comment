@@ -37,7 +37,12 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - **Documentation**: Updated examples to demonstrate proper usage patterns
   - **Clarity**: Users now understand issue comments (general discussion) vs review comments (line-specific)
 
-- [ ] **Improve error messages to be actionable instead of raw HTTP codes** - Current errors like 'No subschema in oneOf matched' aren't helpful. Need contextual suggestions: 'Line comment failed. Try: gh comment lines 7 src/api.js to see available lines, or gh comment review 7 message --comment file:line:text'. Add error interpretation layer before returning API errors.
+- [x] **Improve error messages to be actionable instead of raw HTTP codes** - COMPLETED ✅
+  - **Status**: Implemented comprehensive actionable error system
+  - **Features**: Created formatActionableError() with pattern matching for all GitHub API errors
+  - **Enhancements**: Added emoji indicators and specific suggestions for each error type
+  - **Coverage**: 422 validation, 401 auth, 403 permission, 404 not found, 500 server, rate limits, network issues
+  - **Testing**: Comprehensive test coverage for all error scenarios
 
 - [x] **Change reply command default type from 'review' to 'issue' or auto-detect** - ALREADY COMPLETED ✅
   - **Status**: Task was already complete when checked
