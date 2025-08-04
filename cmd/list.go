@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -133,26 +132,26 @@ func runList(cmd *cobra.Command, args []string) error {
 	}
 
 	var pr int
+	var repository string
 	var err error
 
-	// Parse PR argument
+	// Parse PR argument using centralized function
 	if len(args) == 1 {
-		pr, err = strconv.Atoi(args[0])
-		if err != nil {
-			return formatValidationError("PR number", args[0], "must be a valid integer")
-		}
-	} else {
-		// Auto-detect PR
-		pr, err = getCurrentPR()
+		pr, err = parsePositiveInt(args[0], "PR number")
 		if err != nil {
 			return err
 		}
-	}
-
-	// Get repository
-	repository, err := getCurrentRepo()
-	if err != nil {
-		return err
+		// Get repository for explicitly provided PR
+		repository, err = getCurrentRepo()
+		if err != nil {
+			return err
+		}
+	} else {
+		// Auto-detect PR and repository using centralized function
+		repository, pr, err = getPRContext()
+		if err != nil {
+			return err
+		}
 	}
 
 	if verbose {

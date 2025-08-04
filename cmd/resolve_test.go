@@ -269,14 +269,16 @@ func TestResolveCommentValidation(t *testing.T) {
 			wantErr:   false,
 		},
 		{
-			name:      "zero comment ID (technically valid for strconv.Atoi)",
-			commentID: "0",
-			wantErr:   false,
+			name:           "zero comment ID (invalid for parsePositiveInt)",
+			commentID:      "0",
+			wantErr:        true,
+			expectedErrMsg: "must be a positive integer",
 		},
 		{
-			name:      "negative comment ID (technically valid for strconv.Atoi)",
-			commentID: "-1",
-			wantErr:   false, // strconv.Atoi allows negative numbers
+			name:           "negative comment ID (invalid for parsePositiveInt)",
+			commentID:      "-1",
+			wantErr:        true,
+			expectedErrMsg: "must be a positive integer",
 		},
 		{
 			name:           "non-numeric comment ID",

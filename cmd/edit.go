@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/silouanwright/gh-comment/internal/github"
@@ -61,9 +60,9 @@ func runEdit(cmd *cobra.Command, args []string) error {
 	}
 
 	// Parse comment ID
-	commentID, err := strconv.Atoi(args[0])
+	commentID, err := parsePositiveInt(args[0], "comment ID")
 	if err != nil {
-		return formatValidationError("comment ID", args[0], "must be a valid integer")
+		return err
 	}
 
 	var message string

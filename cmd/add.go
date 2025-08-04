@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
@@ -72,6 +71,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	}
 
 	var pr int
+	var repository string
 	var comment string
 	var err error
 
@@ -80,13 +80,18 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		// Using --message flags
 		if len(args) == 1 {
 			// PR provided + --message flags
-			pr, err = strconv.Atoi(args[0])
+			pr, err = parsePositiveInt(args[0], "PR number")
 			if err != nil {
-				return formatValidationError("PR number", args[0], "must be a valid integer")
+				return err
+			}
+			// Get repository for explicitly provided PR
+			repository, err = getCurrentRepo()
+			if err != nil {
+				return err
 			}
 		} else if len(args) == 0 {
-			// Auto-detect PR + --message flags
-			pr, err = getCurrentPR()
+			// Auto-detect PR + --message flags using centralized function
+			repository, pr, err = getPRContext()
 			if err != nil {
 				return err
 			}
@@ -96,14 +101,19 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		comment = strings.Join(messages, "\n")
 	} else if len(args) == 2 {
 		// PR number provided + comment
-		pr, err = strconv.Atoi(args[0])
+		pr, err = parsePositiveInt(args[0], "PR number")
 		if err != nil {
-			return formatValidationError("PR number", args[0], "must be a valid integer")
+			return err
 		}
 		comment = args[1]
+		// Get repository for explicitly provided PR
+		repository, err = getCurrentRepo()
+		if err != nil {
+			return err
+		}
 	} else if len(args) == 1 {
-		// Auto-detect PR from current branch + comment
-		pr, err = getCurrentPR()
+		// Auto-detect PR from current branch + comment using centralized function
+		repository, pr, err = getPRContext()
 		if err != nil {
 			return err
 		}
@@ -115,12 +125,6 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	// Validate comment
 	if strings.TrimSpace(comment) == "" {
 		return fmt.Errorf("comment cannot be empty")
-	}
-
-	// Get repository
-	repository, err := getCurrentRepo()
-	if err != nil {
-		return err
 	}
 
 	// Expand suggestion syntax to GitHub markdown (unless disabled)

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
@@ -66,9 +65,9 @@ func runReact(cmd *cobra.Command, args []string) error {
 
 	// Parse comment ID
 	commentIDStr := args[0]
-	commentID, err := strconv.Atoi(commentIDStr)
+	commentID, err := parsePositiveInt(commentIDStr, "comment ID")
 	if err != nil {
-		return formatValidationError("comment ID", commentIDStr, "must be a valid integer")
+		return err
 	}
 
 	// Get reaction emoji

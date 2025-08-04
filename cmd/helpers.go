@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -90,6 +91,18 @@ func formatValidationError(field, value, expected string) error {
 // formatNotFoundError creates consistent error messages for missing resources
 func formatNotFoundError(resource string, identifier interface{}) error {
 	return fmt.Errorf("%s not found: %v", resource, identifier)
+}
+
+// parsePositiveInt parses a string to a positive integer with consistent validation
+func parsePositiveInt(s, fieldName string) (int, error) {
+	val, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, formatValidationError(fieldName, s, "must be a valid integer")
+	}
+	if val <= 0 {
+		return 0, formatValidationError(fieldName, s, "must be a positive integer")
+	}
+	return val, nil
 }
 
 // lineRange represents a range of consecutive line numbers for display
