@@ -2,7 +2,7 @@
 
 **Last Updated**: August 2025
 **Project Status**: Feature Complete - AI Prompts & Regression Testing Complete
-**Current Coverage**: 80.7% (exceeded 80% target) + Comprehensive Regression Tests
+**Current Coverage**: 73.3% (needs attention - down from 80.7%) + Comprehensive Regression Tests
 
 ## 🎯 **Project Overview**
 
@@ -22,7 +22,7 @@ Look at @TASKS.md
 
 - **Commands**: 12 total (use --help to see all of them)
 - **Test Files**: 16+ comprehensive test files with full dependency injection + regression tests
-- **Coverage**: 80.7% (professional-grade level) + comprehensive regression protection
+- **Coverage**: 73.3% (down from 80.7%, needs attention) + comprehensive regression protection
 - **Code Quality**: A+ grade (professional-grade with regression protection)
 - **Prompt System**: 6 markdown-based templates embedded via go:embed
 
@@ -143,7 +143,7 @@ tests := []struct {
 ## 🚀 **Performance & Quality Metrics**
 
 ### **Current Status**
-- **Test Coverage**: 80.7% (excellent, industry-leading for CLI tools)
+- **Test Coverage**: 73.3% (was 80.7%, decreased due to recent code additions)
 - **Test Count**: 100+ comprehensive test functions
 - **Test Success Rate**: 100% passing
 - **Code Quality**: Professional grade (A- rating)

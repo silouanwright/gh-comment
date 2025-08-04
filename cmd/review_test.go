@@ -617,7 +617,7 @@ func TestReviewCommitIDNotIncluded(t *testing.T) {
 	prNumber = 123
 	reviewEventFlag = "APPROVE"
 	reviewCommentsFlag = []string{"test.go:42:Test comment"} // Use valid file from mock
-	validateDiff = false // Disable validation for this test
+	validateDiff = false                                     // Disable validation for this test
 
 	// Mock will track what gets sent to verify commit_id is NOT in individual comments
 	err := runReview(nil, []string{"123", "Review body"})
@@ -882,4 +882,3 @@ func TestReviewValidationIntegration(t *testing.T) {
 		})
 	}
 }
-

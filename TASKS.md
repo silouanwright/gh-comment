@@ -6,14 +6,6 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 ### 🚨 URGENT BLOCKERS
 
-- [ ] **Fix failing integration tests after command restructuring** - BLOCKING: Pre-commit hooks prevent commits until tests pass
-  - **Issue**: Integration tests in `testdata/enhanced-scripts/` failing because review command tries to auto-detect PR numbers by calling real 'gh' CLI which fails in test environment
-  - **Error**: `failed to detect PR number: failed to get current PR: gh execution failed: exit status 1 (try specifying --pr)`
-  - **Affected Files**: `comment_workflow.txtar`, `suggestion_syntax.txtar`, `error_scenarios.txtar` lines that call `gh-comment review 123`
-  - **Solutions**: 1) Skip PR auto-detection in --dry-run mode, 2) Mock getCurrentPR() in test environment, 3) Fix argument parsing in review command
-  - **Root Cause**: Review command parseArgs() incorrectly detecting args
-  - **Commit**: b0532ae has the restructuring but tests fail
-
 ### High Priority
 
 - [ ] **CRITICAL: Fix reply command messaging for review comments** - Issue: Help text shows message replies work but fails with HTTP 422 for review comments. GitHub API only supports message replies for issue comments, not review comments (only reactions work for review). Need to either auto-detect comment type or fix default --type flag. Current default 'review' causes most replies to fail. Located in cmd/reply.go. Test shows reactions work but messages fail.
@@ -128,7 +120,7 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 ### Medium Priority  
 - [x] **COMPLETED: Increase Test Coverage to 80%+** - Refactor commands with dependency injection ✅
-  - **Final Coverage**: 80.7% (from 30.6% → 80.7%)
+  - **Final Coverage**: Was 80.7% (from 30.6% → 80.7%), now 73.3% due to recent code additions
   - [x] Refactor `cmd/list.go` to use new GitHub API client ✅ (Coverage: 12.7% → 23.1%)
   - [x] Refactor `cmd/reply.go` reaction functionality with dependency injection ✅ (Coverage: 23.1% → 30.6%)
   - [x] Complete `cmd/reply.go` refactoring (message replies and resolve functionality) ✅
@@ -264,6 +256,7 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - [x] Added support for both start:end and start-end range formats
   - [x] Verified all fixes with comprehensive integration testing using real GitHub API
   - [x] All enhanced integration tests now pass, development unblocked
+  - **Impact**: Test coverage at 73.3% (down from 80.7% due to recent code additions)
 - [x] **Binary Distribution Setup** - Add automated binary releases for better user experience
   - [x] Simplified installation to single command with automatic platform detection
   - [x] Created v0.1.1 release with comprehensive binary support
@@ -318,7 +311,7 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 ## 🎯 Success Metrics
 
 ### Code Quality
-- **Test Coverage**: Currently 80.7% (exceeded 80% target! 🎉)
+- **Test Coverage**: Currently 73.3% (was 80.7%, decreased due to recent code additions)
 - **Test Success Rate**: 100% passing
 - **Performance**: All benchmarks stable with regression detection
 

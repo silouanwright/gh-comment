@@ -10,55 +10,60 @@ import (
 )
 
 var (
-	submitEvent  string
-	submitBody   string
-	submitClient github.GitHubAPI
+	closePendingEvent  string
+	closePendingBody   string
+	closePendingClient github.GitHubAPI
 )
 
-var submitReviewCmd = &cobra.Command{
-	Use:   "submit-review [pr] [body]",
-	Short: "Submit a pending review",
-	Long: `Submit a pending review with a summary message and approval status.
+var closePendingReviewCmd = &cobra.Command{
+	Use:   "close-pending-review [pr] [body]",
+	Short: "Close/submit a pending review created in GitHub's web interface",
+	Long: `Close and submit a pending review that was created in GitHub's web interface.
 
-This command finds your pending review on the PR and submits it with the specified
-event type (APPROVE, REQUEST_CHANGES, or COMMENT) and optional summary body.
+IMPORTANT: This command only works with pending reviews created through GitHub's
+web interface. The GitHub API cannot create pending reviews - only the web UI can.
+
+This command finds your existing pending review on the PR and submits it with
+the specified event type (APPROVE, REQUEST_CHANGES, or COMMENT) and optional
+summary body.
 
 Once submitted, the pending review becomes visible to others and you can create
 new reviews.
 
-Examples:
-  # Submit pending review with approval
-  gh comment submit-review 123 "LGTM! Great work" --event APPROVE
+Note: This does NOT work with reviews created via 'gh comment add-review' or
+'gh comment review' commands, as those create submitted reviews immediately.`,
+	Example: `  # Submit GUI-created pending review with approval
+  gh comment close-pending-review 123 "LGTM! Great work" --event APPROVE
 
   # Submit with change requests
-  gh comment submit-review 123 "Please address the comments" --event REQUEST_CHANGES
+  gh comment close-pending-review 123 "Please address the comments" --event REQUEST_CHANGES
 
   # Submit as general comment
-  gh comment submit-review 123 "Thanks for the updates" --event COMMENT
+  gh comment close-pending-review 123 "Thanks for the updates" --event COMMENT
 
   # Submit with minimal body (auto-detect PR)
-  gh comment submit-review "Looks good" --event APPROVE
+  gh comment close-pending-review "Looks good" --event APPROVE
 
   # Submit without additional body
-  gh comment submit-review 123 --event APPROVE`,
+  gh comment close-pending-review 123 --event APPROVE`,
 	Args: cobra.RangeArgs(0, 2),
-	RunE: runSubmitReview,
+	RunE: runClosePendingReview,
 }
 
 func init() {
-	rootCmd.AddCommand(submitReviewCmd)
-	submitReviewCmd.Flags().StringVar(&submitEvent, "event", "COMMENT", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT")
-	submitReviewCmd.Flags().StringVar(&submitBody, "body", "", "Review summary body (optional)")
+	rootCmd.AddCommand(closePendingReviewCmd)
+	closePendingReviewCmd.Flags().StringVar(&closePendingEvent, "event", "COMMENT", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT")
+	closePendingReviewCmd.Flags().StringVar(&closePendingBody, "body", "", "Review summary body (optional)")
 }
 
-func runSubmitReview(cmd *cobra.Command, args []string) error {
+func runClosePendingReview(cmd *cobra.Command, args []string) error {
 	// Initialize client if not set (production use)
-	if submitClient == nil {
+	if closePendingClient == nil {
 		client, err := createGitHubClient()
 		if err != nil {
 			return fmt.Errorf("failed to create GitHub client: %w", err)
 		}
-		submitClient = client
+		closePendingClient = client
 	}
 
 	var pr int
@@ -97,21 +102,21 @@ func runSubmitReview(cmd *cobra.Command, args []string) error {
 	}
 
 	// Use --body flag if provided, otherwise use positional arg
-	if submitBody != "" {
-		body = submitBody
+	if closePendingBody != "" {
+		body = closePendingBody
 	}
 
 	// Validate event type
 	validEvents := []string{"APPROVE", "REQUEST_CHANGES", "COMMENT"}
 	isValidEvent := false
 	for _, validEvent := range validEvents {
-		if submitEvent == validEvent {
+		if closePendingEvent == validEvent {
 			isValidEvent = true
 			break
 		}
 	}
 	if !isValidEvent {
-		return fmt.Errorf("invalid event type: %s (must be APPROVE, REQUEST_CHANGES, or COMMENT)", submitEvent)
+		return fmt.Errorf("invalid event type: %s (must be APPROVE, REQUEST_CHANGES, or COMMENT)", closePendingEvent)
 	}
 
 	// Get repository and PR context
@@ -131,25 +136,25 @@ func runSubmitReview(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Repository: %s\n", repository)
 		fmt.Printf("PR: %d\n", pr)
 		fmt.Printf("Review body: %s\n", body)
-		fmt.Printf("Review event: %s\n", submitEvent)
+		fmt.Printf("Review event: %s\n", closePendingEvent)
 		fmt.Println()
 	}
 
 	if dryRun {
-		fmt.Printf("Would submit pending review on PR #%d:\n", pr)
+		fmt.Printf("Would close pending review on PR #%d:\n", pr)
 		fmt.Printf("Body: %s\n", body)
-		fmt.Printf("Event: %s\n", submitEvent)
+		fmt.Printf("Event: %s\n", closePendingEvent)
 		return nil
 	}
 
 	// Find the pending review
-	reviewID, err := submitClient.FindPendingReview(owner, repoName, pr)
+	reviewID, err := closePendingClient.FindPendingReview(owner, repoName, pr)
 	if err != nil {
 		return fmt.Errorf("failed to find pending review: %w", err)
 	}
 
 	if reviewID == 0 {
-		return fmt.Errorf("no pending review found on PR #%d", pr)
+		return fmt.Errorf("no pending review found on PR #%d\n\nNote: This command only works with pending reviews created in GitHub's web interface.\nUse 'gh comment review' to create and submit reviews via CLI.", pr)
 	}
 
 	if verbose {
@@ -157,14 +162,14 @@ func runSubmitReview(cmd *cobra.Command, args []string) error {
 	}
 
 	// Submit the review
-	err = submitClient.SubmitReview(owner, repoName, pr, reviewID, body, submitEvent)
+	err = closePendingClient.SubmitReview(owner, repoName, pr, reviewID, body, closePendingEvent)
 	if err != nil {
 		return fmt.Errorf("failed to submit review: %w", err)
 	}
 
 	// Display success message
 	eventText := ""
-	switch submitEvent {
+	switch closePendingEvent {
 	case "APPROVE":
 		eventText = "approved"
 	case "REQUEST_CHANGES":
@@ -173,6 +178,6 @@ func runSubmitReview(cmd *cobra.Command, args []string) error {
 		eventText = "commented"
 	}
 
-	fmt.Printf("✅ Successfully submitted review and %s PR #%d\n", eventText, pr)
+	fmt.Printf("✅ Successfully submitted pending review and %s PR #%d\n", eventText, pr)
 	return nil
 }

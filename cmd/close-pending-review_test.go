@@ -7,28 +7,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRunSubmitReviewWithMockClient(t *testing.T) {
+func TestRunClosePendingReviewWithMockClient(t *testing.T) {
 	// Save original client and environment
-	originalClient := submitClient
+	originalClient := closePendingClient
 	originalRepo := repo
 	originalPR := prNumber
-	originalEvent := submitEvent
-	originalBody := submitBody
+	originalEvent := closePendingEvent
+	originalBody := closePendingBody
 	defer func() {
-		submitClient = originalClient
+		closePendingClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
-		submitEvent = originalEvent
-		submitBody = originalBody
+		closePendingEvent = originalEvent
+		closePendingBody = originalBody
 	}()
 
 	// Set up mock client and environment
 	mockClient := github.NewMockClient()
-	submitClient = mockClient
+	closePendingClient = mockClient
 	repo = "owner/repo"
 	prNumber = 123
-	submitEvent = "APPROVE"
-	submitBody = ""
+	closePendingEvent = "APPROVE"
+	closePendingBody = ""
 
 	tests := []struct {
 		name           string
@@ -39,25 +39,25 @@ func TestRunSubmitReviewWithMockClient(t *testing.T) {
 		expectedErrMsg string
 	}{
 		{
-			name:       "submit review with PR and body",
+			name:       "close pending review with PR and body",
 			args:       []string{"123", "LGTM!"},
 			setupEvent: "APPROVE",
 			wantErr:    false,
 		},
 		{
-			name:       "submit review with just PR",
+			name:       "close pending review with just PR",
 			args:       []string{"123"},
 			setupEvent: "COMMENT",
 			wantErr:    false,
 		},
 		{
-			name:       "submit review with just body (auto-detect PR)",
+			name:       "close pending review with just body (auto-detect PR)",
 			args:       []string{"Great work!"},
 			setupEvent: "APPROVE",
 			wantErr:    false,
 		},
 		{
-			name:       "submit review with no args (auto-detect PR)",
+			name:       "close pending review with no args (auto-detect PR)",
 			args:       []string{},
 			setupEvent: "REQUEST_CHANGES",
 			wantErr:    false,
@@ -81,10 +81,10 @@ func TestRunSubmitReviewWithMockClient(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset for each test
-			submitEvent = tt.setupEvent
-			submitBody = tt.setupBody
+			closePendingEvent = tt.setupEvent
+			closePendingBody = tt.setupBody
 
-			err := runSubmitReview(nil, tt.args)
+			err := runClosePendingReview(nil, tt.args)
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErrMsg != "" {
@@ -97,86 +97,86 @@ func TestRunSubmitReviewWithMockClient(t *testing.T) {
 	}
 }
 
-func TestSubmitReviewDryRun(t *testing.T) {
+func TestClosePendingReviewDryRun(t *testing.T) {
 	// Save original values
-	originalClient := submitClient
+	originalClient := closePendingClient
 	originalRepo := repo
 	originalPR := prNumber
-	originalEvent := submitEvent
-	originalBody := submitBody
+	originalEvent := closePendingEvent
+	originalBody := closePendingBody
 	originalDryRun := dryRun
 	defer func() {
-		submitClient = originalClient
+		closePendingClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
-		submitEvent = originalEvent
-		submitBody = originalBody
+		closePendingEvent = originalEvent
+		closePendingBody = originalBody
 		dryRun = originalDryRun
 	}()
 
 	// Set up environment
 	mockClient := github.NewMockClient()
-	submitClient = mockClient
+	closePendingClient = mockClient
 	repo = "owner/repo"
 	prNumber = 123
-	submitEvent = "APPROVE"
-	submitBody = ""
+	closePendingEvent = "APPROVE"
+	closePendingBody = ""
 	dryRun = true
 
-	err := runSubmitReview(nil, []string{"123", "LGTM!"})
+	err := runClosePendingReview(nil, []string{"123", "LGTM!"})
 	assert.NoError(t, err)
 }
 
-func TestSubmitReviewVerbose(t *testing.T) {
+func TestClosePendingReviewVerbose(t *testing.T) {
 	// Save original values
-	originalClient := submitClient
+	originalClient := closePendingClient
 	originalRepo := repo
 	originalPR := prNumber
-	originalEvent := submitEvent
-	originalBody := submitBody
+	originalEvent := closePendingEvent
+	originalBody := closePendingBody
 	originalVerbose := verbose
 	defer func() {
-		submitClient = originalClient
+		closePendingClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
-		submitEvent = originalEvent
-		submitBody = originalBody
+		closePendingEvent = originalEvent
+		closePendingBody = originalBody
 		verbose = originalVerbose
 	}()
 
 	// Set up environment
 	mockClient := github.NewMockClient()
-	submitClient = mockClient
+	closePendingClient = mockClient
 	repo = "owner/repo"
 	prNumber = 123
-	submitEvent = "COMMENT"
-	submitBody = ""
+	closePendingEvent = "COMMENT"
+	closePendingBody = ""
 	verbose = true
 
-	err := runSubmitReview(nil, []string{"123", "Good work!"})
+	err := runClosePendingReview(nil, []string{"123", "Good work!"})
 	assert.NoError(t, err)
 }
 
-func TestSubmitReviewRepositoryParsing(t *testing.T) {
+func TestClosePendingReviewRepositoryParsing(t *testing.T) {
 	// Save original values
-	originalClient := submitClient
+	originalClient := closePendingClient
 	originalRepo := repo
 	originalPR := prNumber
-	originalEvent := submitEvent
-	originalBody := submitBody
+	originalEvent := closePendingEvent
+	originalBody := closePendingBody
 	defer func() {
-		submitClient = originalClient
+		closePendingClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
-		submitEvent = originalEvent
-		submitBody = originalBody
+		closePendingEvent = originalEvent
+		closePendingBody = originalBody
 	}()
 
 	mockClient := github.NewMockClient()
-	submitClient = mockClient
+	closePendingClient = mockClient
 	prNumber = 123
-	submitEvent = "APPROVE"
-	submitBody = ""
+	closePendingEvent = "APPROVE"
+	closePendingBody = ""
 
 	tests := []struct {
 		name           string
@@ -212,7 +212,7 @@ func TestSubmitReviewRepositoryParsing(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			repo = tt.setupRepo
 
-			err := runSubmitReview(nil, []string{"123", "Review body"})
+			err := runClosePendingReview(nil, []string{"123", "Review body"})
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErrMsg != "" {
@@ -225,25 +225,25 @@ func TestSubmitReviewRepositoryParsing(t *testing.T) {
 	}
 }
 
-func TestSubmitReviewErrorHandling(t *testing.T) {
+func TestClosePendingReviewErrorHandling(t *testing.T) {
 	// Save original values
-	originalClient := submitClient
+	originalClient := closePendingClient
 	originalRepo := repo
 	originalPR := prNumber
-	originalEvent := submitEvent
-	originalBody := submitBody
+	originalEvent := closePendingEvent
+	originalBody := closePendingBody
 	defer func() {
-		submitClient = originalClient
+		closePendingClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
-		submitEvent = originalEvent
-		submitBody = originalBody
+		closePendingEvent = originalEvent
+		closePendingBody = originalBody
 	}()
 
 	repo = "owner/repo"
 	prNumber = 123
-	submitEvent = "APPROVE"
-	submitBody = ""
+	closePendingEvent = "APPROVE"
+	closePendingBody = ""
 
 	tests := []struct {
 		name           string
@@ -279,35 +279,35 @@ func TestSubmitReviewErrorHandling(t *testing.T) {
 			if tt.setupMockError != nil {
 				tt.setupMockError(mockClient)
 			}
-			submitClient = mockClient
+			closePendingClient = mockClient
 
-			err := runSubmitReview(nil, []string{"123", "Review body"})
+			err := runClosePendingReview(nil, []string{"123", "Review body"})
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), tt.expectedErrMsg)
 		})
 	}
 }
 
-func TestSubmitReviewEventValidation(t *testing.T) {
+func TestClosePendingReviewEventValidation(t *testing.T) {
 	// Save original values
-	originalClient := submitClient
+	originalClient := closePendingClient
 	originalRepo := repo
 	originalPR := prNumber
-	originalEvent := submitEvent
-	originalBody := submitBody
+	originalEvent := closePendingEvent
+	originalBody := closePendingBody
 	defer func() {
-		submitClient = originalClient
+		closePendingClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
-		submitEvent = originalEvent
-		submitBody = originalBody
+		closePendingEvent = originalEvent
+		closePendingBody = originalBody
 	}()
 
 	mockClient := github.NewMockClient()
-	submitClient = mockClient
+	closePendingClient = mockClient
 	repo = "owner/repo"
 	prNumber = 123
-	submitBody = ""
+	closePendingBody = ""
 
 	tests := []struct {
 		name           string
@@ -352,9 +352,9 @@ func TestSubmitReviewEventValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			submitEvent = tt.event
+			closePendingEvent = tt.event
 
-			err := runSubmitReview(nil, []string{"123", "Review body"})
+			err := runClosePendingReview(nil, []string{"123", "Review body"})
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErrMsg != "" {
@@ -367,27 +367,27 @@ func TestSubmitReviewEventValidation(t *testing.T) {
 	}
 }
 
-func TestSubmitReviewArgumentParsing(t *testing.T) {
+func TestClosePendingReviewArgumentParsing(t *testing.T) {
 	// Save original values
-	originalClient := submitClient
+	originalClient := closePendingClient
 	originalRepo := repo
 	originalPR := prNumber
-	originalEvent := submitEvent
-	originalBody := submitBody
+	originalEvent := closePendingEvent
+	originalBody := closePendingBody
 	defer func() {
-		submitClient = originalClient
+		closePendingClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
-		submitEvent = originalEvent
-		submitBody = originalBody
+		closePendingEvent = originalEvent
+		closePendingBody = originalBody
 	}()
 
 	mockClient := github.NewMockClient()
-	submitClient = mockClient
+	closePendingClient = mockClient
 	repo = "owner/repo"
 	prNumber = 123
-	submitEvent = "APPROVE"
-	submitBody = ""
+	closePendingEvent = "APPROVE"
+	closePendingBody = ""
 
 	tests := []struct {
 		name           string
@@ -443,9 +443,9 @@ func TestSubmitReviewArgumentParsing(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			submitBody = tt.flagBody
+			closePendingBody = tt.flagBody
 
-			err := runSubmitReview(nil, tt.args)
+			err := runClosePendingReview(nil, tt.args)
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErrMsg != "" {
@@ -458,37 +458,37 @@ func TestSubmitReviewArgumentParsing(t *testing.T) {
 	}
 }
 
-func TestSubmitReviewWithClientInitialization(t *testing.T) {
+func TestClosePendingReviewWithClientInitialization(t *testing.T) {
 	// Save original values
-	originalClient := submitClient
+	originalClient := closePendingClient
 	originalRepo := repo
 	originalPR := prNumber
-	originalEvent := submitEvent
-	originalBody := submitBody
+	originalEvent := closePendingEvent
+	originalBody := closePendingBody
 	defer func() {
-		submitClient = originalClient
+		closePendingClient = originalClient
 		repo = originalRepo
 		prNumber = originalPR
-		submitEvent = originalEvent
-		submitBody = originalBody
+		closePendingEvent = originalEvent
+		closePendingBody = originalBody
 	}()
 
 	// Set client to nil to test initialization
-	submitClient = nil
+	closePendingClient = nil
 	repo = "owner/repo"
 	prNumber = 123
-	submitEvent = "APPROVE"
-	submitBody = ""
+	closePendingEvent = "APPROVE"
+	closePendingBody = ""
 
-	// This test verifies that when submitClient is nil,
+	// This test verifies that when closePendingClient is nil,
 	// a RealClient is initialized in production
 	// Since we can't easily test the RealClient without external dependencies,
 	// we'll test that the initialization happens by setting up a mock afterwards
 
 	// First verify the client gets initialized
 	mockClient := github.NewMockClient()
-	submitClient = mockClient
+	closePendingClient = mockClient
 
-	err := runSubmitReview(nil, []string{"123", "Review body"})
+	err := runClosePendingReview(nil, []string{"123", "Review body"})
 	assert.NoError(t, err)
 }
