@@ -420,6 +420,161 @@ func TestDisplayCommentWithHideAuthorsStillShowsID(t *testing.T) {
 	assert.NotContains(t, output, "secretuser", "Author name should not appear")
 }
 
+func TestDisplayIDsOnly(t *testing.T) {
+	tests := []struct {
+		name     string
+		comments []Comment
+		expected []string
+	}{
+		{
+			name: "single comment",
+			comments: []Comment{
+				{ID: 12345, Author: "user1", Body: "Test comment", Type: "issue"},
+			},
+			expected: []string{"12345"},
+		},
+		{
+			name: "multiple comments",
+			comments: []Comment{
+				{ID: 111, Author: "user1", Body: "First", Type: "issue"},
+				{ID: 222, Author: "user2", Body: "Second", Type: "review"},
+				{ID: 333, Author: "user3", Body: "Third", Type: "issue"},
+			},
+			expected: []string{"111", "222", "333"},
+		},
+		{
+			name: "large comment IDs",
+			comments: []Comment{
+				{ID: 2249431211, Author: "user1", Body: "Real GitHub ID", Type: "review"},
+				{ID: 1987654321, Author: "user2", Body: "Another real ID", Type: "issue"},
+			},
+			expected: []string{"2249431211", "1987654321"},
+		},
+		{
+			name:     "empty comments",
+			comments: []Comment{},
+			expected: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := captureOutput(func() {
+				displayIDsOnly(tt.comments)
+			})
+
+			lines := strings.Split(strings.TrimSpace(output), "\n")
+			
+			if len(tt.expected) == 0 {
+				// Empty output should result in empty string when trimmed
+				assert.Equal(t, "", strings.TrimSpace(output))
+			} else {
+				assert.Len(t, lines, len(tt.expected), "Should have correct number of lines")
+				
+				for i, expectedID := range tt.expected {
+					assert.Equal(t, expectedID, lines[i], "ID should match at position %d", i)
+				}
+			}
+		})
+	}
+}
+
+func TestDisplayCommentsJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		comments []Comment
+		pr       int
+		validate func(t *testing.T, output string)
+	}{
+		{
+			name: "single comment JSON output",
+			comments: []Comment{
+				{
+					ID:        12345,
+					Author:    "testuser",
+					Body:      "Test comment body",
+					Type:      "issue",
+					CreatedAt: testTime(),
+				},
+			},
+			pr: 123,
+			validate: func(t *testing.T, output string) {
+				assert.Contains(t, output, `"pr": 123`)
+				assert.Contains(t, output, `"total": 1`)
+				assert.Contains(t, output, `"id": 12345`)
+				assert.Contains(t, output, `"author": "testuser"`)
+				assert.Contains(t, output, `"body": "Test comment body"`)
+				assert.Contains(t, output, `"type": "issue"`)
+				// Should be valid JSON
+				assert.True(t, strings.HasPrefix(output, "{"))
+				assert.True(t, strings.HasSuffix(strings.TrimSpace(output), "}"))
+			},
+		},
+		{
+			name: "multiple comments JSON output",
+			comments: []Comment{
+				{ID: 111, Author: "user1", Body: "First comment", Type: "issue", CreatedAt: testTime()},
+				{ID: 222, Author: "user2", Body: "Second comment", Type: "review", Path: "test.go", Line: 42, CreatedAt: testTime()},
+			},
+			pr: 456,
+			validate: func(t *testing.T, output string) {
+				assert.Contains(t, output, `"pr": 456`)
+				assert.Contains(t, output, `"total": 2`)
+				assert.Contains(t, output, `"id": 111`)
+				assert.Contains(t, output, `"id": 222`)
+				assert.Contains(t, output, `"path": "test.go"`)
+				assert.Contains(t, output, `"line": 42`)
+				// Verify JSON structure
+				assert.Contains(t, output, `"comments": [`)
+			},
+		},
+		{
+			name:     "empty comments JSON output",
+			comments: []Comment{},
+			pr:       789,
+			validate: func(t *testing.T, output string) {
+				assert.Contains(t, output, `"pr": 789`)
+				assert.Contains(t, output, `"total": 0`)
+				assert.Contains(t, output, `"comments": []`)
+				// Should still be valid JSON
+				assert.True(t, strings.HasPrefix(output, "{"))
+				assert.True(t, strings.HasSuffix(strings.TrimSpace(output), "}"))
+			},
+		},
+		{
+			name: "comment with special characters in JSON",
+			comments: []Comment{
+				{
+					ID:     999,
+					Author: "test\"user",
+					Body:   "Comment with \"quotes\" and \n newlines",
+					Type:   "issue",
+					CreatedAt: testTime(),
+				},
+			},
+			pr: 100,
+			validate: func(t *testing.T, output string) {
+				assert.Contains(t, output, `"id": 999`)
+				// JSON should properly escape quotes and newlines
+				assert.Contains(t, output, `test\"user`)
+				assert.Contains(t, output, `\"quotes\"`)
+				assert.Contains(t, output, `\n`)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := captureOutput(func() {
+				err := displayCommentsJSON(tt.comments, tt.pr)
+				assert.NoError(t, err, "displayCommentsJSON should not return error")
+			})
+
+			tt.validate(t, output)
+		})
+	}
+}
+
 func testTime() time.Time {
 	// Return a fixed time for consistent testing
 	return time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)

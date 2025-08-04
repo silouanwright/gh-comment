@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -174,4 +175,220 @@ func TestPromptConsistency(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestListAvailablePrompts(t *testing.T) {
+	// Save original state
+	originalCategory := promptCategory
+	defer func() { promptCategory = originalCategory }()
+
+	tests := []struct {
+		name                 string
+		category            string
+		expectedContains    []string
+		expectedNotContains []string
+	}{
+		{
+			name:             "list all prompts",
+			category:         "",
+			expectedContains: []string{
+				"📋 **Available Code Review Prompts**",
+				"security-audit",
+				"performance-optimization",
+				"architecture-review",
+				"## Security",
+				"## Performance",
+				"## Architecture",
+			},
+		},
+		{
+			name:             "filter by security category",
+			category:         "security",
+			expectedContains: []string{
+				"📋 **Code Review Prompts - Security Category**",
+				"security-audit",
+				"## Security",
+			},
+			expectedNotContains: []string{
+				"performance-optimization",
+				"## Performance",
+			},
+		},
+		{
+			name:             "filter by performance category",
+			category:         "performance",
+			expectedContains: []string{
+				"📋 **Code Review Prompts - Performance Category**",
+				"performance-optimization",
+				"## Performance",
+			},
+			expectedNotContains: []string{
+				"security-audit",
+				"## Security",
+			},
+		},
+		{
+			name:             "filter by ai category",
+			category:         "ai",
+			expectedContains: []string{
+				"📋 **Code Review Prompts - Ai Category**",
+				"ai-assistant",
+				"## Ai",
+			},
+			expectedNotContains: []string{
+				"security-audit",
+				"performance-optimization",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Set category filter
+			promptCategory = tt.category
+
+			// Capture output
+			output := captureOutputFromPrompts(func() {
+				err := listAvailablePrompts()
+				assert.NoError(t, err)
+			})
+
+			// Check expected content
+			for _, expected := range tt.expectedContains {
+				assert.Contains(t, output, expected, "Should contain: %s", expected)
+			}
+
+			// Check unwanted content is not present
+			for _, notExpected := range tt.expectedNotContains {
+				assert.NotContains(t, output, notExpected, "Should not contain: %s", notExpected)
+			}
+		})
+	}
+}
+
+func TestRunPrompts(t *testing.T) {
+	// Save original state
+	originalListPrompts := listPrompts
+	originalCategory := promptCategory
+	defer func() {
+		listPrompts = originalListPrompts
+		promptCategory = originalCategory
+	}()
+
+	tests := []struct {
+		name             string
+		args             []string
+		listFlag         bool
+		expectedContains []string
+		wantError        bool
+	}{
+		{
+			name:     "list prompts with flag",
+			args:     []string{},
+			listFlag: true,
+			expectedContains: []string{
+				"📋 **Available Code Review Prompts**",
+				"security-audit",
+			},
+		},
+		{
+			name: "list prompts with no args",
+			args: []string{},
+			expectedContains: []string{
+				"📋 **Available Code Review Prompts**",
+				"security-audit",
+			},
+		},
+		{
+			name: "get specific prompt",
+			args: []string{"security-audit"},
+			expectedContains: []string{
+				"📋 **Comprehensive Security Audit Review**",
+				"🎯 **Category**: security",
+				"⏱️  **Estimated Time**:",
+				"📝 **Prompt:**",
+				"```",
+			},
+		},
+		{
+			name: "get specific AI prompt",
+			args: []string{"ai-assistant"},
+			expectedContains: []string{
+				"📋 **AI Assistant Code Review Template**",
+				"🎯 **Category**: ai",
+				"⏱️  **Estimated Time**:",
+				"📝 **Prompt:**",
+			},
+		},
+		{
+			name: "non-existent prompt shows error and lists available",
+			args: []string{"non-existent-prompt"},
+			expectedContains: []string{
+				"❌ Prompt 'non-existent-prompt' not found.",
+				"Available prompts:",
+				"📋 **Available Code Review Prompts**",
+				"security-audit",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Set flags
+			listPrompts = tt.listFlag
+			promptCategory = ""
+
+			// Capture output
+			output := captureOutputFromPrompts(func() {
+				err := runPrompts(nil, tt.args)
+				if tt.wantError {
+					assert.Error(t, err)
+				} else {
+					assert.NoError(t, err)
+				}
+			})
+
+			// Check expected content
+			for _, expected := range tt.expectedContains {
+				assert.Contains(t, output, expected, "Should contain: %s", expected)
+			}
+		})
+	}
+}
+
+// Helper function to capture stdout output specifically for prompts tests
+func captureOutputFromPrompts(fn func()) string {
+	// Save the original stdout
+	oldStdout := os.Stdout
+
+	// Create a pipe to capture output
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Create a buffer to capture the output
+	outputChan := make(chan string)
+	go func() {
+		var buf strings.Builder
+		buffer := make([]byte, 4096)
+		for {
+			n, err := r.Read(buffer)
+			if n > 0 {
+				buf.Write(buffer[:n])
+			}
+			if err != nil {
+				break
+			}
+		}
+		outputChan <- buf.String()
+	}()
+
+	// Execute the function
+	fn()
+
+	// Close the writer and restore stdout
+	w.Close()
+	os.Stdout = oldStdout
+
+	// Get the captured output
+	return <-outputChan
 }
