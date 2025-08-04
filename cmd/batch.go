@@ -169,19 +169,32 @@ func readBatchConfig(configFile string) (*BatchConfig, error) {
 
 	// Validate comments
 	for i, comment := range config.Comments {
-		if comment.File == "" {
-			return nil, fmt.Errorf("comment %d: file is required", i+1)
-		}
 		if comment.Message == "" {
 			return nil, fmt.Errorf("comment %d: message is required", i+1)
 		}
-		if comment.Line == 0 && comment.Range == "" {
-			return nil, fmt.Errorf("comment %d: either line or range is required", i+1)
+
+		// Determine comment type (default to review)
+		commentType := comment.Type
+		if commentType == "" {
+			commentType = "review"
 		}
-		if comment.Line != 0 && comment.Range != "" {
-			return nil, fmt.Errorf("comment %d: cannot specify both line and range", i+1)
-		}
-		if comment.Type != "" && comment.Type != "review" && comment.Type != "issue" {
+
+		// Validate based on comment type
+		if commentType == "review" {
+			// Review comments require file and line/range
+			if comment.File == "" {
+				return nil, fmt.Errorf("comment %d: file is required for review comments", i+1)
+			}
+			if comment.Line == 0 && comment.Range == "" {
+				return nil, fmt.Errorf("comment %d: either line or range is required for review comments", i+1)
+			}
+			if comment.Line != 0 && comment.Range != "" {
+				return nil, fmt.Errorf("comment %d: cannot specify both line and range", i+1)
+			}
+		} else if commentType == "issue" {
+			// Issue comments don't require file or line
+			// They're general PR discussion comments
+		} else {
 			return nil, fmt.Errorf("comment %d: type must be 'review' or 'issue'", i+1)
 		}
 	}
