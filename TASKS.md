@@ -17,11 +17,12 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - [ ] Update root command help text and command registration
   - [ ] Run tests and ensure all pass after each change
   
-  **Phase 2: Enhanced Infrastructure (1 hour)**
-  - [ ] Import `examples/` directory with working YAML configurations
-  - [ ] Import enhanced `cmd/helpers.go` with actionable error handling
-  - [ ] Import comprehensive `docs/testing/INTEGRATION_TESTING.md`
-  - [ ] Run tests and commit after each import
+  **Phase 2: Enhanced Infrastructure (1 hour)** - ✅ COMPLETED
+  - [x] Import `examples/` directory with working YAML configurations ✅
+  - [x] Keep main branch `cmd/helpers.go` (more complete than integration branch) ✅  
+  - [x] Integration branch `docs/testing/INTEGRATION_TESTING.md` already imported ✅
+  - [x] All tests pass after Phase 2 changes ✅
+  - **Added**: Additional comprehensive-review.yaml, performance-review.yaml, security-audit.yaml examples
   
   **Phase 3: Test Coverage Boost (3 hours)**
   - [ ] Import 20+ missing test files from integration branch
@@ -103,7 +104,12 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - **Documentation**: Explains that API can't create pending reviews, only GUI can
   - **Coverage**: Review comment threading limitations and own-PR restrictions documented
 
-- [ ] **Make PR auto-detection consistent across all commands** - Some commands auto-detection PR from current branch, others require explicit PR number. Audit all commands in cmd/ directory and ensure consistent behavior. Should either always auto-detect or clearly document when it's required vs optional.
+- [x] **Make PR auto-detection consistent across all commands** - COMPLETED ✅
+  - **Status**: Successfully standardized PR auto-detection across all commands using centralized getPRContext()
+  - **Changes**: Updated `add` and `list` commands to use getPRContext() instead of direct getCurrentPR() calls
+  - **Consistency**: All commands now follow the same pattern: check --pr flag first, then auto-detect from branch
+  - **Testing**: All existing tests pass, maintains backward compatibility
+  - **Implementation**: Centralized logic handles both explicit PR numbers and auto-detection consistently
 
 - [x] **Provide sample YAML files for batch command examples** - COMPLETED ✅
   - **Status**: Complete examples/ directory with working YAML configurations created
@@ -477,7 +483,17 @@ a406e3d feat: extract react command from reply command
 
 ## ✅ Recently Completed
 
-### August 2025
+### August 2025 (Latest Session)
+- [x] **Code Quality Improvements** - Multiple standardization and testing enhancements ✅
+  - [x] **Standardized Input Parsing**: Added parsePositiveInt() helper with comprehensive validation ✅
+  - [x] **PR Auto-detection Consistency**: Unified all commands to use centralized getPRContext() ✅
+  - [x] **Enhanced Example Configurations**: Added 3 additional YAML examples from integration branch ✅
+  - [x] **Expanded Test Coverage**: Added 12 new test cases covering edge cases and helper functions ✅
+  - [x] **Phase 2 Integration Branch Porting**: Successfully completed enhanced infrastructure import ✅
+  - **Impact**: Test coverage improved from 73.3% → 77.0% (+3.7 percentage points)
+  - **Quality**: All tests passing, consistent error messages, standardized validation across commands
+
+### August 2025 (Earlier)
 - [x] **URGENT: Integration Test Failures Fixed** - Resolved critical test failures blocking development
   - [x] Fixed review command PR auto-detection when PR number explicitly provided
   - [x] Fixed add command argument parsing with --message flags and PR numbers  
@@ -542,7 +558,7 @@ a406e3d feat: extract react command from reply command
 ## 🎯 Success Metrics
 
 ### Code Quality
-- **Test Coverage**: Currently 73.3% (was 80.7%, decreased due to recent code additions)
+- **Test Coverage**: Currently 77.0% (improved from 73.3%, trending toward 85% target)
 - **Test Success Rate**: 100% passing
 - **Performance**: All benchmarks stable with regression detection
 
@@ -625,10 +641,14 @@ a406e3d feat: extract react command from reply command
 
 ## 🚀 **HIGH PRIORITY CODE IMPROVEMENTS**
 
-### 1. **Standardize Input Parsing Patterns**
-- [ ] Create unified `parsePositiveInt()` helper function
-- [ ] Replace scattered `strconv.Atoi()` calls with standardized validation
-- [ ] Add consistent error messages for invalid inputs
+### 1. **Standardize Input Parsing Patterns** - ✅ COMPLETED
+- [x] Create unified `parsePositiveInt()` helper function ✅
+- [x] Replace scattered `strconv.Atoi()` calls with standardized validation ✅
+- [x] Add consistent error messages for invalid inputs ✅
+- **Implementation**: Added parsePositiveInt() to cmd/helpers.go with comprehensive validation
+- **Coverage**: Updated all comment ID and PR number parsing across commands (add, edit, react, resolve, review-reply, list)
+- **Validation**: Rejects zero and negative values with clear error messages
+- **Testing**: Added comprehensive test suite with 7 test cases covering all scenarios
 ```go
 // TODO: Add to cmd/helpers.go
 func parsePositiveInt(s, fieldName string) (int, error) {
@@ -640,12 +660,17 @@ func parsePositiveInt(s, fieldName string) (int, error) {
 }
 ```
 
-### 2. **Push Test Coverage to 85%+**
-- [ ] Generate HTML coverage report: `go test ./cmd -coverprofile=coverage.out && go tool cover -html=coverage.out`
-- [ ] Identify uncovered code paths
-- [ ] Add tests for error conditions in `getCurrentPR()`/`getCurrentRepo()`
-- [ ] Test edge cases in suggestion parsing logic
+### 2. **Push Test Coverage to 85%+** - 🚧 IN PROGRESS (Current: 77.0%)
+- [x] Generate HTML coverage report: `go test ./cmd -coverprofile=coverage.out && go tool cover -html=coverage.out` ✅
+- [x] Identify uncovered code paths ✅
+- [x] Add comprehensive tests for parsePositiveInt helper function ✅
+- [x] Add edge case tests for add command (TestAddCommandEdgeCases) ✅
+- [ ] Continue adding tests for error conditions in low-coverage functions
+- [ ] Test edge cases in suggestion parsing logic  
 - [ ] Add boundary condition tests for YAML batch processing
+- **Progress**: Coverage improved from 73.3% → 77.0% (+3.7 percentage points)
+- **Recent additions**: 7 parsePositiveInt tests + 5 add command edge case tests
+- **Next targets**: Functions with <80% coverage (runAdd: 64.1%, getPRContext: 55.6%, processAsReview: 62.1%)
 
 ### 3. **Add Input Length Validation**
 - [ ] Define constants for GitHub API limits

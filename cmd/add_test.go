@@ -120,3 +120,99 @@ func TestAddCommandWithMessages(t *testing.T) {
 	// Note: This would need access to the mock's internal state
 	// For now, just verify no error occurred
 }
+
+func TestAddCommandEdgeCases(t *testing.T) {
+	// Save original state
+	originalClient := addClient
+	originalMessages := messages
+	defer func() {
+		addClient = originalClient
+		messages = originalMessages
+	}()
+
+	tests := []struct {
+		name           string
+		args           []string
+		messages       []string
+		setupGlobals   func()
+		wantErr        bool
+		expectedErrMsg string
+	}{
+		{
+			name:     "with --message flags and explicit PR",
+			args:     []string{"123"},
+			messages: []string{"Test comment"},
+			setupGlobals: func() {
+				repo = "owner/repo"
+				prNumber = 0 // Explicit PR provided
+			},
+			wantErr: false,
+		},
+		{
+			name:     "with --message flags but invalid PR format",
+			args:     []string{"abc"},
+			messages: []string{"Test comment"},
+			setupGlobals: func() {
+				repo = "owner/repo"
+			},
+			wantErr:        true,
+			expectedErrMsg: "must be a valid integer",
+		},
+		{
+			name:     "with --message flags and too many args",
+			args:     []string{"123", "456"},
+			messages: []string{"Test comment"},
+			wantErr:        true,
+			expectedErrMsg: "invalid arguments when using --message flags",
+		},
+		{
+			name: "whitespace-only comment",
+			args: []string{"123", "   \n\t   "},
+			setupGlobals: func() {
+				repo = "owner/repo"
+			},
+			wantErr:        true,
+			expectedErrMsg: "comment cannot be empty",
+		},
+		{
+			name:     "empty --message flags",
+			args:     []string{"123"},
+			messages: []string{"", "   ", ""},
+			setupGlobals: func() {
+				repo = "owner/repo"
+			},
+			wantErr:        true,
+			expectedErrMsg: "comment cannot be empty",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Setup mock client
+			mockClient := github.NewMockClient()
+			mockClient.CreatedComment = &github.Comment{ID: 789012}
+			addClient = mockClient
+
+			// Setup globals
+			if tt.setupGlobals != nil {
+				tt.setupGlobals()
+			}
+
+			// Set messages
+			messages = tt.messages
+
+			// Run command
+			err := runAdd(nil, tt.args)
+
+			// Check results
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.expectedErrMsg != "" {
+					assert.Contains(t, err.Error(), tt.expectedErrMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}

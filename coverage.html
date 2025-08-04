@@ -54,315 +54,55 @@
 		<div id="topbar">
 			<div id="nav">
 				<select id="files">
-
-				<option value="file0">github.com/silouanwright/gh-comment/cmd/add-review.go (78.2%)</option>
-
-				<option value="file1">github.com/silouanwright/gh-comment/cmd/add.go (69.1%)</option>
-
-				<option value="file2">github.com/silouanwright/gh-comment/cmd/batch.go (85.3%)</option>
-
-				<option value="file3">github.com/silouanwright/gh-comment/cmd/client_helper.go (0.0%)</option>
-
-				<option value="file4">github.com/silouanwright/gh-comment/cmd/edit.go (91.2%)</option>
-
-				<option value="file5">github.com/silouanwright/gh-comment/cmd/helpers.go (91.7%)</option>
-
-				<option value="file6">github.com/silouanwright/gh-comment/cmd/integration_testing.go (0.0%)</option>
-
-				<option value="file7">github.com/silouanwright/gh-comment/cmd/list.go (78.9%)</option>
-
-				<option value="file8">github.com/silouanwright/gh-comment/cmd/reply.go (56.8%)</option>
-
-				<option value="file9">github.com/silouanwright/gh-comment/cmd/resolve.go (96.6%)</option>
-
-				<option value="file10">github.com/silouanwright/gh-comment/cmd/review.go (94.6%)</option>
-
-				<option value="file11">github.com/silouanwright/gh-comment/cmd/root.go (72.7%)</option>
-
-				<option value="file12">github.com/silouanwright/gh-comment/cmd/submit-review.go (94.3%)</option>
-
-				<option value="file13">github.com/silouanwright/gh-comment/cmd/suggestions.go (88.2%)</option>
-
+				
+				<option value="file0">github.com/silouanwright/gh-comment/cmd/add.go (65.7%)</option>
+				
+				<option value="file1">github.com/silouanwright/gh-comment/cmd/batch.go (83.0%)</option>
+				
+				<option value="file2">github.com/silouanwright/gh-comment/cmd/client_helper.go (100.0%)</option>
+				
+				<option value="file3">github.com/silouanwright/gh-comment/cmd/close-pending-review.go (90.4%)</option>
+				
+				<option value="file4">github.com/silouanwright/gh-comment/cmd/edit.go (83.8%)</option>
+				
+				<option value="file5">github.com/silouanwright/gh-comment/cmd/helpers.go (91.5%)</option>
+				
+				<option value="file6">github.com/silouanwright/gh-comment/cmd/integration_testing.go (65.0%)</option>
+				
+				<option value="file7">github.com/silouanwright/gh-comment/cmd/lines.go (89.2%)</option>
+				
+				<option value="file8">github.com/silouanwright/gh-comment/cmd/list.go (79.9%)</option>
+				
+				<option value="file9">github.com/silouanwright/gh-comment/cmd/prompts.go (34.3%)</option>
+				
+				<option value="file10">github.com/silouanwright/gh-comment/cmd/react.go (68.0%)</option>
+				
+				<option value="file11">github.com/silouanwright/gh-comment/cmd/resolve.go (84.4%)</option>
+				
+				<option value="file12">github.com/silouanwright/gh-comment/cmd/review-reply.go (58.9%)</option>
+				
+				<option value="file13">github.com/silouanwright/gh-comment/cmd/review.go (82.9%)</option>
+				
+				<option value="file14">github.com/silouanwright/gh-comment/cmd/root.go (45.5%)</option>
+				
+				<option value="file15">github.com/silouanwright/gh-comment/cmd/suggestions.go (97.0%)</option>
+				
 				</select>
 			</div>
 			<div id="legend">
 				<span>not tracked</span>
-
+			
 				<span class="cov0">not covered</span>
 				<span class="cov8">covered</span>
-
+			
 			</div>
 		</div>
 		<div id="content">
-
+		
 		<pre class="file" id="file0" style="display: none">package cmd
 
 import (
         "fmt"
-        "strconv"
-        "strings"
-
-        "github.com/silouanwright/gh-comment/internal/github"
-        "github.com/spf13/cobra"
-)
-
-var (
-        reviewBody                string
-        reviewComments            []string
-        reviewEvent               string
-        noExpandSuggestionsReview bool
-
-        // Client for dependency injection (tests can override)
-        addReviewClient github.GitHubAPI
-)
-
-var addReviewCmd = &amp;cobra.Command{
-        Use:   "add-review [pr] [review-body]",
-        Short: "Create a review with multiple comments in one shot",
-        Long: `Create a complete review with multiple line-specific comments.
-
-Since GitHub's API requires all review comments to be created together,
-this command allows you to specify multiple comments for a single review.
-
-The review can be submitted immediately or left as a pending draft.
-
-Examples:
-  # Create pending review with multiple comments
-  gh comment add-review 123 "Overall looks good" \
-    --comment "src/api.js:42:This handles rate limiting well" \
-    --comment "src/auth.js:15:20:Consider using async/await here"
-
-  # Create and submit review immediately
-  gh comment add-review 123 "LGTM with minor suggestions" \
-    --event APPROVE \
-    --comment "src/api.js:42:Great error handling" \
-    --comment "src/utils.js:10:Minor: consider extracting this constant"
-
-  # Auto-detect PR from current branch
-  gh comment add-review "Code review feedback" \
-    --comment "README.md:25:Update installation instructions" \
-    --comment "package.json:15:Bump version number"`,
-        Args: cobra.RangeArgs(0, 2),
-        RunE: runAddReview,
-}
-
-func init() <span class="cov8" title="1">{
-        rootCmd.AddCommand(addReviewCmd)
-        addReviewCmd.Flags().StringVar(&amp;reviewBody, "body", "", "Review summary body (optional)")
-        addReviewCmd.Flags().StringArrayVar(&amp;reviewComments, "comment", []string{}, "Add comment in format 'file:line:message' or 'file:start:end:message' (can be used multiple times)")
-        addReviewCmd.Flags().StringVar(&amp;reviewEvent, "event", "", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT (leave empty for pending review)")
-        addReviewCmd.Flags().BoolVar(&amp;noExpandSuggestionsReview, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and &lt;&lt;&lt;SUGGEST&gt;&gt;&gt; syntax")
-}</span>
-
-func runAddReview(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
-        // Initialize client if not set (production use)
-        if addReviewClient == nil </span><span class="cov0" title="0">{
-                addReviewClient = &amp;github.RealClient{}
-        }</span>
-
-        <span class="cov8" title="1">var pr int
-        var body string
-        var err error
-
-        // Parse arguments
-        if len(args) == 2 </span><span class="cov8" title="1">{
-                // PR number and body provided
-                pr, err = strconv.Atoi(args[0])
-                if err != nil </span><span class="cov8" title="1">{
-                        return formatValidationError("PR number", args[0], "must be a valid integer")
-                }</span>
-                <span class="cov8" title="1">body = args[1]</span>
-        } else<span class="cov8" title="1"> if len(args) == 1 </span><span class="cov8" title="1">{
-                // Check if it's a PR number or review body
-                if prNum, err := strconv.Atoi(args[0]); err == nil </span><span class="cov8" title="1">{
-                        // It's a PR number
-                        pr = prNum
-                }</span> else<span class="cov8" title="1"> {
-                        // It's a review body, auto-detect PR
-                        pr, err = getCurrentPR()
-                        if err != nil </span><span class="cov0" title="0">{
-                                return err
-                        }</span>
-                        <span class="cov8" title="1">body = args[0]</span>
-                }
-        } else<span class="cov8" title="1"> {
-                // Auto-detect PR
-                pr, err = getCurrentPR()
-                if err != nil </span><span class="cov0" title="0">{
-                        return err
-                }</span>
-        }
-
-        // Use --body flag if provided, otherwise use positional arg
-        <span class="cov8" title="1">if reviewBody != "" </span><span class="cov8" title="1">{
-                body = reviewBody
-        }</span>
-
-        // Validate that we have at least one comment
-        <span class="cov8" title="1">if len(reviewComments) == 0 </span><span class="cov8" title="1">{
-                return fmt.Errorf("must provide at least one --comment")
-        }</span>
-
-        // Get repository
-        <span class="cov8" title="1">repository, err := getCurrentRepo()
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-
-        <span class="cov8" title="1">if verbose </span><span class="cov0" title="0">{
-                fmt.Printf("Repository: %s\n", repository)
-                fmt.Printf("PR: %d\n", pr)
-                fmt.Printf("Review body: %s\n", body)
-                fmt.Printf("Review event: %s\n", reviewEvent)
-                fmt.Printf("Comments: %d\n", len(reviewComments))
-                fmt.Println()
-        }</span>
-
-        <span class="cov8" title="1">if dryRun </span><span class="cov0" title="0">{
-                fmt.Printf("Would create review on PR #%d:\n", pr)
-                fmt.Printf("Body: %s\n", body)
-                fmt.Printf("Event: %s\n", reviewEvent)
-                fmt.Printf("Comments:\n")
-                for i, comment := range reviewComments </span><span class="cov0" title="0">{
-                        fmt.Printf("  %d. %s\n", i+1, comment)
-                }</span>
-                <span class="cov0" title="0">return nil</span>
-        }
-
-        // Parse owner/repo
-        <span class="cov8" title="1">parts := strings.Split(repository, "/")
-        if len(parts) != 2 </span><span class="cov0" title="0">{
-                return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
-        }</span>
-        <span class="cov8" title="1">owner, repoName := parts[0], parts[1]
-
-        // Create the review with all comments using the client
-        return createReviewWithComments(addReviewClient, owner, repoName, pr, body, reviewEvent, reviewComments)</span>
-}
-
-func createReviewWithComments(client github.GitHubAPI, owner, repo string, pr int, body, event string, commentSpecs []string) error <span class="cov8" title="1">{
-        // Get PR details for commit SHA
-        prDetails, err := client.GetPRDetails(owner, repo, pr)
-        if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to get PR details: %w", err)
-        }</span>
-
-        // Extract commit SHA from PR details
-        <span class="cov8" title="1">var commitSHA string
-        if head, ok := prDetails["head"].(map[string]interface{}); ok </span><span class="cov8" title="1">{
-                if sha, ok := head["sha"].(string); ok </span><span class="cov8" title="1">{
-                        commitSHA = sha
-                }</span> else<span class="cov0" title="0"> {
-                        return fmt.Errorf("could not extract commit SHA from PR details")
-                }</span>
-        } else<span class="cov0" title="0"> {
-                return fmt.Errorf("could not extract head information from PR details")
-        }</span>
-
-        // Parse comment specifications
-        <span class="cov8" title="1">var reviewComments []github.ReviewCommentInput
-        for _, spec := range commentSpecs </span><span class="cov8" title="1">{
-                comment, err := parseCommentSpec(spec, commitSHA)
-                if err != nil </span><span class="cov8" title="1">{
-                        return fmt.Errorf("invalid comment spec '%s': %w", spec, err)
-                }</span>
-                <span class="cov8" title="1">reviewComments = append(reviewComments, comment)</span>
-        }
-
-        // Create review input
-        <span class="cov8" title="1">reviewInput := github.ReviewInput{
-                Body:     body,
-                Comments: reviewComments,
-        }
-
-        // Set event if specified (otherwise creates pending review)
-        if event != "" </span><span class="cov8" title="1">{
-                reviewInput.Event = event
-        }</span> else<span class="cov8" title="1"> {
-                reviewInput.Event = "COMMENT" // Default for pending review
-        }</span>
-
-        // Create the review
-        <span class="cov8" title="1">err = client.CreateReview(owner, repo, pr, reviewInput)
-        if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to create review: %w", err)
-        }</span>
-
-        // Display success message
-        <span class="cov8" title="1">if event == "" </span><span class="cov8" title="1">{
-                fmt.Printf("✅ Created pending review with %d comments on PR #%d\n", len(reviewComments), pr)
-                fmt.Printf("💡 Use 'gh pr review --approve/--request-changes/--comment' to submit the review\n")
-        }</span> else<span class="cov8" title="1"> {
-                fmt.Printf("✅ Created and submitted %s review with %d comments on PR #%d\n", event, len(reviewComments), pr)
-        }</span>
-
-        <span class="cov8" title="1">return nil</span>
-}
-
-func parseCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, error) <span class="cov8" title="1">{
-        // Format: "file:line:message" or "file:start:end:message"
-        parts := strings.Split(spec, ":")
-        if len(parts) &lt; 3 </span><span class="cov8" title="1">{
-                return github.ReviewCommentInput{}, fmt.Errorf("format should be 'file:line:message' or 'file:start:end:message'")
-        }</span>
-
-        <span class="cov8" title="1">file := parts[0]
-
-        // Try to parse as range first (file:start:end:message...)
-        if len(parts) &gt;= 4 </span><span class="cov8" title="1">{
-                startLine, err := strconv.Atoi(parts[1])
-                if err == nil </span><span class="cov8" title="1">{
-                        endLine, err := strconv.Atoi(parts[2])
-                        if err == nil </span><span class="cov8" title="1">{
-                                // This is a valid range format
-                                if startLine &gt; endLine </span><span class="cov8" title="1">{
-                                        return github.ReviewCommentInput{}, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", startLine, endLine)
-                                }</span>
-
-                                // Join remaining parts as the message (in case message contains colons)
-                                <span class="cov8" title="1">body := strings.Join(parts[3:], ":")
-                                if !noExpandSuggestionsReview </span><span class="cov8" title="1">{
-                                        body = expandSuggestions(body)
-                                }</span>
-
-                                <span class="cov8" title="1">return github.ReviewCommentInput{
-                                        Path:      file,
-                                        Line:      endLine,
-                                        StartLine: startLine,
-                                        Side:      "RIGHT",
-                                        Body:      body,
-                                        CommitID:  commitSHA,
-                                }, nil</span>
-                        }
-                }
-        }
-
-        // Parse as single line: file:line:message...
-        <span class="cov8" title="1">line, err := strconv.Atoi(parts[1])
-        if err != nil </span><span class="cov8" title="1">{
-                return github.ReviewCommentInput{}, fmt.Errorf("invalid line number: %s", parts[1])
-        }</span>
-
-        // Join remaining parts as the message (in case message contains colons)
-        <span class="cov8" title="1">body := strings.Join(parts[2:], ":")
-        if !noExpandSuggestionsReview </span><span class="cov8" title="1">{
-                body = expandSuggestions(body)
-        }</span>
-
-        <span class="cov8" title="1">return github.ReviewCommentInput{
-                Path:     file,
-                Line:     line,
-                Body:     body,
-                CommitID: commitSHA,
-        }, nil</span>
-}
-</pre>
-
-		<pre class="file" id="file1" style="display: none">package cmd
-
-import (
-        "fmt"
-        "strconv"
         "strings"
 
         "github.com/MakeNowJust/heredoc"
@@ -379,42 +119,39 @@ var (
 )
 
 var addCmd = &amp;cobra.Command{
-        Use:   "add [pr] &lt;file&gt; &lt;line&gt; &lt;comment&gt;",
-        Short: "Add a comment to a pull request",
+        Use:   "add [pr] &lt;comment&gt;",
+        Short: "Add a general discussion comment to a pull request",
         Long: heredoc.Doc(`
-                Add a comment to a pull request. Comments can be general PR comments
-                or line-specific review comments.
+                Add a general discussion comment to a pull request conversation.
 
-                For line-specific comments, use file and line arguments to target
-                specific code locations. Supports both single-line and range comments.
+                This command creates issue-style comments that appear in the main PR conversation,
+                not attached to specific code lines. These comments support threaded replies
+                and are perfect for general discussion, approval, or high-level feedback.
+
+                For line-specific code review comments, use: 'gh comment review'
 
                 The comment message supports GitHub markdown formatting and can include
                 code suggestions using the [SUGGEST: code] syntax.
         `),
         Example: heredoc.Doc(`
-                # Strategic line-specific commenting
-                $ gh comment add 123 src/api.js 42 "This rate limiting logic needs edge case handling for concurrent requests"
-                $ gh comment add 123 auth.go 15:25 "Consider OAuth2 PKCE flow for mobile clients - current implementation has security gaps"
+                # General PR discussion comments
+                $ gh comment add 123 "LGTM! Just a few minor suggestions below"
+                $ gh comment add 123 "Thanks for addressing the security concerns"
+                $ gh comment add 123 "This looks great - ready to merge after CI passes"
 
-                # Security-focused reviews
-                $ gh comment add 123 database.py 156 "This query is vulnerable to SQL injection - use parameterized queries"
-                $ gh comment add 123 crypto.js 67 "[SUGGEST: use crypto.randomBytes(32) instead of Math.random()]"
-
-                # Performance optimization suggestions
-                $ gh comment add 123 performance.js 89:95 "Extract this expensive calculation to a cached service - it's called on every render"
-                $ gh comment add 123 db/migrations.sql 23 "Add index on user_id column for faster lookups: CREATE INDEX idx_user_id ON orders(user_id)"
-
-                # Architecture and design feedback
-                $ gh comment add 123 service.go 134:150 "This business logic should be extracted to a domain service layer"
-                $ gh comment add 123 component.tsx 45 "Consider using React.memo() to prevent unnecessary re-renders"
-
-                # Multi-line strategic feedback
-                $ gh comment add 123 error-handler.js 78 -m "**Critical:** This error handling is incomplete" -m "Missing: rate limit errors, network timeouts, auth failures"
+                # Multi-line comments with --message flags
+                $ gh comment add 123 -m "Overall this is excellent work!" -m "The architecture is clean and the tests are comprehensive"
 
                 # Auto-detect PR from current branch
-                $ gh comment add src/validation.js 156 "Add input sanitization before database operations"
+                $ gh comment add "Looks good to merge!"
+
+                # Approval with context
+                $ gh comment add 123 "Approved! The performance improvements in this PR will make a huge difference"
+
+                # Request for changes with discussion
+                $ gh comment add 123 "Could you address the failing tests? Otherwise looks good to go"
         `),
-        Args: cobra.RangeArgs(2, 4),
+        Args: cobra.RangeArgs(1, 2),
         RunE: runAdd,
 }
 
@@ -435,60 +172,60 @@ func runAdd(cmd *cobra.Command, args []string) error <span class="cov8" title="1
         }
 
         <span class="cov8" title="1">var pr int
-        var file, lineSpec, comment string
+        var repository string
+        var comment string
         var err error
 
-        // Parse arguments - handle both 3 and 4 arg cases, plus --message flags
-        if len(args) == 4 </span><span class="cov8" title="1">{
-                // PR number provided
-                pr, err = strconv.Atoi(args[0])
+        // Parse arguments for general PR comments
+        if len(messages) &gt; 0 </span><span class="cov8" title="1">{
+                // Using --message flags
+                if len(args) == 1 </span><span class="cov8" title="1">{
+                        // PR provided + --message flags
+                        pr, err = parsePositiveInt(args[0], "PR number")
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        // Get repository for explicitly provided PR
+                        <span class="cov8" title="1">repository, err = getCurrentRepo()
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                } else<span class="cov0" title="0"> if len(args) == 0 </span><span class="cov0" title="0">{
+                        // Auto-detect PR + --message flags using centralized function
+                        repository, pr, err = getPRContext()
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                } else<span class="cov0" title="0"> {
+                        return fmt.Errorf("invalid arguments when using --message flags: expected [pr] or no args")
+                }</span>
+                <span class="cov8" title="1">comment = strings.Join(messages, "\n")</span>
+        } else<span class="cov8" title="1"> if len(args) == 2 </span><span class="cov8" title="1">{
+                // PR number provided + comment
+                pr, err = parsePositiveInt(args[0], "PR number")
                 if err != nil </span><span class="cov8" title="1">{
-                        return formatValidationError("PR number", args[0], "must be a valid integer")
+                        return err
                 }</span>
-                <span class="cov8" title="1">file = args[1]
-                lineSpec = args[2]
-                comment = args[3]</span>
-        } else<span class="cov8" title="1"> if len(args) == 3 </span><span class="cov8" title="1">{
-                // PR number not provided, auto-detect
-                pr, err = getCurrentPR()
+                <span class="cov8" title="1">comment = args[1]
+                // Get repository for explicitly provided PR
+                repository, err = getCurrentRepo()
                 if err != nil </span><span class="cov0" title="0">{
                         return err
                 }</span>
-                <span class="cov8" title="1">file = args[0]
-                lineSpec = args[1]
-                comment = args[2]</span>
-        } else<span class="cov8" title="1"> if len(args) == 2 &amp;&amp; len(messages) &gt; 0 </span><span class="cov8" title="1">{
-                // Using --message flags instead of positional comment
-                pr, err = getCurrentPR()
+        } else<span class="cov8" title="1"> if len(args) == 1 </span><span class="cov8" title="1">{
+                // Auto-detect PR from current branch + comment using centralized function
+                repository, pr, err = getPRContext()
                 if err != nil </span><span class="cov0" title="0">{
                         return err
                 }</span>
-                <span class="cov8" title="1">file = args[0]
-                lineSpec = args[1]
-                comment = strings.Join(messages, "\n")</span>
-        } else<span class="cov8" title="1"> if len(args) == 3 &amp;&amp; len(messages) &gt; 0 </span><span class="cov0" title="0">{
-                // PR provided + --message flags
-                pr, err = strconv.Atoi(args[0])
-                if err != nil </span><span class="cov0" title="0">{
-                        return formatValidationError("PR number", args[0], "must be a valid integer")
-                }</span>
-                <span class="cov0" title="0">file = args[1]
-                lineSpec = args[2]
-                comment = strings.Join(messages, "\n")</span>
+                <span class="cov8" title="1">comment = args[0]</span>
         } else<span class="cov8" title="1"> {
-                return fmt.Errorf("invalid arguments. Use: gh comment add [pr] &lt;file&gt; &lt;line&gt; &lt;comment&gt; OR gh comment add [pr] &lt;file&gt; &lt;line&gt; --message \"line1\" --message \"line2\"")
+                return fmt.Errorf("invalid arguments. Use: gh comment add [pr] &lt;comment&gt; OR gh comment add [pr] --message \"line1\" --message \"line2\"")
         }</span>
 
-        // Get repository
-        <span class="cov8" title="1">repository, err := getCurrentRepo()
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-
-        // Parse line specification
-        <span class="cov8" title="1">startLine, endLine, err := parseLineSpec(lineSpec)
-        if err != nil </span><span class="cov8" title="1">{
-                return err
+        // Validate comment
+        <span class="cov8" title="1">if strings.TrimSpace(comment) == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("comment cannot be empty")
         }</span>
 
         // Expand suggestion syntax to GitHub markdown (unless disabled)
@@ -502,23 +239,15 @@ func runAdd(cmd *cobra.Command, args []string) error <span class="cov8" title="1
         <span class="cov8" title="1">if verbose </span><span class="cov0" title="0">{
                 fmt.Printf("Repository: %s\n", repository)
                 fmt.Printf("PR: %d\n", pr)
-                fmt.Printf("File: %s\n", file)
-                fmt.Printf("Line(s): %d", startLine)
-                if endLine != startLine </span><span class="cov0" title="0">{
-                        fmt.Printf("-%d", endLine)
-                }</span>
-                <span class="cov0" title="0">fmt.Printf("\nOriginal comment: %s\n", comment)
-                fmt.Printf("Transformed comment: %s\n", transformedComment)</span>
-        }
+                fmt.Printf("Comment type: General discussion\n")
+                fmt.Printf("Original comment: %s\n", comment)
+                fmt.Printf("Transformed comment: %s\n", transformedComment)
+        }</span>
 
         <span class="cov8" title="1">if dryRun </span><span class="cov0" title="0">{
-                fmt.Printf("Would add comment to %s:%d", file, startLine)
-                if endLine != startLine </span><span class="cov0" title="0">{
-                        fmt.Printf("-%d", endLine)
-                }</span>
-                <span class="cov0" title="0">fmt.Printf(" in PR #%d:\n%s\n", pr, transformedComment)
-                return nil</span>
-        }
+                fmt.Printf("Would add general comment to PR #%d:\n%s\n", pr, transformedComment)
+                return nil
+        }</span>
 
         // Parse owner/repo
         <span class="cov8" title="1">parts := strings.Split(repository, "/")
@@ -527,96 +256,24 @@ func runAdd(cmd *cobra.Command, args []string) error <span class="cov8" title="1
         }</span>
         <span class="cov8" title="1">owner, repoName := parts[0], parts[1]
 
-        // Create review comment input
-        reviewComment := github.ReviewCommentInput{
-                Body: transformedComment,
-                Path: file,
-                Line: endLine, // GitHub API uses the end line for ranges
-        }
-
-        // If it's a range, add start_line
-        if startLine != endLine </span><span class="cov8" title="1">{
-                reviewComment.StartLine = startLine
-                reviewComment.Side = "RIGHT"
-        }</span>
-
-        // We need the commit SHA - get PR details first
-        <span class="cov8" title="1">prDetails, err := addClient.GetPRDetails(owner, repoName, pr)
+        // Create general issue comment (not review comment)
+        createdComment, err := addClient.CreateIssueComment(owner, repoName, pr, transformedComment)
         if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to get PR details: %w", err)
-        }</span>
-
-        // Extract commit SHA from PR details
-        <span class="cov8" title="1">if head, ok := prDetails["head"].(map[string]interface{}); ok </span><span class="cov8" title="1">{
-                if sha, ok := head["sha"].(string); ok </span><span class="cov8" title="1">{
-                        reviewComment.CommitID = sha
-                }</span> else<span class="cov0" title="0"> {
-                        return fmt.Errorf("could not extract commit SHA from PR details")
-                }</span>
-        } else<span class="cov0" title="0"> {
-                return fmt.Errorf("could not extract head information from PR details")
-        }</span>
-
-        // Add the comment via GitHub API
-        <span class="cov8" title="1">err = addClient.AddReviewComment(owner, repoName, pr, reviewComment)
-        if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to add comment: %w", err)
+                return formatActionableError("comment creation", err)
         }</span>
 
         // Success message
-        <span class="cov8" title="1">fmt.Printf("✓ Added comment to %s:%d", file, startLine)
-        if endLine != startLine </span><span class="cov8" title="1">{
-                fmt.Printf("-%d", endLine)
+        <span class="cov8" title="1">fmt.Printf("✓ Added comment to PR #%d", pr)
+        if createdComment != nil &amp;&amp; createdComment.ID != 0 </span><span class="cov8" title="1">{
+                fmt.Printf(" (ID: %d)", createdComment.ID)
         }</span>
-        <span class="cov8" title="1">fmt.Printf(" in PR #%d\n", pr)
+        <span class="cov8" title="1">fmt.Println()
 
         return nil</span>
 }
-
-func parseLineSpec(lineSpec string) (int, int, error) <span class="cov8" title="1">{
-        if strings.Contains(lineSpec, ":") </span><span class="cov8" title="1">{
-                // Range specification
-                parts := strings.Split(lineSpec, ":")
-                if len(parts) != 2 </span><span class="cov8" title="1">{
-                        return 0, 0, fmt.Errorf("invalid line range format: %s (use start:end)", lineSpec)
-                }</span>
-
-                <span class="cov8" title="1">start, err := strconv.Atoi(parts[0])
-                if err != nil </span><span class="cov8" title="1">{
-                        return 0, 0, fmt.Errorf("invalid start line: %s", parts[0])
-                }</span>
-
-                <span class="cov8" title="1">end, err := strconv.Atoi(parts[1])
-                if err != nil </span><span class="cov8" title="1">{
-                        return 0, 0, fmt.Errorf("invalid end line: %s", parts[1])
-                }</span>
-
-                <span class="cov8" title="1">if start &lt;= 0 || end &lt;= 0 </span><span class="cov0" title="0">{
-                        return 0, 0, fmt.Errorf("line numbers must be positive")
-                }</span>
-
-                <span class="cov8" title="1">if start &gt; end </span><span class="cov8" title="1">{
-                        return 0, 0, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", start, end)
-                }</span>
-
-                <span class="cov8" title="1">return start, end, nil</span>
-        } else<span class="cov8" title="1"> {
-                // Single line
-                line, err := strconv.Atoi(lineSpec)
-                if err != nil </span><span class="cov8" title="1">{
-                        return 0, 0, fmt.Errorf("invalid line number: %s", lineSpec)
-                }</span>
-                <span class="cov8" title="1">if line &lt;= 0 </span><span class="cov0" title="0">{
-                        return 0, 0, fmt.Errorf("line numbers must be positive")
-                }</span>
-                <span class="cov8" title="1">return line, line, nil</span>
-        }
-}
-
-
 </pre>
-
-		<pre class="file" id="file2" style="display: none">package cmd
+		
+		<pre class="file" id="file1" style="display: none">package cmd
 
 import (
         "fmt"
@@ -670,13 +327,13 @@ var batchCmd = &amp;cobra.Command{
         `),
         Example: heredoc.Doc(`
                 # Process comments from config
-                $ gh comment batch review-config.yaml
+                $ gh comment batch 123 review-config.yaml
 
                 # Validate config without executing
-                $ gh comment batch review-config.yaml --dry-run
+                $ gh comment batch 123 review-config.yaml --dry-run
 
-                # Process with custom PR number
-                $ gh comment batch review-config.yaml --pr 456
+                # Use verbose output
+                $ gh comment batch 123 review-config.yaml --verbose
         `),
         Args: cobra.ExactArgs(2),
         RunE: runBatch,
@@ -689,8 +346,12 @@ func init() <span class="cov8" title="1">{
 func runBatch(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
         // Initialize client if not set (production use)
         if batchClient == nil </span><span class="cov0" title="0">{
-                batchClient = &amp;github.RealClient{}
-        }</span>
+                client, err := createGitHubClient()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create GitHub client: %w", err)
+                }</span>
+                <span class="cov0" title="0">batchClient = client</span>
+        }
 
         // Parse PR number
         <span class="cov8" title="1">prArg := args[0]
@@ -842,22 +503,13 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
                         <span class="cov8" title="1">continue</span>
                 }
 
-                // Get commit SHA for the PR
-                <span class="cov8" title="1">prDetails, err := client.GetPRDetails(owner, repo, pr)
-                if err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("failed to get PR details: %w", err)
-                }</span>
-
-                <span class="cov8" title="1">headSHA, ok := prDetails["head"].(map[string]interface{})["sha"].(string)
-                if !ok </span><span class="cov0" title="0">{
-                        return fmt.Errorf("failed to get commit SHA from PR details")
-                }</span>
+                // Note: GitHub automatically uses the latest commit SHA for review comments
 
                 // Create review comment input
                 <span class="cov8" title="1">reviewComment := github.ReviewCommentInput{
-                        Body:     expandSuggestions(comment.Message),
-                        Path:     comment.File,
-                        CommitID: headSHA,
+                        Body: expandSuggestions(comment.Message),
+                        Path: comment.File,
+                        Side: "RIGHT", // Default to RIGHT side (additions/new lines)
                 }
 
                 // Set line or range
@@ -871,6 +523,13 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
                 } else<span class="cov8" title="1"> {
                         reviewComment.Line = comment.Line
                 }</span>
+
+                // Validate line exists in diff if validation is enabled
+                <span class="cov8" title="1">if validateDiff </span><span class="cov0" title="0">{
+                        if err := validateCommentLine(client, owner, repo, pr, reviewComment); err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("review comment validation failed: %w", err)
+                        }</span>
+                }
 
                 <span class="cov8" title="1">reviewComments = append(reviewComments, reviewComment)</span>
         }
@@ -913,20 +572,12 @@ func processIndividualComments(client github.GitHubAPI, owner, repo string, pr i
                         _, err = client.CreateIssueComment(owner, repo, pr, expandSuggestions(comment.Message))
                 }</span> else<span class="cov8" title="1"> {
                         // For review comments, we need the commit SHA
-                        prDetails, err := client.GetPRDetails(owner, repo, pr)
-                        if err != nil </span><span class="cov0" title="0">{
-                                return fmt.Errorf("failed to get PR details: %w", err)
-                        }</span>
+                        // Note: GitHub automatically uses the latest commit SHA for review comments
 
-                        <span class="cov8" title="1">headSHA, ok := prDetails["head"].(map[string]interface{})["sha"].(string)
-                        if !ok </span><span class="cov0" title="0">{
-                                return fmt.Errorf("failed to get commit SHA from PR details")
-                        }</span>
-
-                        <span class="cov8" title="1">reviewComment := github.ReviewCommentInput{
-                                Body:     expandSuggestions(comment.Message),
-                                Path:     comment.File,
-                                CommitID: headSHA,
+                        reviewComment := github.ReviewCommentInput{
+                                Body: expandSuggestions(comment.Message),
+                                Path: comment.File,
+                                Side: "RIGHT", // Default to RIGHT side (additions/new lines)
                         }
 
                         // Set line or range
@@ -940,6 +591,13 @@ func processIndividualComments(client github.GitHubAPI, owner, repo string, pr i
                         } else<span class="cov8" title="1"> {
                                 reviewComment.Line = comment.Line
                         }</span>
+
+                        // Validate line exists in diff if validation is enabled
+                        <span class="cov8" title="1">if validateDiff </span><span class="cov0" title="0">{
+                                if err := validateCommentLine(client, owner, repo, pr, reviewComment); err != nil </span><span class="cov0" title="0">{
+                                        return fmt.Errorf("comment %d validation failed: %w", i+1, err)
+                                }</span>
+                        }
 
                         <span class="cov8" title="1">err = client.AddReviewComment(owner, repo, pr, reviewComment)</span>
                 }
@@ -991,13 +649,14 @@ func parseRange(rangeStr string) (startLine, endLine int, err error) <span class
         }</span>
 
         <span class="cov8" title="1">if startLine &gt; endLine </span><span class="cov8" title="1">{
-                return 0, 0, fmt.Errorf("start line must be &lt;= end line")
+                return 0, 0, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", startLine, endLine)
         }</span>
 
         <span class="cov8" title="1">return startLine, endLine, nil</span>
-}</pre>
-
-		<pre class="file" id="file3" style="display: none">package cmd
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package cmd
 
 import (
         "os"
@@ -1006,21 +665,206 @@ import (
 )
 
 // createGitHubClient creates the appropriate GitHub client based on environment
-func createGitHubClient() (github.GitHubAPI, error) <span class="cov0" title="0">{
+func createGitHubClient() (github.GitHubAPI, error) <span class="cov8" title="1">{
         // Check if we're in a test environment with mock server
-        if mockURL := os.Getenv("MOCK_SERVER_URL"); mockURL != "" </span><span class="cov0" title="0">{
+        if mockURL := os.Getenv("MOCK_SERVER_URL"); mockURL != "" </span><span class="cov8" title="1">{
                 return github.NewTestClient()
         }</span>
 
         // Use real client for production
-        <span class="cov0" title="0">return github.NewRealClient()</span>
-}</pre>
-
-		<pre class="file" id="file4" style="display: none">package cmd
+        <span class="cov8" title="1">return github.NewRealClient()</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package cmd
 
 import (
         "fmt"
         "strconv"
+        "strings"
+
+        "github.com/silouanwright/gh-comment/internal/github"
+        "github.com/spf13/cobra"
+)
+
+var (
+        closePendingEvent  string
+        closePendingBody   string
+        closePendingClient github.GitHubAPI
+)
+
+var closePendingReviewCmd = &amp;cobra.Command{
+        Use:   "close-pending-review [pr] [body]",
+        Short: "Close/submit a pending review created in GitHub's web interface",
+        Long: `Close and submit a pending review that was created in GitHub's web interface.
+
+IMPORTANT: This command only works with pending reviews created through GitHub's
+web interface. The GitHub API cannot create pending reviews - only the web UI can.
+
+This command finds your existing pending review on the PR and submits it with
+the specified event type (APPROVE, REQUEST_CHANGES, or COMMENT) and optional
+summary body.
+
+Once submitted, the pending review becomes visible to others and you can create
+new reviews.
+
+Note: This does NOT work with reviews created via 'gh comment add-review' or
+'gh comment review' commands, as those create submitted reviews immediately.`,
+        Example: `  # Submit GUI-created pending review with approval
+  gh comment close-pending-review 123 "LGTM! Great work" --event APPROVE
+
+  # Submit with change requests
+  gh comment close-pending-review 123 "Please address the comments" --event REQUEST_CHANGES
+
+  # Submit as general comment
+  gh comment close-pending-review 123 "Thanks for the updates" --event COMMENT
+
+  # Submit with minimal body (auto-detect PR)
+  gh comment close-pending-review "Looks good" --event APPROVE
+
+  # Submit without additional body
+  gh comment close-pending-review 123 --event APPROVE`,
+        Args: cobra.RangeArgs(0, 2),
+        RunE: runClosePendingReview,
+}
+
+func init() <span class="cov8" title="1">{
+        rootCmd.AddCommand(closePendingReviewCmd)
+        closePendingReviewCmd.Flags().StringVar(&amp;closePendingEvent, "event", "COMMENT", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT")
+        closePendingReviewCmd.Flags().StringVar(&amp;closePendingBody, "body", "", "Review summary body (optional)")
+}</span>
+
+func runClosePendingReview(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
+        // Initialize client if not set (production use)
+        if closePendingClient == nil </span><span class="cov0" title="0">{
+                client, err := createGitHubClient()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create GitHub client: %w", err)
+                }</span>
+                <span class="cov0" title="0">closePendingClient = client</span>
+        }
+
+        <span class="cov8" title="1">var pr int
+        var body string
+        var err error
+
+        // Parse arguments
+        if len(args) == 2 </span><span class="cov8" title="1">{
+                // PR number and body provided
+                pr, err = strconv.Atoi(args[0])
+                if err != nil </span><span class="cov8" title="1">{
+                        return formatValidationError("PR number", args[0], "must be a valid integer")
+                }</span>
+                <span class="cov8" title="1">body = args[1]</span>
+        } else<span class="cov8" title="1"> if len(args) == 1 </span><span class="cov8" title="1">{
+                // Check if it's a PR number or review body
+                if prNum, err := strconv.Atoi(args[0]); err == nil </span><span class="cov8" title="1">{
+                        // It's a PR number
+                        pr = prNum
+                }</span> else<span class="cov8" title="1"> {
+                        // It's a review body, auto-detect PR
+                        _, prNum, err := getPRContext()
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov8" title="1">pr = prNum
+                        body = args[0]</span>
+                }
+        } else<span class="cov8" title="1"> {
+                // Auto-detect PR
+                _, prNum, err := getPRContext()
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">pr = prNum</span>
+        }
+
+        // Use --body flag if provided, otherwise use positional arg
+        <span class="cov8" title="1">if closePendingBody != "" </span><span class="cov8" title="1">{
+                body = closePendingBody
+        }</span>
+
+        // Validate event type
+        <span class="cov8" title="1">validEvents := []string{"APPROVE", "REQUEST_CHANGES", "COMMENT"}
+        isValidEvent := false
+        for _, validEvent := range validEvents </span><span class="cov8" title="1">{
+                if closePendingEvent == validEvent </span><span class="cov8" title="1">{
+                        isValidEvent = true
+                        break</span>
+                }
+        }
+        <span class="cov8" title="1">if !isValidEvent </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid event type: %s (must be APPROVE, REQUEST_CHANGES, or COMMENT)", closePendingEvent)
+        }</span>
+
+        // Get repository and PR context
+        <span class="cov8" title="1">repository, pr, err := getPRContext()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Parse owner/repo
+        <span class="cov8" title="1">parts := strings.Split(repository, "/")
+        if len(parts) != 2 </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+        }</span>
+        <span class="cov8" title="1">owner, repoName := parts[0], parts[1]
+
+        if verbose </span><span class="cov8" title="1">{
+                fmt.Printf("Repository: %s\n", repository)
+                fmt.Printf("PR: %d\n", pr)
+                fmt.Printf("Review body: %s\n", body)
+                fmt.Printf("Review event: %s\n", closePendingEvent)
+                fmt.Println()
+        }</span>
+
+        <span class="cov8" title="1">if dryRun </span><span class="cov8" title="1">{
+                fmt.Printf("Would close pending review on PR #%d:\n", pr)
+                fmt.Printf("Body: %s\n", body)
+                fmt.Printf("Event: %s\n", closePendingEvent)
+                return nil
+        }</span>
+
+        // Find the pending review
+        <span class="cov8" title="1">reviewID, err := closePendingClient.FindPendingReview(owner, repoName, pr)
+        if err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("failed to find pending review: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if reviewID == 0 </span><span class="cov8" title="1">{
+                return fmt.Errorf("no pending review found on PR #%d\n\nNote: This command only works with pending reviews created in GitHub's web interface.\nUse 'gh comment review' to create and submit reviews via CLI.", pr)
+        }</span>
+
+        <span class="cov8" title="1">if verbose </span><span class="cov8" title="1">{
+                fmt.Printf("Found pending review ID: %d\n", reviewID)
+        }</span>
+
+        // Submit the review
+        <span class="cov8" title="1">err = closePendingClient.SubmitReview(owner, repoName, pr, reviewID, body, closePendingEvent)
+        if err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("failed to submit review: %w", err)
+        }</span>
+
+        // Display success message
+        <span class="cov8" title="1">eventText := ""
+        switch closePendingEvent </span>{
+        case "APPROVE":<span class="cov8" title="1">
+                eventText = "approved"</span>
+        case "REQUEST_CHANGES":<span class="cov8" title="1">
+                eventText = "requested changes"</span>
+        case "COMMENT":<span class="cov8" title="1">
+                eventText = "commented"</span>
+        }
+
+        <span class="cov8" title="1">fmt.Printf("✅ Successfully submitted pending review and %s PR #%d\n", eventText, pr)
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package cmd
+
+import (
+        "fmt"
         "strings"
 
         "github.com/silouanwright/gh-comment/internal/github"
@@ -1071,13 +915,17 @@ func init() <span class="cov8" title="1">{
 func runEdit(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
         // Initialize client if not set (production use)
         if editClient == nil </span><span class="cov0" title="0">{
-                editClient = &amp;github.RealClient{}
-        }</span>
+                client, err := createGitHubClient()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create GitHub client: %w", err)
+                }</span>
+                <span class="cov0" title="0">editClient = client</span>
+        }
 
         // Parse comment ID
-        <span class="cov8" title="1">commentID, err := strconv.Atoi(args[0])
+        <span class="cov8" title="1">commentID, err := parsePositiveInt(args[0], "comment ID")
         if err != nil </span><span class="cov8" title="1">{
-                return formatValidationError("comment ID", args[0], "must be a valid integer")
+                return err
         }</span>
 
         <span class="cov8" title="1">var message string
@@ -1091,8 +939,8 @@ func runEdit(cmd *cobra.Command, args []string) error <span class="cov8" title="
                 return fmt.Errorf("must provide either a message argument or --message flags")
         }</span>
 
-        // Get repository
-        <span class="cov8" title="1">repository, err := getCurrentRepo()
+        // Get repository context
+        <span class="cov8" title="1">repository, prNumber, err := getPRContext()
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
@@ -1118,21 +966,22 @@ func runEdit(cmd *cobra.Command, args []string) error <span class="cov8" title="
         }</span>
 
         // Edit the comment using the client
-        <span class="cov8" title="1">err = editClient.EditComment(owner, repoName, commentID, message)
+        <span class="cov8" title="1">err = editClient.EditComment(owner, repoName, commentID, prNumber, message)
         if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to edit comment: %w", err)
+                return formatActionableError("comment editing", err)
         }</span>
 
         <span class="cov8" title="1">fmt.Printf("✅ Edited comment #%d\n", commentID)
         return nil</span>
 }
-
 </pre>
-
+		
 		<pre class="file" id="file5" style="display: none">package cmd
 
 import (
         "fmt"
+        "strconv"
+        "strings"
 )
 
 // Constants for API limits and defaults
@@ -1151,9 +1000,9 @@ func getPRContext() (repo string, pr int, err error) <span class="cov8" title="1
 
         <span class="cov8" title="1">if prNumber &gt; 0 </span><span class="cov8" title="1">{
                 pr = prNumber
-        }</span> else<span class="cov8" title="1"> {
+        }</span> else<span class="cov0" title="0"> {
                 pr, err = getCurrentPR()
-                if err != nil </span><span class="cov8" title="1">{
+                if err != nil </span><span class="cov0" title="0">{
                         return "", 0, fmt.Errorf("failed to detect PR number: %w (try specifying --pr)", err)
                 }</span>
         }
@@ -1166,6 +1015,52 @@ func formatAPIError(operation, endpoint string, err error) error <span class="co
         return fmt.Errorf("GitHub API error during %s: %w", operation, err)
 }</span>
 
+// formatActionableError creates user-friendly error messages with actionable suggestions
+func formatActionableError(operation string, err error) error <span class="cov8" title="1">{
+        errStr := err.Error()
+
+        // Handle common GitHub API error patterns
+        switch </span>{
+        case containsAny(errStr, []string{"422", "Unprocessable Entity", "validation failed"}):<span class="cov8" title="1">
+                return fmt.Errorf("validation error during %s: %w\n\n💡 Suggestions:\n  • Check if the line number exists in the PR diff\n  • Use 'gh comment lines &lt;pr&gt; &lt;file&gt;' to see commentable lines\n  • Verify the file path is correct in the PR\n  • For line-specific comments, ensure the line was modified in this PR", operation, err)</span>
+
+        case containsAny(errStr, []string{"404", "Not Found"}):<span class="cov8" title="1">
+                return fmt.Errorf("resource not found during %s: %w\n\n💡 Suggestions:\n  • Verify the PR number exists and is accessible\n  • Check if the comment ID is valid\n  • Ensure you have permission to access this repository", operation, err)</span>
+
+        case containsAny(errStr, []string{"403", "Forbidden"}):<span class="cov8" title="1">
+                return fmt.Errorf("permission denied during %s: %w\n\n💡 Suggestions:\n  • Check if you have write access to the repository\n  • Verify your GitHub authentication with 'gh auth status'\n  • You cannot approve your own PR or comment on private repos without access", operation, err)</span>
+
+        case containsAny(errStr, []string{"401", "Unauthorized"}):<span class="cov8" title="1">
+                return fmt.Errorf("authentication failed during %s: %w\n\n💡 Suggestions:\n  • Run 'gh auth login' to authenticate with GitHub\n  • Check if your token has expired\n  • Verify you're authenticated with the correct GitHub account", operation, err)</span>
+
+        case containsAny(errStr, []string{"rate limit", "rate_limit", "too many requests"}):<span class="cov8" title="1">
+                return fmt.Errorf("rate limit exceeded during %s: %w\n\n💡 Suggestions:\n  • Wait a few minutes before trying again\n  • Use authenticated requests (ensure 'gh auth status' shows logged in)\n  • Consider reducing the frequency of API calls", operation, err)</span>
+
+        case containsAny(errStr, []string{"500", "502", "503", "Internal Server Error", "Bad Gateway", "Service Unavailable"}):<span class="cov8" title="1">
+                return fmt.Errorf("GitHub server error during %s: %w\n\n💡 Suggestions:\n  • This is a temporary GitHub server issue\n  • Try again in a few minutes\n  • Check GitHub's status page at https://status.github.com", operation, err)</span>
+
+        case containsAny(errStr, []string{"network", "timeout", "connection"}):<span class="cov8" title="1">
+                return fmt.Errorf("network error during %s: %w\n\n💡 Suggestions:\n  • Check your internet connection\n  • Try again in a moment\n  • Verify GitHub is accessible from your network", operation, err)</span>
+
+        case containsAny(errStr, []string{"No subschema in oneOf matched", "invalid request"}):<span class="cov8" title="1">
+                return fmt.Errorf("invalid request format during %s: %w\n\n💡 Suggestions:\n  • Check the command syntax in --help\n  • Verify all required arguments are provided\n  • For line comments, ensure the line exists in the PR diff", operation, err)</span>
+        }
+
+        // Default case - provide general guidance
+        <span class="cov8" title="1">return fmt.Errorf("error during %s: %w\n\n💡 Suggestions:\n  • Check 'gh comment --help' for correct usage\n  • Verify PR number and file paths are correct\n  • Run with --verbose for more details", operation, err)</span>
+}
+
+// containsAny checks if a string contains any of the provided substrings (case-insensitive)
+func containsAny(str string, substrings []string) bool <span class="cov8" title="1">{
+        lowerStr := strings.ToLower(str)
+        for _, substr := range substrings </span><span class="cov8" title="1">{
+                if strings.Contains(lowerStr, strings.ToLower(substr)) </span><span class="cov8" title="1">{
+                        return true
+                }</span>
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
 // formatValidationError creates consistent error messages for validation failures
 func formatValidationError(field, value, expected string) error <span class="cov8" title="1">{
         return fmt.Errorf("invalid %s '%s': %s", field, value, expected)
@@ -1175,8 +1070,53 @@ func formatValidationError(field, value, expected string) error <span class="cov
 func formatNotFoundError(resource string, identifier interface{}) error <span class="cov8" title="1">{
         return fmt.Errorf("%s not found: %v", resource, identifier)
 }</span>
-</pre>
 
+// parsePositiveInt parses a string to a positive integer with consistent validation
+func parsePositiveInt(s, fieldName string) (int, error) <span class="cov8" title="1">{
+        val, err := strconv.Atoi(s)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, formatValidationError(fieldName, s, "must be a valid integer")
+        }</span>
+        <span class="cov8" title="1">if val &lt;= 0 </span><span class="cov8" title="1">{
+                return 0, formatValidationError(fieldName, s, "must be a positive integer")
+        }</span>
+        <span class="cov8" title="1">return val, nil</span>
+}
+
+// lineRange represents a range of consecutive line numbers for display
+type lineRange struct {
+        start, end int
+}
+
+// groupConsecutiveLines groups consecutive line numbers into ranges for better display
+func groupConsecutiveLines(lines []int) []lineRange <span class="cov8" title="1">{
+        if len(lines) == 0 </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">var ranges []lineRange
+        start := lines[0]
+        end := lines[0]
+
+        for i := 1; i &lt; len(lines); i++ </span><span class="cov8" title="1">{
+                if lines[i] == end+1 </span><span class="cov8" title="1">{
+                        // Consecutive line, extend the range
+                        end = lines[i]
+                }</span> else<span class="cov8" title="1"> {
+                        // Gap found, close current range and start new one
+                        ranges = append(ranges, lineRange{start: start, end: end})
+                        start = lines[i]
+                        end = lines[i]
+                }</span>
+        }
+
+        // Add the final range
+        <span class="cov8" title="1">ranges = append(ranges, lineRange{start: start, end: end})
+
+        return ranges</span>
+}
+</pre>
+		
 		<pre class="file" id="file6" style="display: none">package cmd
 
 import (
@@ -1214,10 +1154,10 @@ type MockComment struct {
 
 // MockReview represents a GitHub review for testing
 type MockReview struct {
-        ID       int          `json:"id"`
-        Body     string       `json:"body"`
-        User     MockUser     `json:"user"`
-        State    string       `json:"state"`
+        ID       int           `json:"id"`
+        Body     string        `json:"body"`
+        User     MockUser      `json:"user"`
+        State    string        `json:"state"`
         Comments []MockComment `json:"comments,omitempty"`
 }
 
@@ -1236,7 +1176,7 @@ type MockPRDetails struct {
 }
 
 // NewMockGitHubServer creates a new mock GitHub API server
-func NewMockGitHubServer() *MockGitHubServer <span class="cov0" title="0">{
+func NewMockGitHubServer() *MockGitHubServer <span class="cov8" title="1">{
         s := &amp;MockGitHubServer{
                 comments: make(map[string][]MockComment),
                 reviews:  make(map[string][]MockReview),
@@ -1258,39 +1198,39 @@ func NewMockGitHubServer() *MockGitHubServer <span class="cov0" title="0">{
 }</span>
 
 // URL returns the mock server URL
-func (s *MockGitHubServer) URL() string <span class="cov0" title="0">{
+func (s *MockGitHubServer) URL() string <span class="cov8" title="1">{
         return s.server.URL
 }</span>
 
 // Close shuts down the mock server
-func (s *MockGitHubServer) Close() <span class="cov0" title="0">{
+func (s *MockGitHubServer) Close() <span class="cov8" title="1">{
         s.server.Close()
 }</span>
 
 // AddComment adds a mock comment to the server state
-func (s *MockGitHubServer) AddComment(repo string, pr int, comment MockComment) <span class="cov0" title="0">{
+func (s *MockGitHubServer) AddComment(repo string, pr int, comment MockComment) <span class="cov8" title="1">{
         s.mu.Lock()
         defer s.mu.Unlock()
 
         key := fmt.Sprintf("%s/%d", repo, pr)
-        if comment.ID == 0 </span><span class="cov0" title="0">{
+        if comment.ID == 0 </span><span class="cov8" title="1">{
                 comment.ID = len(s.comments[key]) + 1000
         }</span>
-        <span class="cov0" title="0">if comment.CreatedAt.IsZero() </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if comment.CreatedAt.IsZero() </span><span class="cov8" title="1">{
                 comment.CreatedAt = time.Now()
         }</span>
-        <span class="cov0" title="0">if comment.UpdatedAt.IsZero() </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if comment.UpdatedAt.IsZero() </span><span class="cov8" title="1">{
                 comment.UpdatedAt = comment.CreatedAt
         }</span>
-        <span class="cov0" title="0">if comment.HTMLURL == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if comment.HTMLURL == "" </span><span class="cov8" title="1">{
                 comment.HTMLURL = fmt.Sprintf("%s/repos/%s/pulls/%d#issuecomment-%d", s.URL(), repo, pr, comment.ID)
         }</span>
 
-        <span class="cov0" title="0">s.comments[key] = append(s.comments[key], comment)</span>
+        <span class="cov8" title="1">s.comments[key] = append(s.comments[key], comment)</span>
 }
 
 // GetComments returns comments for a PR
-func (s *MockGitHubServer) GetComments(repo string, pr int) []MockComment <span class="cov0" title="0">{
+func (s *MockGitHubServer) GetComments(repo string, pr int) []MockComment <span class="cov8" title="1">{
         s.mu.RLock()
         defer s.mu.RUnlock()
 
@@ -1299,9 +1239,9 @@ func (s *MockGitHubServer) GetComments(repo string, pr int) []MockComment <span 
 }</span>
 
 // SetupTestScenario sets up predefined test data
-func (s *MockGitHubServer) SetupTestScenario(scenario string) <span class="cov0" title="0">{
+func (s *MockGitHubServer) SetupTestScenario(scenario string) <span class="cov8" title="1">{
         switch scenario </span>{
-        case "basic":<span class="cov0" title="0">
+        case "basic":<span class="cov8" title="1">
                 s.AddComment("test-owner/test-repo", 123, MockComment{
                         Body: "This looks good to me!",
                         User: s.users["test-user"],
@@ -1312,7 +1252,7 @@ func (s *MockGitHubServer) SetupTestScenario(scenario string) <span class="cov0"
                         Path: "src/main.go",
                         Line: 42,
                 })</span>
-        case "security-review":<span class="cov0" title="0">
+        case "security-review":<span class="cov8" title="1">
                 s.AddComment("test-owner/test-repo", 456, MockComment{
                         Body: "Security scan detected potential SQL injection vulnerability",
                         User: s.users["security-bot"],
@@ -1329,38 +1269,38 @@ func (s *MockGitHubServer) SetupTestScenario(scenario string) <span class="cov0"
 }
 
 // handleRepoRequests handles all repository-related API requests
-func (s *MockGitHubServer) handleRepoRequests(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+func (s *MockGitHubServer) handleRepoRequests(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
         path := strings.TrimPrefix(r.URL.Path, "/repos/")
         parts := strings.Split(path, "/")
 
-        if len(parts) &lt; 2 </span><span class="cov0" title="0">{
+        if len(parts) &lt; 2 </span><span class="cov8" title="1">{
                 http.Error(w, "Invalid repository path", http.StatusBadRequest)
                 return
         }</span>
 
-        <span class="cov0" title="0">owner, repo := parts[0], parts[1]
+        <span class="cov8" title="1">owner, repo := parts[0], parts[1]
         repoKey := fmt.Sprintf("%s/%s", owner, repo)
 
         // Handle different API endpoints
-        if len(parts) &gt;= 4 &amp;&amp; parts[2] == "pulls" </span><span class="cov0" title="0">{
+        if len(parts) &gt;= 4 &amp;&amp; parts[2] == "pulls" </span><span class="cov8" title="1">{
                 prStr := parts[3]
                 pr, err := strconv.Atoi(prStr)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         http.Error(w, "Invalid PR number", http.StatusBadRequest)
                         return
                 }</span>
 
-                <span class="cov0" title="0">if len(parts) == 4 </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if len(parts) == 4 </span><span class="cov8" title="1">{
                         // GET /repos/{owner}/{repo}/pulls/{pr} - Get PR details
-                        if r.Method == "GET" </span><span class="cov0" title="0">{
+                        if r.Method == "GET" </span><span class="cov8" title="1">{
                                 s.handleGetPRDetails(w, r, repoKey, pr)
                                 return
                         }</span>
                 }
 
-                <span class="cov0" title="0">if len(parts) &gt;= 5 &amp;&amp; parts[4] == "comments" </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if len(parts) &gt;= 5 &amp;&amp; parts[4] == "comments" </span><span class="cov8" title="1">{
                         switch r.Method </span>{
-                        case "GET":<span class="cov0" title="0">
+                        case "GET":<span class="cov8" title="1">
                                 // GET /repos/{owner}/{repo}/pulls/{pr}/comments - List comments
                                 s.handleListComments(w, r, repoKey, pr)</span>
                         case "POST":<span class="cov0" title="0">
@@ -1369,7 +1309,7 @@ func (s *MockGitHubServer) handleRepoRequests(w http.ResponseWriter, r *http.Req
                         }
                 }
 
-                <span class="cov0" title="0">if len(parts) &gt;= 5 &amp;&amp; parts[4] == "reviews" </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if len(parts) &gt;= 5 &amp;&amp; parts[4] == "reviews" </span><span class="cov0" title="0">{
                         if r.Method == "POST" </span><span class="cov0" title="0">{
                                 // POST /repos/{owner}/{repo}/pulls/{pr}/reviews - Create review
                                 s.handleCreateReview(w, r, repoKey, pr)
@@ -1377,17 +1317,17 @@ func (s *MockGitHubServer) handleRepoRequests(w http.ResponseWriter, r *http.Req
                 }
         }
 
-        <span class="cov0" title="0">if len(parts) &gt;= 4 &amp;&amp; parts[2] == "issues" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if len(parts) &gt;= 4 &amp;&amp; parts[2] == "issues" </span><span class="cov8" title="1">{
                 prStr := parts[3]
                 pr, err := strconv.Atoi(prStr)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         http.Error(w, "Invalid issue number", http.StatusBadRequest)
                         return
                 }</span>
 
-                <span class="cov0" title="0">if len(parts) &gt;= 5 &amp;&amp; parts[4] == "comments" </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if len(parts) &gt;= 5 &amp;&amp; parts[4] == "comments" </span><span class="cov8" title="1">{
                         switch r.Method </span>{
-                        case "GET":<span class="cov0" title="0">
+                        case "GET":<span class="cov8" title="1">
                                 // GET /repos/{owner}/{repo}/issues/{pr}/comments - List issue comments
                                 s.handleListIssueComments(w, r, repoKey, pr)</span>
                         case "POST":<span class="cov0" title="0">
@@ -1399,7 +1339,7 @@ func (s *MockGitHubServer) handleRepoRequests(w http.ResponseWriter, r *http.Req
 }
 
 // handleGetPRDetails handles GET /repos/{owner}/{repo}/pulls/{pr}
-func (s *MockGitHubServer) handleGetPRDetails(w http.ResponseWriter, r *http.Request, repo string, pr int) <span class="cov0" title="0">{
+func (s *MockGitHubServer) handleGetPRDetails(w http.ResponseWriter, r *http.Request, repo string, pr int) <span class="cov8" title="1">{
         details := MockPRDetails{
                 Number: pr,
         }
@@ -1410,34 +1350,34 @@ func (s *MockGitHubServer) handleGetPRDetails(w http.ResponseWriter, r *http.Req
 }</span>
 
 // handleListComments handles GET /repos/{owner}/{repo}/pulls/{pr}/comments
-func (s *MockGitHubServer) handleListComments(w http.ResponseWriter, r *http.Request, repo string, pr int) <span class="cov0" title="0">{
+func (s *MockGitHubServer) handleListComments(w http.ResponseWriter, r *http.Request, repo string, pr int) <span class="cov8" title="1">{
         comments := s.GetComments(repo, pr)
 
         // Filter for review comments only (have path/line)
         var reviewComments []MockComment
-        for _, comment := range comments </span><span class="cov0" title="0">{
-                if comment.Path != "" </span><span class="cov0" title="0">{
+        for _, comment := range comments </span><span class="cov8" title="1">{
+                if comment.Path != "" </span><span class="cov8" title="1">{
                         reviewComments = append(reviewComments, comment)
                 }</span>
         }
 
-        <span class="cov0" title="0">w.Header().Set("Content-Type", "application/json")
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
         json.NewEncoder(w).Encode(reviewComments)</span>
 }
 
 // handleListIssueComments handles GET /repos/{owner}/{repo}/issues/{pr}/comments
-func (s *MockGitHubServer) handleListIssueComments(w http.ResponseWriter, r *http.Request, repo string, pr int) <span class="cov0" title="0">{
+func (s *MockGitHubServer) handleListIssueComments(w http.ResponseWriter, r *http.Request, repo string, pr int) <span class="cov8" title="1">{
         comments := s.GetComments(repo, pr)
 
         // Filter for issue comments only (no path/line)
         var issueComments []MockComment
-        for _, comment := range comments </span><span class="cov0" title="0">{
-                if comment.Path == "" </span><span class="cov0" title="0">{
+        for _, comment := range comments </span><span class="cov8" title="1">{
+                if comment.Path == "" </span><span class="cov8" title="1">{
                         issueComments = append(issueComments, comment)
                 }</span>
         }
 
-        <span class="cov0" title="0">w.Header().Set("Content-Type", "application/json")
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json")
         json.NewEncoder(w).Encode(issueComments)</span>
 }
 
@@ -1505,18 +1445,190 @@ func (s *MockGitHubServer) handleCreateReview(w http.ResponseWriter, r *http.Req
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(http.StatusCreated)
         json.NewEncoder(w).Encode(review)</span>
-}</pre>
-
+}
+</pre>
+		
 		<pre class="file" id="file7" style="display: none">package cmd
 
 import (
         "fmt"
-        "regexp"
+        "sort"
         "strconv"
+        "strings"
+
+        "github.com/MakeNowJust/heredoc"
+        "github.com/silouanwright/gh-comment/internal/github"
+        "github.com/spf13/cobra"
+)
+
+var (
+        showCodeContext bool
+        linesClient     github.GitHubAPI
+)
+
+var linesCmd = &amp;cobra.Command{
+        Use:   "lines &lt;pr&gt; &lt;file&gt;",
+        Short: "Show commentable lines in a PR file",
+        Long: heredoc.Doc(`
+                Show which lines in a file can receive comments based on the PR diff.
+
+                This command helps debug failed comment attempts by showing exactly which
+                lines are available for commenting. GitHub only allows comments on lines
+                that are part of the diff (added, modified, or in context).
+
+                Use this command when you get HTTP 422 errors trying to add line comments.
+        `),
+        Example: heredoc.Doc(`
+                # Show commentable lines in a specific file
+                $ gh comment lines 123 src/main.go
+
+                # Show lines with code context
+                $ gh comment lines 123 src/main.go --show-code
+
+                # Check if specific line is commentable
+                $ gh comment lines 123 src/main.go | grep "^42:"
+
+                # Get line ranges for scripting
+                $ gh comment lines 123 src/main.go | grep -o "^[0-9]*" | head -5
+        `),
+        Args: cobra.ExactArgs(2),
+        RunE: runLines,
+}
+
+func init() <span class="cov8" title="1">{
+        rootCmd.AddCommand(linesCmd)
+        linesCmd.Flags().BoolVar(&amp;showCodeContext, "show-code", false, "Show actual code content for each line")
+}</span>
+
+func runLines(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
+        // Initialize client if not set (production use)
+        if linesClient == nil </span><span class="cov8" title="1">{
+                client, err := createGitHubClient()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create GitHub client: %w", err)
+                }</span>
+                <span class="cov8" title="1">linesClient = client</span>
+        }
+
+        // Parse PR number
+        <span class="cov8" title="1">pr, err := strconv.Atoi(args[0])
+        if err != nil </span><span class="cov8" title="1">{
+                return formatValidationError("PR number", args[0], "must be a valid integer")
+        }</span>
+
+        // Get file path
+        <span class="cov8" title="1">filePath := args[1]
+
+        // Get repository context
+        repository, err := getCurrentRepo()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Parse owner/repo
+        <span class="cov8" title="1">parts := strings.Split(repository, "/")
+        if len(parts) != 2 </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+        }</span>
+        <span class="cov8" title="1">owner, repoName := parts[0], parts[1]
+
+        if verbose </span><span class="cov8" title="1">{
+                fmt.Printf("Repository: %s\n", repository)
+                fmt.Printf("PR: %d\n", pr)
+                fmt.Printf("File: %s\n", filePath)
+                fmt.Println()
+        }</span>
+
+        <span class="cov8" title="1">if dryRun </span><span class="cov8" title="1">{
+                fmt.Printf("Would show commentable lines for file %s in PR #%d\n", filePath, pr)
+                return nil
+        }</span>
+
+        // Fetch PR diff
+        <span class="cov8" title="1">diff, err := linesClient.FetchPRDiff(owner, repoName, pr)
+        if err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("failed to fetch PR diff: %w", err)
+        }</span>
+
+        // Find the requested file in the diff
+        <span class="cov8" title="1">var targetFile *github.DiffFile
+        for i := range diff.Files </span><span class="cov8" title="1">{
+                if diff.Files[i].Filename == filePath </span><span class="cov8" title="1">{
+                        targetFile = &amp;diff.Files[i]
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="1">if targetFile == nil </span><span class="cov8" title="1">{
+                fmt.Printf("❌ File '%s' not found in PR #%d diff\n\n", filePath, pr)
+                fmt.Println("Available files in this PR:")
+                for _, file := range diff.Files </span><span class="cov8" title="1">{
+                        fmt.Printf("  • %s\n", file.Filename)
+                }</span>
+                <span class="cov8" title="1">return nil</span>
+        }
+
+        // Display commentable lines
+        <span class="cov8" title="1">if len(targetFile.Lines) == 0 </span><span class="cov0" title="0">{
+                fmt.Printf("❌ No commentable lines found in %s\n", filePath)
+                fmt.Println("This file may not have any changes in this PR.")
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">fmt.Printf("✅ Commentable lines in %s (PR #%d):\n\n", filePath, pr)
+
+        // Sort line numbers
+        var lineNumbers []int
+        for lineNum := range targetFile.Lines </span><span class="cov8" title="1">{
+                lineNumbers = append(lineNumbers, lineNum)
+        }</span>
+        <span class="cov8" title="1">sort.Ints(lineNumbers)
+
+        // Group consecutive lines for better display
+        ranges := groupConsecutiveLines(lineNumbers)
+
+        fmt.Printf("📍 Line ranges available for comments:\n")
+        for _, lineRange := range ranges </span><span class="cov8" title="1">{
+                if lineRange.start == lineRange.end </span><span class="cov0" title="0">{
+                        fmt.Printf("  • Line %d\n", lineRange.start)
+                }</span> else<span class="cov8" title="1"> {
+                        fmt.Printf("  • Lines %d-%d\n", lineRange.start, lineRange.end)
+                }</span>
+        }
+
+        <span class="cov8" title="1">fmt.Printf("\n📝 Individual lines:\n")
+        for _, lineNum := range lineNumbers </span><span class="cov8" title="1">{
+                if showCodeContext </span><span class="cov0" title="0">{
+                        // In a real implementation, you'd fetch the actual file content
+                        // For now, just show the line numbers
+                        fmt.Printf("%d: [code content would be shown here]\n", lineNum)
+                }</span> else<span class="cov8" title="1"> {
+                        fmt.Printf("%d\n", lineNum)
+                }</span>
+        }
+
+        <span class="cov8" title="1">fmt.Printf("\n💡 Usage examples:\n")
+        fmt.Printf("  • Single line:  gh comment add %d %s %d \"Your comment\"\n", pr, filePath, lineNumbers[0])
+        if len(lineNumbers) &gt; 1 </span><span class="cov8" title="1">{
+                fmt.Printf("  • Range comment: gh comment add %d %s %d:%d \"Range comment\"\n", pr, filePath, lineNumbers[0], lineNumbers[len(lineNumbers)-1])
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package cmd
+
+import (
+        "encoding/json"
+        "fmt"
+        "os"
+        "regexp"
         "strings"
         "time"
 
         "github.com/MakeNowJust/heredoc"
+        "github.com/markusmobius/go-dateparser"
         "github.com/silouanwright/gh-comment/internal/github"
         "github.com/spf13/cobra"
 )
@@ -1529,11 +1641,15 @@ var (
         hideAuthors    bool
 
         // Advanced filtering flags
-        status       string
-        since        string
-        until        string
-        resolved     string
-        listType     string
+        status   string
+        since    string
+        until    string
+        resolved string
+        listType string
+
+        // Output format flags
+        outputFormat string
+        idsOnly      bool
 
         // Parsed time values
         sinceTime *time.Time
@@ -1549,9 +1665,11 @@ var listCmd = &amp;cobra.Command{
         Long: heredoc.Doc(`
                 List all comments on a pull request with powerful filtering capabilities.
 
-                Supports both general PR comments and line-specific review comments.
-                Comments can be filtered by author, date range, resolution status, and more.
+                Comment Types:
+                - Issue comments: General PR discussion, appear in main conversation tab
+                - Review comments: Line-specific feedback, appear in "Files Changed" tab
 
+                Comments can be filtered by type, author, date range, resolution status, and more.
                 Output can be formatted as tables, JSON, or plain text with color coding.
                 Perfect for code review workflows, comment analysis, and automation.
         `),
@@ -1563,6 +1681,11 @@ var listCmd = &amp;cobra.Command{
                 # Security audit and compliance tracking
                 $ gh comment list 123 --author "security-team*" --since "2024-01-01" --type review
                 $ gh comment list 123 --author "bot*" --since "3 days ago" --quiet
+
+                # Structured output for automation
+                $ gh comment list 123 --format json | jq '.comments[].id'
+                $ gh comment list 123 --ids-only | xargs -I {} gh comment resolve {}
+                $ gh comment list 123 --format json --author "security*" &gt; security-comments.json
 
                 # Code review workflow optimization
                 $ gh comment list 123 --status open --since "sprint-start" --author "lead*"
@@ -1580,9 +1703,9 @@ var listCmd = &amp;cobra.Command{
                 $ gh comment list 123 --author "performance-team" --since "load-test-date" --type review
                 $ gh comment list 123 --status open --author "*perf*" --since "1 week ago"
 
-                # Export for further analysis
-                $ gh comment list 123 --author "all-reviewers*" --format json --since "quarter-start"
-                $ gh comment list 123 --quiet --type review --status open | review-metrics.sh
+                # Export for further analysis and automation
+                $ gh comment list 123 --author "all-reviewers*" --since "quarter-start" --quiet | process-review-data.sh
+                $ gh comment list 123 --ids-only --type review --status open | review-metrics.sh
         `),
         Args: cobra.MaximumNArgs(1),
         RunE: runList,
@@ -1606,72 +1729,84 @@ func init() <span class="cov8" title="1">{
         // Display options
         listCmd.Flags().BoolVarP(&amp;quiet, "quiet", "q", false, "Minimal output without URLs and IDs (default shows full context for AI)")
         listCmd.Flags().BoolVar(&amp;hideAuthors, "hide-authors", false, "Hide author names for privacy")
+
+        // Output format options
+        listCmd.Flags().StringVar(&amp;outputFormat, "format", "default", "Output format: default, json")
+        listCmd.Flags().BoolVar(&amp;idsOnly, "ids-only", false, "Output only comment IDs (one per line)")
 }</span>
 
 func runList(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
         // Initialize client if not set (production use)
-        if listClient == nil </span><span class="cov0" title="0">{
+        if listClient == nil </span><span class="cov8" title="1">{
                 client, err := createGitHubClient()
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to initialize GitHub client: %w", err)
                 }</span>
-                <span class="cov0" title="0">listClient = client</span>
+                <span class="cov8" title="1">listClient = client</span>
         }
 
         // Validate and parse filtering flags
-        <span class="cov8" title="1">if err := validateAndParseFilters(); err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if err := validateAndParseFilters(); err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
         <span class="cov8" title="1">var pr int
+        var repository string
         var err error
 
-        // Parse PR argument
+        // Parse PR argument using centralized function
         if len(args) == 1 </span><span class="cov8" title="1">{
-                pr, err = strconv.Atoi(args[0])
+                pr, err = parsePositiveInt(args[0], "PR number")
                 if err != nil </span><span class="cov8" title="1">{
-                        return formatValidationError("PR number", args[0], "must be a valid integer")
+                        return err
+                }</span>
+                // Get repository for explicitly provided PR
+                <span class="cov8" title="1">repository, err = getCurrentRepo()
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
                 }</span>
         } else<span class="cov0" title="0"> {
-                // Auto-detect PR
-                pr, err = getCurrentPR()
+                // Auto-detect PR and repository using centralized function
+                repository, pr, err = getPRContext()
                 if err != nil </span><span class="cov0" title="0">{
                         return err
                 }</span>
         }
 
-        // Get repository
-        <span class="cov8" title="1">repository, err := getCurrentRepo()
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-
-        <span class="cov8" title="1">if verbose </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if verbose </span><span class="cov8" title="1">{
                 fmt.Printf("Repository: %s\n", repository)
                 fmt.Printf("PR: %d\n", pr)
                 fmt.Printf("Show resolved: %v\n", showResolved)
                 fmt.Printf("Only unresolved: %v\n", onlyUnresolved)
                 fmt.Printf("Quiet mode: %v\n", quiet)
                 fmt.Printf("Hide authors: %v\n", hideAuthors)
-                if author != "" </span><span class="cov0" title="0">{
+                if author != "" </span><span class="cov8" title="1">{
                         fmt.Printf("Filter by author: %s\n", author)
                 }</span>
-                <span class="cov0" title="0">fmt.Println()</span>
+                <span class="cov8" title="1">fmt.Println()</span>
         }
 
         // Fetch comments
         <span class="cov8" title="1">comments, err := fetchAllComments(listClient, repository, pr)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
         // Filter comments
         <span class="cov8" title="1">filteredComments := filterComments(comments)
 
-        // Display comments
-        displayComments(filteredComments, pr)
+        // Handle different output formats
+        if idsOnly </span><span class="cov0" title="0">{
+                displayIDsOnly(filteredComments)
+        }</span> else<span class="cov8" title="1"> if outputFormat == "json" </span><span class="cov0" title="0">{
+                if err := displayCommentsJSON(filteredComments, pr); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to encode JSON output: %w", err)
+                }</span>
+        } else<span class="cov8" title="1"> {
+                displayComments(filteredComments, pr)
+        }</span>
 
-        return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
 type Comment struct {
@@ -1687,6 +1822,7 @@ type Comment struct {
         Line      int    `json:"line,omitempty"`
         StartLine int    `json:"start_line,omitempty"`
         DiffHunk  string `json:"diff_hunk,omitempty"`
+        CommitID  string `json:"commit_id,omitempty"`
 
         // Comment type
         Type string `json:"type"` // "issue" or "review"
@@ -1707,8 +1843,8 @@ func fetchAllComments(client github.GitHubAPI, repo string, pr int) ([]Comment, 
 
         // Fetch general PR comments (issue comments)
         issueComments, err := client.ListIssueComments(owner, repoName, pr)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("failed to fetch issue comments: %w", err)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, formatActionableError("issue comments fetch", err)
         }</span>
 
         // Convert issue comments
@@ -1726,8 +1862,8 @@ func fetchAllComments(client github.GitHubAPI, repo string, pr int) ([]Comment, 
 
         // Fetch review comments (line-specific)
         <span class="cov8" title="1">reviewComments, err := client.ListReviewComments(owner, repoName, pr)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("failed to fetch review comments: %w", err)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, formatActionableError("review comments fetch", err)
         }</span>
 
         // Convert review comments
@@ -1741,6 +1877,7 @@ func fetchAllComments(client github.GitHubAPI, repo string, pr int) ([]Comment, 
                         HTMLURL:   "", // TODO: Add HTMLURL to github.Comment
                         Path:      comment.Path,
                         Line:      comment.Line,
+                        CommitID:  comment.CommitID,
                         Type:      "review",
                 })
         }</span>
@@ -1761,10 +1898,21 @@ func validateAndParseFilters() error <span class="cov8" title="1">{
                 return fmt.Errorf("invalid type '%s'. Must be one of: %s", listType, strings.Join(validTypes, ", "))
         }</span>
 
+        // Validate output format flag
+        <span class="cov8" title="1">validFormats := []string{"default", "json"}
+        if outputFormat != "" &amp;&amp; !containsString(validFormats, outputFormat) </span><span class="cov0" title="0">{
+                return fmt.Errorf("invalid format '%s'. Must be one of: %s", outputFormat, strings.Join(validFormats, ", "))
+        }</span>
+
+        // Handle conflicting output options
+        <span class="cov8" title="1">if idsOnly &amp;&amp; outputFormat == "json" </span><span class="cov0" title="0">{
+                return fmt.Errorf("cannot use --ids-only with --format json (use --format json to get structured data including IDs)")
+        }</span>
+
         // Parse since date
         <span class="cov8" title="1">if since != "" </span><span class="cov8" title="1">{
                 parsedTime, err := parseFlexibleDate(since)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         return fmt.Errorf("invalid since date '%s': %w", since, err)
                 }</span>
                 <span class="cov8" title="1">sinceTime = &amp;parsedTime</span>
@@ -1773,7 +1921,7 @@ func validateAndParseFilters() error <span class="cov8" title="1">{
         // Parse until date
         <span class="cov8" title="1">if until != "" </span><span class="cov8" title="1">{
                 parsedTime, err := parseFlexibleDate(until)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         return fmt.Errorf("invalid until date '%s': %w", until, err)
                 }</span>
                 <span class="cov8" title="1">untilTime = &amp;parsedTime</span>
@@ -1788,71 +1936,11 @@ func validateAndParseFilters() error <span class="cov8" title="1">{
 }
 
 func parseFlexibleDate(dateStr string) (time.Time, error) <span class="cov8" title="1">{
-        dateStr = strings.TrimSpace(dateStr)
-        now := time.Now()
-
-        // Try relative time parsing first
-        if strings.HasSuffix(dateStr, " ago") </span><span class="cov8" title="1">{
-                return parseRelativeTime(dateStr, now)
+        parsed, err := dateparser.Parse(nil, strings.TrimSpace(dateStr))
+        if err != nil </span><span class="cov8" title="1">{
+                return time.Time{}, err
         }</span>
-
-        // Try common date formats
-        <span class="cov8" title="1">formats := []string{
-                "2006-01-02",           // YYYY-MM-DD
-                "2006-01-02 15:04:05",  // YYYY-MM-DD HH:MM:SS
-                "01/02/2006",           // MM/DD/YYYY
-                "Jan 2, 2006",          // Month DD, YYYY
-                "January 2, 2006",      // Full month name
-                "2006-01-02T15:04:05Z", // ISO 8601
-        }
-
-        for _, format := range formats </span><span class="cov8" title="1">{
-                if parsed, err := time.Parse(format, dateStr); err == nil </span><span class="cov8" title="1">{
-                        return parsed, nil
-                }</span>
-        }
-
-        <span class="cov8" title="1">return time.Time{}, fmt.Errorf("unrecognized date format. Supported formats: YYYY-MM-DD, 'N days ago', 'N weeks ago', etc.")</span>
-}
-
-func parseRelativeTime(relativeStr string, now time.Time) (time.Time, error) <span class="cov8" title="1">{
-        // Remove " ago" suffix
-        timeStr := strings.TrimSuffix(relativeStr, " ago")
-        parts := strings.Fields(timeStr)
-
-        if len(parts) != 2 </span><span class="cov8" title="1">{
-                return time.Time{}, fmt.Errorf("invalid relative time format")
-        }</span>
-
-        <span class="cov8" title="1">amount, err := strconv.Atoi(parts[0])
-        if err != nil </span><span class="cov0" title="0">{
-                return time.Time{}, fmt.Errorf("invalid time amount: %s", parts[0])
-        }</span>
-
-        <span class="cov8" title="1">unit := strings.ToLower(parts[1])
-        // Handle both singular and plural forms
-        if strings.HasSuffix(unit, "s") </span><span class="cov8" title="1">{
-                unit = unit[:len(unit)-1]
-        }</span>
-
-        <span class="cov8" title="1">switch unit </span>{
-        case "second":<span class="cov0" title="0">
-                return now.Add(-time.Duration(amount) * time.Second), nil</span>
-        case "minute":<span class="cov0" title="0">
-                return now.Add(-time.Duration(amount) * time.Minute), nil</span>
-        case "hour":<span class="cov8" title="1">
-                return now.Add(-time.Duration(amount) * time.Hour), nil</span>
-        case "day":<span class="cov8" title="1">
-                return now.AddDate(0, 0, -amount), nil</span>
-        case "week":<span class="cov8" title="1">
-                return now.AddDate(0, 0, -amount*7), nil</span>
-        case "month":<span class="cov8" title="1">
-                return now.AddDate(0, -amount, 0), nil</span>
-        case "year":<span class="cov8" title="1">
-                return now.AddDate(-amount, 0, 0), nil</span>
-        default:<span class="cov8" title="1">
-                return time.Time{}, fmt.Errorf("unsupported time unit: %s", unit)</span>
-        }
+        <span class="cov8" title="1">return parsed.Time, nil</span>
 }
 
 func filterComments(comments []Comment) []Comment <span class="cov8" title="1">{
@@ -1940,12 +2028,27 @@ func containsString(slice []string, item string) bool <span class="cov8" title="
 }
 
 func displayComments(comments []Comment, pr int) <span class="cov8" title="1">{
-        if len(comments) == 0 </span><span class="cov0" title="0">{
+        if len(comments) == 0 </span><span class="cov8" title="1">{
                 fmt.Printf("No comments found on PR #%d\n", pr)
                 return
         }</span>
 
-        <span class="cov8" title="1">fmt.Printf("📝 Comments on PR #%d (%d total)\n\n", pr, len(comments))
+        // Collect unique commit IDs for summary
+        <span class="cov8" title="1">commitIDs := make(map[string]bool)
+        for _, comment := range comments </span><span class="cov8" title="1">{
+                if comment.CommitID != "" </span><span class="cov0" title="0">{
+                        commitIDs[comment.CommitID] = true
+                }</span>
+        }
+
+        <span class="cov8" title="1">fmt.Printf("📝 Comments on PR #%d (%d total", pr, len(comments))
+        if len(commitIDs) &gt; 0 </span><span class="cov0" title="0">{
+                fmt.Printf(", %d commit", len(commitIDs))
+                if len(commitIDs) != 1 </span><span class="cov0" title="0">{
+                        fmt.Printf("s")
+                }</span>
+        }
+        <span class="cov8" title="1">fmt.Printf(")\n\n")
 
         // Group comments by type
         var issueComments, reviewComments, lineComments []Comment
@@ -1953,7 +2056,7 @@ func displayComments(comments []Comment, pr int) <span class="cov8" title="1">{
 
                 if comment.Type == "issue" </span><span class="cov8" title="1">{
                         issueComments = append(issueComments, comment)
-                }</span> else<span class="cov8" title="1"> if comment.Type == "review" </span><span class="cov8" title="1">{
+                }</span> else<span class="cov0" title="0"> if comment.Type == "review" </span><span class="cov0" title="0">{
                         reviewComments = append(reviewComments, comment)
                 }</span> else<span class="cov0" title="0"> {
                         lineComments = append(lineComments, comment)
@@ -1971,13 +2074,13 @@ func displayComments(comments []Comment, pr int) <span class="cov8" title="1">{
         }
 
         // Display review-level comments (parent comments that group line-specific ones)
-        <span class="cov8" title="1">if len(reviewComments) &gt; 0 </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if len(reviewComments) &gt; 0 </span><span class="cov0" title="0">{
                 fmt.Printf("📋 Review Comments (%d)\n", len(reviewComments))
                 fmt.Println(strings.Repeat("─", 50))
-                for i, comment := range reviewComments </span><span class="cov8" title="1">{
+                for i, comment := range reviewComments </span><span class="cov0" title="0">{
                         displayComment(comment, i+1)
                 }</span>
-                <span class="cov8" title="1">fmt.Println()</span>
+                <span class="cov0" title="0">fmt.Println()</span>
         }
 
         // Display line-specific comments
@@ -1993,10 +2096,10 @@ func displayComments(comments []Comment, pr int) <span class="cov8" title="1">{
 func displayComment(comment Comment, index int) <span class="cov8" title="1">{
         // Header with author and timestamp
         timeAgo := formatTimeAgo(comment.CreatedAt)
-        if hideAuthors </span><span class="cov0" title="0">{
-                fmt.Printf("[%d] 👤 [hidden] • %s", index, timeAgo)
+        if hideAuthors </span><span class="cov8" title="1">{
+                fmt.Printf("[%d] ID:%d 👤 [hidden] • %s", index, comment.ID, timeAgo)
         }</span> else<span class="cov8" title="1"> {
-                fmt.Printf("[%d] 👤 %s • %s", index, comment.Author, timeAgo)
+                fmt.Printf("[%d] ID:%d 👤 %s • %s", index, comment.ID, comment.Author, timeAgo)
         }</span>
 
         // Show review state for review-level comments
@@ -2020,7 +2123,13 @@ func displayComment(comment Comment, index int) <span class="cov8" title="1">{
                 if comment.StartLine &gt; 0 &amp;&amp; comment.StartLine != comment.Line </span><span class="cov0" title="0">{
                         lineInfo = fmt.Sprintf("L%d-L%d", comment.StartLine, comment.Line)
                 }</span>
-                <span class="cov8" title="1">fmt.Printf("📁 %s:%s\n", comment.Path, lineInfo)
+                <span class="cov8" title="1">fmt.Printf("📁 %s:%s", comment.Path, lineInfo)
+
+                // Show commit ID for review comments (helps with debugging and understanding)
+                if comment.CommitID != "" </span><span class="cov0" title="0">{
+                        fmt.Printf(" • 📊 %s", comment.CommitID[:8]) // Show first 8 chars of commit SHA
+                }</span>
+                <span class="cov8" title="1">fmt.Println()
 
                 // Show the actual diff context if available
                 if comment.DiffHunk != "" </span><span class="cov0" title="0">{
@@ -2106,13 +2215,258 @@ func displayDiffHunk(diffHunk string) <span class="cov8" title="1">{
         <span class="cov8" title="1">fmt.Println()</span>
 }
 
-</pre>
+// displayIDsOnly outputs only comment IDs, one per line
+func displayIDsOnly(comments []Comment) <span class="cov0" title="0">{
+        for _, comment := range comments </span><span class="cov0" title="0">{
+                fmt.Printf("%d\n", comment.ID)
+        }</span>
+}
 
-		<pre class="file" id="file8" style="display: none">package cmd
+// displayCommentsJSON outputs comments as JSON
+func displayCommentsJSON(comments []Comment, pr int) error <span class="cov0" title="0">{
+        output := struct {
+                PR       int       `json:"pr"`
+                Total    int       `json:"total"`
+                Comments []Comment `json:"comments"`
+        }{
+                PR:       pr,
+                Total:    len(comments),
+                Comments: comments,
+        }
+
+        encoder := json.NewEncoder(os.Stdout)
+        encoder.SetIndent("", "  ")
+        return encoder.Encode(output)
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package cmd
+
+import (
+        "bytes"
+        "embed"
+        "fmt"
+        "io/fs"
+        "strings"
+
+        "github.com/MakeNowJust/heredoc"
+        "github.com/spf13/cobra"
+        "gopkg.in/yaml.v3"
+)
+
+var (
+        promptCategory string
+        listPrompts    bool
+)
+
+//go:embed prompts/**/*.md
+var promptFiles embed.FS
+
+var promptsCmd = &amp;cobra.Command{
+        Use:   "prompts [prompt-name]",
+        Short: "Get AI-powered code review prompts and best practices",
+        Long: heredoc.Doc(`
+                Access a curated collection of professional code review prompts optimized
+                for AI assistants like Claude, ChatGPT, and other automated workflows.
+
+                These prompts follow research-backed best practices for effective code
+                review communication, including psychological safety principles and
+                the CREG emoji system (🔧🤔♻️📝😃📌).
+
+                Perfect for: Senior developers, code review leads, QA teams, and AI
+                assistants who need sophisticated review templates beyond basic feedback.
+        `),
+        Example: heredoc.Doc(`
+                # List all available prompts
+                $ gh comment prompts --list
+
+                # Get specific security review prompt
+                $ gh comment prompts security-audit
+
+                # List prompts by category
+                $ gh comment prompts --category performance --list
+
+                # Get performance optimization prompt
+                $ gh comment prompts performance-optimization
+
+                # Security-focused review prompt
+                $ gh comment prompts security-comprehensive
+
+                # Architecture review prompt
+                $ gh comment prompts architecture-review
+        `),
+        Args: cobra.MaximumNArgs(1),
+        RunE: runPrompts,
+}
+
+func init() <span class="cov8" title="1">{
+        rootCmd.AddCommand(promptsCmd)
+
+        promptsCmd.Flags().StringVar(&amp;promptCategory, "category", "", "Filter prompts by category: security, performance, architecture, quality, ai")
+        promptsCmd.Flags().BoolVar(&amp;listPrompts, "list", false, "List available prompts")
+}</span>
+
+func runPrompts(cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        if listPrompts </span><span class="cov0" title="0">{
+                return listAvailablePrompts()
+        }</span>
+
+        <span class="cov0" title="0">if len(args) == 0 </span><span class="cov0" title="0">{
+                return listAvailablePrompts()
+        }</span>
+
+        <span class="cov0" title="0">promptName := args[0]
+        prompt, exists := getPrompt(promptName)
+        if !exists </span><span class="cov0" title="0">{
+                fmt.Printf("❌ Prompt '%s' not found.\n\n", promptName)
+                fmt.Println("Available prompts:")
+                return listAvailablePrompts()
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("📋 **%s**\n\n", prompt.Title)
+        fmt.Printf("🎯 **Category**: %s\n", prompt.Category)
+        fmt.Printf("⏱️  **Estimated Time**: %s\n\n", prompt.EstimatedTime)
+
+        fmt.Println("📝 **Prompt:**")
+        fmt.Println("```")
+        fmt.Println(prompt.Content)
+        fmt.Println("```")
+
+        if len(prompt.Examples) &gt; 0 </span><span class="cov0" title="0">{
+                fmt.Println("\n💡 **Example Usage:**")
+                for _, example := range prompt.Examples </span><span class="cov0" title="0">{
+                        fmt.Printf("• %s\n", example)
+                }</span>
+        }
+
+        <span class="cov0" title="0">if len(prompt.Tags) &gt; 0 </span><span class="cov0" title="0">{
+                fmt.Printf("\n🏷️  **Tags**: %s\n", strings.Join(prompt.Tags, ", "))
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+type Prompt struct {
+        Name          string
+        Title         string
+        Category      string
+        Content       string
+        Examples      []string
+        Tags          []string
+        EstimatedTime string
+}
+
+type PromptMetadata struct {
+        Name          string   `yaml:"name"`
+        Title         string   `yaml:"title"`
+        Category      string   `yaml:"category"`
+        EstimatedTime string   `yaml:"estimated_time"`
+        Tags          []string `yaml:"tags"`
+        Examples      []string `yaml:"examples"`
+}
+
+func getPrompt(name string) (Prompt, bool) <span class="cov8" title="1">{
+        prompts := getAllPrompts()
+        prompt, exists := prompts[name]
+        return prompt, exists
+}</span>
+
+func listAvailablePrompts() error <span class="cov0" title="0">{
+        prompts := getAllPrompts()
+
+        if promptCategory != "" </span><span class="cov0" title="0">{
+                fmt.Printf("📋 **Code Review Prompts - %s Category**\n\n", strings.Title(promptCategory))
+        }</span> else<span class="cov0" title="0"> {
+                fmt.Print("📋 **Available Code Review Prompts**\n\n")
+        }</span>
+
+        <span class="cov0" title="0">categories := make(map[string][]Prompt)
+        for _, prompt := range prompts </span><span class="cov0" title="0">{
+                if promptCategory != "" &amp;&amp; prompt.Category != promptCategory </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">categories[prompt.Category] = append(categories[prompt.Category], prompt)</span>
+        }
+
+        <span class="cov0" title="0">for category, categoryPrompts := range categories </span><span class="cov0" title="0">{
+                fmt.Printf("## %s\n", strings.Title(category))
+                for _, prompt := range categoryPrompts </span><span class="cov0" title="0">{
+                        fmt.Printf("  **%s** - %s (%s)\n", prompt.Name, prompt.Title, prompt.EstimatedTime)
+                        fmt.Printf("    %s\n", strings.Join(prompt.Tags, " • "))
+                }</span>
+                <span class="cov0" title="0">fmt.Print("\n")</span>
+        }
+
+        <span class="cov0" title="0">fmt.Println("💡 **Usage**: `gh comment prompts &lt;prompt-name&gt;` to get the full prompt")
+        return nil</span>
+}
+
+func getAllPrompts() map[string]Prompt <span class="cov8" title="1">{
+        prompts := make(map[string]Prompt)
+
+        // Walk through all markdown files in the prompts directory
+        fs.WalkDir(promptFiles, ".", func(path string, d fs.DirEntry, err error) error </span><span class="cov8" title="1">{
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                // Only process .md files
+                <span class="cov8" title="1">if !strings.HasSuffix(path, ".md") </span><span class="cov8" title="1">{
+                        return nil
+                }</span>
+
+                // Read the markdown file
+                <span class="cov8" title="1">content, err := promptFiles.ReadFile(path)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+
+                // Parse the markdown file with frontmatter
+                <span class="cov8" title="1">prompt, err := parseMarkdownPrompt(content)
+                if err != nil </span><span class="cov0" title="0">{
+                        // Skip files that can't be parsed, but continue processing others
+                        return nil
+                }</span>
+
+                <span class="cov8" title="1">prompts[prompt.Name] = prompt
+                return nil</span>
+        })
+
+        <span class="cov8" title="1">return prompts</span>
+}
+
+func parseMarkdownPrompt(content []byte) (Prompt, error) <span class="cov8" title="1">{
+        // Split frontmatter and content
+        parts := bytes.SplitN(content, []byte("---"), 3)
+        if len(parts) &lt; 3 </span><span class="cov0" title="0">{
+                return Prompt{}, fmt.Errorf("invalid markdown format: missing frontmatter")
+        }</span>
+
+        // Parse YAML frontmatter
+        <span class="cov8" title="1">var metadata PromptMetadata
+        if err := yaml.Unmarshal(parts[1], &amp;metadata); err != nil </span><span class="cov0" title="0">{
+                return Prompt{}, fmt.Errorf("failed to parse frontmatter: %w", err)
+        }</span>
+
+        // Extract markdown content (remove leading/trailing whitespace)
+        <span class="cov8" title="1">markdownContent := strings.TrimSpace(string(parts[2]))
+
+        return Prompt{
+                Name:          metadata.Name,
+                Title:         metadata.Title,
+                Category:      metadata.Category,
+                Content:       markdownContent,
+                Examples:      metadata.Examples,
+                Tags:          metadata.Tags,
+                EstimatedTime: metadata.EstimatedTime,
+        }, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package cmd
 
 import (
         "fmt"
-        "strconv"
         "strings"
 
         "github.com/MakeNowJust/heredoc"
@@ -2121,108 +2475,76 @@ import (
 )
 
 var (
-        reaction                 string
-        removeReaction           string
-        resolveConversation      bool
-        noExpandSuggestionsReply bool
-        commentType              string
+        removeReactionFlag bool
 
         // Client for dependency injection (tests can override)
-        replyClient github.GitHubAPI
+        reactClient github.GitHubAPI
 )
 
-var replyCmd = &amp;cobra.Command{
-        Use:   "reply &lt;comment-id&gt; [message]",
-        Short: "Reply to a comment or add reactions",
+var reactCmd = &amp;cobra.Command{
+        Use:   "react &lt;comment-id&gt; &lt;emoji&gt;",
+        Short: "Add or remove emoji reactions to comments",
         Long: heredoc.Doc(`
-                Reply to an existing comment with a message or reaction.
+                Add or remove emoji reactions to any comment type.
 
-                Supports threaded replies to create discussion threads, and emoji
-                reactions for quick feedback. Reactions can be added or removed.
+                Supports both issue comments and review comments automatically.
+                Comment type is auto-detected from the comment ID.
+
+                Available reactions: +1, -1, laugh, confused, heart, hooray, rocket, eyes
 
                 Comment IDs can be found in the output of 'gh comment list'.
         `),
         Example: heredoc.Doc(`
-                # Reply with a message
-                $ gh comment reply 123456 "Good point, I'll fix that"
+                # Add reactions to any comment type
+                $ gh comment react 123456 +1
+                $ gh comment react 789012 heart
+                $ gh comment react 999999 rocket
 
-                # Add a thumbs up reaction
-                $ gh comment reply 123456 --reaction +1
+                # Remove reactions
+                $ gh comment react 123456 +1 --remove
+                $ gh comment react 789012 heart --remove
 
-                # Remove a reaction
-                $ gh comment reply 123456 --remove-reaction +1
-
-                # Reply and resolve conversation
-                $ gh comment reply 123456 "Fixed in latest commit" --resolve
-
-                # Add multiple reactions
-                $ gh comment reply 123456 --reaction +1 --reaction heart
-
-                # Reply with code suggestion
-                $ gh comment reply 123456 "[SUGGEST: if (condition) { return early; }]"
+                # Works with both issue and review comments automatically
+                $ gh comment react 123456 eyes    # Works for issue comments
+                $ gh comment react 789012 hooray  # Works for review comments
         `),
-        Args: cobra.RangeArgs(1, 2),
-        RunE: runReply,
+        Args: cobra.ExactArgs(2),
+        RunE: runReact,
 }
 
 func init() <span class="cov8" title="1">{
-        rootCmd.AddCommand(replyCmd)
+        rootCmd.AddCommand(reactCmd)
 
-        replyCmd.Flags().StringVar(&amp;reaction, "reaction", "", "Add reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
-        replyCmd.Flags().StringVar(&amp;removeReaction, "remove-reaction", "", "Remove reaction: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
-        replyCmd.Flags().BoolVar(&amp;resolveConversation, "resolve", false, "Resolve the conversation after replying")
-        replyCmd.Flags().BoolVar(&amp;noExpandSuggestionsReply, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and &lt;&lt;&lt;SUGGEST&gt;&gt;&gt; syntax")
-        replyCmd.Flags().StringVar(&amp;commentType, "type", "review", "Comment type: 'issue' for general PR comments, 'review' for line-specific comments (default: review)")
+        reactCmd.Flags().BoolVar(&amp;removeReactionFlag, "remove", false, "Remove reaction instead of adding it")
 }</span>
 
-func runReply(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
+func runReact(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
         // Initialize client if not set (production use)
-        if replyClient == nil </span><span class="cov8" title="1">{
-                replyClient = &amp;github.RealClient{}
-        }</span>
+        if reactClient == nil </span><span class="cov8" title="1">{
+                client, err := createGitHubClient()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create GitHub client: %w", err)
+                }</span>
+                <span class="cov8" title="1">reactClient = client</span>
+        }
 
         // Parse comment ID
         <span class="cov8" title="1">commentIDStr := args[0]
-        commentID, err := strconv.Atoi(commentIDStr)
+        commentID, err := parsePositiveInt(commentIDStr, "comment ID")
         if err != nil </span><span class="cov8" title="1">{
-                return formatValidationError("comment ID", commentIDStr, "must be a valid integer")
+                return err
         }</span>
 
-        // We'll get repository from getPRContext below
+        // Get reaction emoji
+        <span class="cov8" title="1">reaction := args[1]
 
-        // Get message if provided
-        <span class="cov8" title="1">var message string
-        if len(args) &gt; 1 </span><span class="cov8" title="1">{
-                message = args[1]
-        }</span>
-
-        // Validate that we have either message, reaction, remove-reaction, or resolve
-        <span class="cov8" title="1">if message == "" &amp;&amp; reaction == "" &amp;&amp; removeReaction == "" &amp;&amp; !resolveConversation </span><span class="cov8" title="1">{
-                return fmt.Errorf("must provide either a message, --reaction, --remove-reaction, or --resolve")
-        }</span>
-
-        // Validate that we don't have both reaction and remove-reaction
-        <span class="cov8" title="1">if reaction != "" &amp;&amp; removeReaction != "" </span><span class="cov8" title="1">{
-                return fmt.Errorf("cannot use both --reaction and --remove-reaction at the same time")
-        }</span>
-
-        // Validate reaction if provided
-        <span class="cov8" title="1">if reaction != "" &amp;&amp; !validateReaction(reaction) </span><span class="cov8" title="1">{
+        // Validate reaction
+        if !validateReaction(reaction) </span><span class="cov8" title="1">{
                 return formatValidationError("reaction", reaction, "must be one of: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
         }</span>
 
-        // Validate remove-reaction if provided
-        <span class="cov8" title="1">if removeReaction != "" &amp;&amp; !validateReaction(removeReaction) </span><span class="cov0" title="0">{
-                return formatValidationError("remove-reaction", removeReaction, "must be one of: +1, -1, laugh, confused, heart, hooray, rocket, eyes")
-        }</span>
-
-        // Validate comment type
-        <span class="cov8" title="1">if commentType != "issue" &amp;&amp; commentType != "review" </span><span class="cov8" title="1">{
-                return formatValidationError("type", commentType, "must be either 'issue' or 'review'")
-        }</span>
-
         // Get repository context
-        <span class="cov8" title="1">repository, _, err := getPRContext()
+        <span class="cov8" title="1">repository, prNumber, err := getPRContext()
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
@@ -2237,102 +2559,38 @@ func runReply(cmd *cobra.Command, args []string) error <span class="cov8" title=
         if verbose </span><span class="cov0" title="0">{
                 fmt.Printf("Repository: %s\n", repository)
                 fmt.Printf("Comment ID: %d\n", commentID)
-                fmt.Printf("Comment Type: %s\n", commentType)
-                if message != "" </span><span class="cov0" title="0">{
-                        fmt.Printf("Message: %s\n", message)
-                }</span>
-                <span class="cov0" title="0">if reaction != "" </span><span class="cov0" title="0">{
-                        fmt.Printf("Reaction: %s\n", reaction)
-                }</span>
-                <span class="cov0" title="0">if removeReaction != "" </span><span class="cov0" title="0">{
-                        fmt.Printf("Remove Reaction: %s\n", removeReaction)
-                }</span>
-                <span class="cov0" title="0">if resolveConversation </span><span class="cov0" title="0">{
-                        fmt.Printf("Resolve Conversation: true\n")
+                fmt.Printf("Reaction: %s\n", reaction)
+                if removeReactionFlag </span><span class="cov0" title="0">{
+                        fmt.Printf("Action: Remove reaction\n")
+                }</span> else<span class="cov0" title="0"> {
+                        fmt.Printf("Action: Add reaction\n")
                 }</span>
                 <span class="cov0" title="0">fmt.Println()</span>
         }
 
         <span class="cov8" title="1">if dryRun </span><span class="cov0" title="0">{
-                fmt.Printf("Would reply to comment #%d:\n", commentID)
-                if message != "" </span><span class="cov0" title="0">{
-                        fmt.Printf("Message: %s\n", message)
+                action := "add"
+                if removeReactionFlag </span><span class="cov0" title="0">{
+                        action = "remove"
                 }</span>
-                <span class="cov0" title="0">if reaction != "" </span><span class="cov0" title="0">{
-                        fmt.Printf("Reaction: %s\n", reaction)
-                }</span>
-                <span class="cov0" title="0">if removeReaction != "" </span><span class="cov0" title="0">{
-                        fmt.Printf("Remove Reaction: %s\n", removeReaction)
-                }</span>
-                <span class="cov0" title="0">if resolveConversation </span><span class="cov0" title="0">{
-                        fmt.Printf("Resolve Conversation: true\n")
-                }</span>
-                <span class="cov0" title="0">return nil</span>
+                <span class="cov0" title="0">fmt.Printf("Would %s %s reaction %s comment #%d\n", action, reaction,
+                        map[bool]string{true: "from", false: "to"}[removeReactionFlag], commentID)
+                return nil</span>
         }
 
-        // Add reaction if specified
-        <span class="cov8" title="1">if reaction != "" </span><span class="cov8" title="1">{
-                err = replyClient.AddReaction(owner, repoName, commentID, reaction)
+        // Perform the reaction action
+        <span class="cov8" title="1">if removeReactionFlag </span><span class="cov8" title="1">{
+                err = reactClient.RemoveReaction(owner, repoName, commentID, prNumber, reaction)
                 if err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("failed to add reaction: %w", err)
+                        return formatActionableError("reaction removal", err)
+                }</span>
+                <span class="cov8" title="1">fmt.Printf("✅ Removed %s reaction from comment #%d\n", reaction, commentID)</span>
+        } else<span class="cov8" title="1"> {
+                err = reactClient.AddReaction(owner, repoName, commentID, prNumber, reaction)
+                if err != nil </span><span class="cov8" title="1">{
+                        return formatActionableError("reaction addition", err)
                 }</span>
                 <span class="cov8" title="1">fmt.Printf("✅ Added %s reaction to comment #%d\n", reaction, commentID)</span>
-        }
-
-        // Remove reaction if specified
-        <span class="cov8" title="1">if removeReaction != "" </span><span class="cov8" title="1">{
-                err = replyClient.RemoveReaction(owner, repoName, commentID, removeReaction)
-                if err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("failed to remove reaction: %w", err)
-                }</span>
-                <span class="cov8" title="1">fmt.Printf("✅ Removed %s reaction from comment #%d\n", removeReaction, commentID)</span>
-        }
-
-        // Handle message reply
-        <span class="cov8" title="1">if message != "" </span><span class="cov8" title="1">{
-                // Expand suggestions if enabled
-                if !noExpandSuggestionsReply </span><span class="cov8" title="1">{
-                        message = expandSuggestions(message)
-                }</span>
-
-                <span class="cov8" title="1">var err error
-                if commentType == "issue" </span><span class="cov0" title="0">{
-                        // For issue comments, create a new issue comment (GitHub API doesn't support direct replies to issue comments)
-                        // We need the PR number for this - let's get it from context
-                        _, prNum, err := getPRContext()
-                        if err != nil </span><span class="cov0" title="0">{
-                                return fmt.Errorf("failed to get PR context: %w", err)
-                        }</span>
-                        <span class="cov0" title="0">_, err = replyClient.CreateIssueComment(owner, repoName, prNum, message)</span>
-                } else<span class="cov8" title="1"> {
-                        // Reply to review comment
-                        _, err = replyClient.CreateReviewCommentReply(owner, repoName, commentID, message)
-                }</span>
-
-                <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("failed to create reply: %w", err)
-                }</span>
-                <span class="cov8" title="1">fmt.Printf("✅ Replied to comment #%d: %s\n", commentID, message)</span>
-        }
-
-        // Handle resolve conversation
-        <span class="cov8" title="1">if resolveConversation </span><span class="cov0" title="0">{
-                if commentType == "issue" </span><span class="cov0" title="0">{
-                        return fmt.Errorf("cannot resolve issue comments - only review comments can be resolved")
-                }</span>
-
-                // Find the thread ID for this comment
-                <span class="cov0" title="0">threadID, err := replyClient.FindReviewThreadForComment(owner, repoName, 0, commentID) // PR number not needed for this operation
-                if err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("failed to find review thread: %w", err)
-                }</span>
-
-                // Resolve the thread
-                <span class="cov0" title="0">err = replyClient.ResolveReviewThread(threadID)
-                if err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("failed to resolve conversation: %w", err)
-                }</span>
-                <span class="cov0" title="0">fmt.Printf("✅ Resolved conversation for comment #%d\n", commentID)</span>
         }
 
         <span class="cov8" title="1">return nil</span>
@@ -2348,12 +2606,11 @@ func validateReaction(reaction string) bool <span class="cov8" title="1">{
         <span class="cov8" title="1">return false</span>
 }
 </pre>
-
-		<pre class="file" id="file9" style="display: none">package cmd
+		
+		<pre class="file" id="file11" style="display: none">package cmd
 
 import (
         "fmt"
-        "strconv"
         "strings"
 
         "github.com/silouanwright/gh-comment/internal/github"
@@ -2389,14 +2646,18 @@ func init() <span class="cov8" title="1">{
 
 func runResolve(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
         // Initialize client if not set (production use)
-        if resolveClient == nil </span><span class="cov8" title="1">{
-                resolveClient = &amp;github.RealClient{}
-        }</span>
+        if resolveClient == nil </span><span class="cov0" title="0">{
+                client, err := createGitHubClient()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create GitHub client: %w", err)
+                }</span>
+                <span class="cov0" title="0">resolveClient = client</span>
+        }
 
         // Parse comment ID
-        <span class="cov8" title="1">commentID, err := strconv.Atoi(args[0])
+        <span class="cov8" title="1">commentID, err := parsePositiveInt(args[0], "comment ID")
         if err != nil </span><span class="cov8" title="1">{
-                return formatValidationError("comment ID", args[0], "must be a valid integer")
+                return err
         }</span>
 
         // Get repository and PR context
@@ -2440,11 +2701,173 @@ func runResolve(cmd *cobra.Command, args []string) error <span class="cov8" titl
         return nil</span>
 }
 </pre>
-
-		<pre class="file" id="file10" style="display: none">package cmd
+		
+		<pre class="file" id="file12" style="display: none">package cmd
 
 import (
         "fmt"
+        "strings"
+
+        "github.com/MakeNowJust/heredoc"
+        "github.com/silouanwright/gh-comment/internal/github"
+        "github.com/spf13/cobra"
+)
+
+var (
+        resolveConversationReviewReply bool
+        noExpandSuggestionsReviewReply bool
+
+        // Client for dependency injection (tests can override)
+        reviewReplyClient github.GitHubAPI
+)
+
+var reviewReplyCmd = &amp;cobra.Command{
+        Use:   "review-reply &lt;comment-id&gt; [message]",
+        Short: "Reply to a review comment with a text message",
+        Long: heredoc.Doc(`
+                Reply to an existing review comment with a text message.
+
+                This command is specifically for review comment threading - replying to
+                line-specific comments that appear in the "Files Changed" tab. Review
+                comment threading has limited GitHub API support.
+
+                For general PR discussion, use 'gh comment add' instead.
+                For emoji reactions, use 'gh comment react' command.
+
+                Comment IDs can be found in the output of 'gh comment list'.
+        `),
+        Example: heredoc.Doc(`
+                # Reply to review comment with message
+                $ gh comment review-reply 789012 "Fixed this issue"
+
+                # Reply and resolve conversation in one operation
+                $ gh comment review-reply 789012 "Addressed your feedback" --resolve
+
+                # Just resolve conversation without adding message
+                $ gh comment review-reply 789012 --resolve
+
+                # For general PR discussion, use add command instead:
+                # $ gh comment add 123 "Thanks for the review!"
+
+                # For emoji reactions, use react command instead:
+                # $ gh comment react 789012 +1
+        `),
+        Args: cobra.RangeArgs(1, 2),
+        RunE: runReviewReply,
+}
+
+func init() <span class="cov8" title="1">{
+        rootCmd.AddCommand(reviewReplyCmd)
+
+        reviewReplyCmd.Flags().BoolVar(&amp;resolveConversationReviewReply, "resolve", false, "Resolve the conversation after replying")
+        reviewReplyCmd.Flags().BoolVar(&amp;noExpandSuggestionsReviewReply, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and &lt;&lt;&lt;SUGGEST&gt;&gt;&gt; syntax")
+}</span>
+
+func runReviewReply(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
+        // Initialize client if not set (production use)
+        if reviewReplyClient == nil </span><span class="cov0" title="0">{
+                client, err := createGitHubClient()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create GitHub client: %w", err)
+                }</span>
+                <span class="cov0" title="0">reviewReplyClient = client</span>
+        }
+
+        // Parse comment ID
+        <span class="cov8" title="1">commentIDStr := args[0]
+        commentID, err := parsePositiveInt(commentIDStr, "comment ID")
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        // Get message if provided
+        <span class="cov8" title="1">var message string
+        if len(args) &gt; 1 </span><span class="cov8" title="1">{
+                message = args[1]
+        }</span>
+
+        // Validate that we have either message or resolve
+        <span class="cov8" title="1">if message == "" &amp;&amp; !resolveConversationReviewReply </span><span class="cov8" title="1">{
+                return fmt.Errorf("must provide either a message or --resolve")
+        }</span>
+
+        // Get repository context
+        <span class="cov8" title="1">repository, prNumber, err := getPRContext()
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Parse owner/repo
+        <span class="cov8" title="1">parts := strings.Split(repository, "/")
+        if len(parts) != 2 </span><span class="cov0" title="0">{
+                return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+        }</span>
+        <span class="cov8" title="1">owner, repoName := parts[0], parts[1]
+
+        if verbose </span><span class="cov0" title="0">{
+                fmt.Printf("Repository: %s\n", repository)
+                fmt.Printf("Comment ID: %d\n", commentID)
+                fmt.Printf("Comment Type: review\n")
+                if message != "" </span><span class="cov0" title="0">{
+                        fmt.Printf("Message: %s\n", message)
+                }</span>
+                <span class="cov0" title="0">if resolveConversationReviewReply </span><span class="cov0" title="0">{
+                        fmt.Printf("Resolve Conversation: true\n")
+                }</span>
+                <span class="cov0" title="0">fmt.Println()</span>
+        }
+
+        <span class="cov8" title="1">if dryRun </span><span class="cov0" title="0">{
+                fmt.Printf("Would reply to review comment #%d:\n", commentID)
+                if message != "" </span><span class="cov0" title="0">{
+                        fmt.Printf("Message: %s\n", message)
+                }</span>
+                <span class="cov0" title="0">if resolveConversationReviewReply </span><span class="cov0" title="0">{
+                        fmt.Printf("Resolve Conversation: true\n")
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+        }
+
+        // Handle message reply
+        <span class="cov8" title="1">if message != "" </span><span class="cov8" title="1">{
+                // Expand suggestions if enabled
+                if !noExpandSuggestionsReviewReply </span><span class="cov8" title="1">{
+                        message = expandSuggestions(message)
+                }</span>
+
+                // Reply to review comment
+                <span class="cov8" title="1">_, err = reviewReplyClient.CreateReviewCommentReply(owner, repoName, commentID, message)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create reply: %w", err)
+                }</span>
+                <span class="cov8" title="1">fmt.Printf("✅ Replied to review comment #%d: %s\n", commentID, message)</span>
+        }
+
+        // Handle resolve conversation
+        <span class="cov8" title="1">if resolveConversationReviewReply </span><span class="cov8" title="1">{
+                // Find the thread ID for this comment
+                threadID, err := reviewReplyClient.FindReviewThreadForComment(owner, repoName, prNumber, commentID)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to find review thread: %w", err)
+                }</span>
+
+                // Resolve the thread
+                <span class="cov8" title="1">err = reviewReplyClient.ResolveReviewThread(threadID)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to resolve conversation: %w", err)
+                }</span>
+                <span class="cov8" title="1">fmt.Printf("✅ Resolved conversation for review comment #%d\n", commentID)</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package cmd
+
+import (
+        "fmt"
+        "sort"
         "strconv"
         "strings"
 
@@ -2464,13 +2887,16 @@ var (
 
 var reviewCmd = &amp;cobra.Command{
         Use:   "review &lt;pr&gt; &lt;body&gt;",
-        Short: "Create a review with multiple comments",
+        Short: "Create a code review with line-specific comments",
         Long: heredoc.Doc(`
-                Create a review with multiple comments using a streamlined interface.
+                Create a code review with multiple line-specific comments attached to code.
 
-                This command provides a simplified way to create reviews with multiple comments
-                using command-line flags. Perfect for comprehensive code reviews where you
-                want to add several comments and submit a review decision in one operation.
+                This command creates review comments that appear in the "Files Changed" tab,
+                attached to specific lines or ranges. Perfect for comprehensive code reviews
+                where you want to comment on multiple code locations and submit a review
+                decision (APPROVE/REQUEST_CHANGES/COMMENT) in one operation.
+
+                For general PR discussion comments, use: 'gh comment add'
         `),
         Example: heredoc.Doc(`
                 # Security-focused comprehensive review
@@ -2508,14 +2934,18 @@ var reviewCmd = &amp;cobra.Command{
 func init() <span class="cov8" title="1">{
         rootCmd.AddCommand(reviewCmd)
         reviewCmd.Flags().StringVar(&amp;reviewEventFlag, "event", "COMMENT", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT")
-        reviewCmd.Flags().StringArrayVar(&amp;reviewCommentsFlag, "comment", []string{}, "Add comment in format file:line:message or file:start-end:message")
+        reviewCmd.Flags().StringArrayVar(&amp;reviewCommentsFlag, "comment", []string{}, "Add comment in format file:line:message or file:start:end:message (also supports start-end)")
 }</span>
 
 func runReview(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
         // Initialize client if not set (production use)
         if reviewClient == nil </span><span class="cov0" title="0">{
-                reviewClient = &amp;github.RealClient{}
-        }</span>
+                client, err := createGitHubClient()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to create GitHub client: %w", err)
+                }</span>
+                <span class="cov0" title="0">reviewClient = client</span>
+        }
 
         <span class="cov8" title="1">var pr int
         var body string
@@ -2562,11 +2992,24 @@ func runReview(cmd *cobra.Command, args []string) error <span class="cov8" title
                 return fmt.Errorf("review must have either a body message or comments (use --comment)")
         }</span>
 
-        // Get repository and PR context
-        <span class="cov8" title="1">repository, pr, err := getPRContext()
+        // Get repository context
+        <span class="cov8" title="1">repository, err := getCurrentRepo()
         if err != nil </span><span class="cov0" title="0">{
-                return err
+                return fmt.Errorf("failed to get repository: %w", err)
         }</span>
+
+        // If PR number wasn't parsed from args, try to auto-detect it
+        <span class="cov8" title="1">if pr == 0 </span><span class="cov0" title="0">{
+                if prNumber &gt; 0 </span><span class="cov0" title="0">{
+                        pr = prNumber
+                }</span> else<span class="cov0" title="0"> {
+                        detectedPR, err := getCurrentPR()
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("failed to detect PR number: %w (try specifying --pr)", err)
+                        }</span>
+                        <span class="cov0" title="0">pr = detectedPR</span>
+                }
+        }
 
         // Parse owner/repo
         <span class="cov8" title="1">parts := strings.Split(repository, "/")
@@ -2575,7 +3018,25 @@ func runReview(cmd *cobra.Command, args []string) error <span class="cov8" title
         }</span>
         <span class="cov8" title="1">owner, repoName := parts[0], parts[1]
 
-        if verbose </span><span class="cov8" title="1">{
+        // Parse and validate review comments first (before dry run)
+        var reviewCommentInputs []github.ReviewCommentInput
+        for i, commentSpec := range reviewCommentsFlag </span><span class="cov8" title="1">{
+                commentInput, err := parseReviewCommentSpec(commentSpec)
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("invalid comment %d (%s): %w", i+1, commentSpec, err)
+                }</span>
+
+                // Validate line exists in diff if validation is enabled
+                <span class="cov8" title="1">if validateDiff </span><span class="cov8" title="1">{
+                        if err := validateCommentLine(reviewClient, owner, repoName, pr, commentInput); err != nil </span><span class="cov8" title="1">{
+                                return fmt.Errorf("comment %d validation failed (%s): %w", i+1, commentSpec, err)
+                        }</span>
+                }
+
+                <span class="cov8" title="1">reviewCommentInputs = append(reviewCommentInputs, commentInput)</span>
+        }
+
+        <span class="cov8" title="1">if verbose </span><span class="cov8" title="1">{
                 fmt.Printf("Repository: %s\n", repository)
                 fmt.Printf("PR: %d\n", pr)
                 fmt.Printf("Review body: %s\n", body)
@@ -2595,27 +3056,6 @@ func runReview(cmd *cobra.Command, args []string) error <span class="cov8" title
                 <span class="cov8" title="1">return nil</span>
         }
 
-        // Get PR details for commit SHA
-        <span class="cov8" title="1">prDetails, err := reviewClient.GetPRDetails(owner, repoName, pr)
-        if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to get PR details: %w", err)
-        }</span>
-
-        <span class="cov8" title="1">headSHA, ok := prDetails["head"].(map[string]interface{})["sha"].(string)
-        if !ok </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to get commit SHA from PR details")
-        }</span>
-
-        // Parse and create review comments
-        <span class="cov8" title="1">var reviewCommentInputs []github.ReviewCommentInput
-        for i, commentSpec := range reviewCommentsFlag </span><span class="cov8" title="1">{
-                commentInput, err := parseReviewCommentSpec(commentSpec, headSHA)
-                if err != nil </span><span class="cov8" title="1">{
-                        return fmt.Errorf("invalid comment %d (%s): %w", i+1, commentSpec, err)
-                }</span>
-                <span class="cov8" title="1">reviewCommentInputs = append(reviewCommentInputs, commentInput)</span>
-        }
-
         // Create the review
         <span class="cov8" title="1">review := github.ReviewInput{
                 Body:     body,
@@ -2625,7 +3065,7 @@ func runReview(cmd *cobra.Command, args []string) error <span class="cov8" title
 
         err = reviewClient.CreateReview(owner, repoName, pr, review)
         if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to create review: %w", err)
+                return formatActionableError("review creation", err)
         }</span>
 
         // Display success message
@@ -2649,18 +3089,71 @@ func runReview(cmd *cobra.Command, args []string) error <span class="cov8" title
 }
 
 // parseReviewCommentSpec parses a comment specification in the format:
-// file:line:message or file:start-end:message
-func parseReviewCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, error) <span class="cov8" title="1">{
-        parts := strings.SplitN(spec, ":", 3)
-        if len(parts) &lt; 3 </span><span class="cov8" title="1">{
-                return github.ReviewCommentInput{}, fmt.Errorf("format must be file:line:message or file:start-end:message")
-        }</span>
+// file:line:message or file:start:end:message
+func parseReviewCommentSpec(spec string) (github.ReviewCommentInput, error) <span class="cov8" title="1">{
+        // Handle quoted messages properly
+        var filePath, lineSpec, message string
 
-        <span class="cov8" title="1">filePath := parts[0]
-        lineSpec := parts[1]
-        message := strings.Join(parts[2:], ":") // Rejoin in case message contains colons
+        // Check if message is quoted
+        if strings.Contains(spec, ":'") &amp;&amp; strings.HasSuffix(spec, "'") </span><span class="cov0" title="0">{
+                // Message is quoted with single quotes
+                quoteIndex := strings.Index(spec, ":'")
+                message = spec[quoteIndex+2 : len(spec)-1] // Remove :' and trailing '
+                fileAndLine := spec[:quoteIndex]
 
-        if filePath == "" </span><span class="cov8" title="1">{
+                // Split file and line
+                lastColonIndex := strings.LastIndex(fileAndLine, ":")
+                if lastColonIndex == -1 </span><span class="cov0" title="0">{
+                        return github.ReviewCommentInput{}, fmt.Errorf("format must be file:line:message or file:start:end:message")
+                }</span>
+                <span class="cov0" title="0">filePath = fileAndLine[:lastColonIndex]
+                lineSpec = fileAndLine[lastColonIndex+1:]</span>
+        } else<span class="cov8" title="1"> if strings.Contains(spec, ":\"") &amp;&amp; strings.HasSuffix(spec, "\"") </span><span class="cov0" title="0">{
+                // Message is quoted with double quotes
+                quoteIndex := strings.Index(spec, ":\"")
+                message = spec[quoteIndex+2 : len(spec)-1] // Remove :" and trailing "
+                fileAndLine := spec[:quoteIndex]
+
+                // Split file and line
+                lastColonIndex := strings.LastIndex(fileAndLine, ":")
+                if lastColonIndex == -1 </span><span class="cov0" title="0">{
+                        return github.ReviewCommentInput{}, fmt.Errorf("format must be file:line:message or file:start:end:message")
+                }</span>
+                <span class="cov0" title="0">filePath = fileAndLine[:lastColonIndex]
+                lineSpec = fileAndLine[lastColonIndex+1:]</span>
+        } else<span class="cov8" title="1"> {
+                // Message is not quoted, use the old logic
+                // Try to parse as range format first
+                colonCount := strings.Count(spec, ":")
+                if colonCount &gt;= 3 </span><span class="cov8" title="1">{
+                        // Try file:start:end:message format
+                        parts := strings.SplitN(spec, ":", 4)
+                        if len(parts) == 4 </span><span class="cov8" title="1">{
+                                // Check if parts[1] and parts[2] are both numbers
+                                if _, err1 := strconv.Atoi(parts[1]); err1 == nil </span><span class="cov8" title="1">{
+                                        if _, err2 := strconv.Atoi(parts[2]); err2 == nil </span><span class="cov8" title="1">{
+                                                // Valid range format
+                                                filePath = parts[0]
+                                                lineSpec = parts[1] + ":" + parts[2]
+                                                message = parts[3]
+                                        }</span>
+                                }
+                        }
+                }
+
+                // If not range format, try simple format
+                <span class="cov8" title="1">if filePath == "" </span><span class="cov8" title="1">{
+                        parts := strings.SplitN(spec, ":", 3)
+                        if len(parts) &lt; 3 </span><span class="cov8" title="1">{
+                                return github.ReviewCommentInput{}, fmt.Errorf("format must be file:line:message or file:start:end:message")
+                        }</span>
+                        <span class="cov8" title="1">filePath = parts[0]
+                        lineSpec = parts[1]
+                        message = strings.Join(parts[2:], ":")</span>
+                }
+        }
+
+        <span class="cov8" title="1">if filePath == "" </span><span class="cov8" title="1">{
                 return github.ReviewCommentInput{}, fmt.Errorf("file path cannot be empty")
         }</span>
         <span class="cov8" title="1">if message == "" </span><span class="cov8" title="1">{
@@ -2668,17 +3161,22 @@ func parseReviewCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, 
         }</span>
 
         <span class="cov8" title="1">comment := github.ReviewCommentInput{
-                Body:     expandSuggestions(message),
-                Path:     filePath,
-                CommitID: commitSHA,
+                Body: expandSuggestions(message),
+                Path: filePath,
+                Side: "RIGHT", // Default to RIGHT side (additions/new lines)
         }
 
         // Parse line specification (single line or range)
-        if strings.Contains(lineSpec, "-") </span><span class="cov8" title="1">{
-                // Range format: start-end
-                rangeParts := strings.Split(lineSpec, "-")
-                if len(rangeParts) != 2 </span><span class="cov8" title="1">{
-                        return github.ReviewCommentInput{}, fmt.Errorf("range format must be start-end")
+        if strings.Contains(lineSpec, "-") || strings.Contains(lineSpec, ":") </span><span class="cov8" title="1">{
+                // Range format: start-end or start:end
+                var rangeParts []string
+                if strings.Contains(lineSpec, "-") </span><span class="cov8" title="1">{
+                        rangeParts = strings.Split(lineSpec, "-")
+                }</span> else<span class="cov8" title="1"> {
+                        rangeParts = strings.Split(lineSpec, ":")
+                }</span>
+                <span class="cov8" title="1">if len(rangeParts) != 2 </span><span class="cov8" title="1">{
+                        return github.ReviewCommentInput{}, fmt.Errorf("range format must be start-end or start:end")
                 }</span>
 
                 <span class="cov8" title="1">startLine, err := strconv.Atoi(strings.TrimSpace(rangeParts[0]))
@@ -2696,7 +3194,7 @@ func parseReviewCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, 
                 }</span>
 
                 <span class="cov8" title="1">if startLine &gt; endLine </span><span class="cov8" title="1">{
-                        return github.ReviewCommentInput{}, fmt.Errorf("start line must be &lt;= end line")
+                        return github.ReviewCommentInput{}, fmt.Errorf("start line (%d) cannot be greater than end line (%d)", startLine, endLine)
                 }</span>
 
                 <span class="cov8" title="1">comment.StartLine = startLine
@@ -2716,9 +3214,103 @@ func parseReviewCommentSpec(spec, commitSHA string) (github.ReviewCommentInput, 
         }
 
         <span class="cov8" title="1">return comment, nil</span>
-}</pre>
+}
 
-		<pre class="file" id="file11" style="display: none">package cmd
+// validateCommentLine validates that the line(s) specified in a review comment exist in the PR diff
+func validateCommentLine(client github.GitHubAPI, owner, repo string, pr int, comment github.ReviewCommentInput) error <span class="cov8" title="1">{
+        // Fetch PR diff
+        diff, err := client.FetchPRDiff(owner, repo, pr)
+        if err != nil </span><span class="cov0" title="0">{
+                // If we can't fetch the diff, skip validation rather than blocking the comment
+                if verbose </span><span class="cov0" title="0">{
+                        fmt.Printf("Warning: Could not fetch PR diff for validation: %v\n", err)
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+        }
+
+        // Find the requested file in the diff
+        <span class="cov8" title="1">var targetFile *github.DiffFile
+        for i := range diff.Files </span><span class="cov8" title="1">{
+                if diff.Files[i].Filename == comment.Path </span><span class="cov8" title="1">{
+                        targetFile = &amp;diff.Files[i]
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="1">if targetFile == nil </span><span class="cov8" title="1">{
+                // Build helpful error message with available files
+                var availableFiles []string
+                for _, file := range diff.Files </span><span class="cov8" title="1">{
+                        availableFiles = append(availableFiles, file.Filename)
+                }</span>
+
+                <span class="cov8" title="1">errorMsg := fmt.Sprintf("file '%s' not found in PR #%d diff", comment.Path, pr)
+                if len(availableFiles) &gt; 0 </span><span class="cov8" title="1">{
+                        errorMsg += "\n\n💡 Available files in this PR:\n"
+                        for _, filename := range availableFiles </span><span class="cov8" title="1">{
+                                errorMsg += fmt.Sprintf("  • %s\n", filename)
+                        }</span>
+                        <span class="cov8" title="1">errorMsg += fmt.Sprintf("\nTip: Use 'gh comment lines %d &lt;file&gt;' to see commentable lines", pr)</span>
+                }
+                <span class="cov8" title="1">return fmt.Errorf("%s", errorMsg)</span>
+        }
+
+        // Validate line numbers exist in the diff
+        <span class="cov8" title="1">var linesToCheck []int
+        if comment.StartLine &gt; 0 </span><span class="cov8" title="1">{
+                // Range comment: check all lines from StartLine to Line
+                for line := comment.StartLine; line &lt;= comment.Line; line++ </span><span class="cov8" title="1">{
+                        linesToCheck = append(linesToCheck, line)
+                }</span>
+        } else<span class="cov8" title="1"> {
+                // Single line comment
+                linesToCheck = []int{comment.Line}
+        }</span>
+
+        <span class="cov8" title="1">var invalidLines []int
+        for _, line := range linesToCheck </span><span class="cov8" title="1">{
+                if !targetFile.Lines[line] </span><span class="cov8" title="1">{
+                        invalidLines = append(invalidLines, line)
+                }</span>
+        }
+
+        <span class="cov8" title="1">if len(invalidLines) &gt; 0 </span><span class="cov8" title="1">{
+                // Build helpful error message with available lines
+                var availableLines []int
+                for lineNum := range targetFile.Lines </span><span class="cov8" title="1">{
+                        availableLines = append(availableLines, lineNum)
+                }</span>
+
+                // Sort available lines for better display
+                <span class="cov8" title="1">sort.Ints(availableLines)
+
+                // Group consecutive lines for cleaner display
+                ranges := groupConsecutiveLines(availableLines)
+
+                var rangeStrings []string
+                for _, r := range ranges </span><span class="cov8" title="1">{
+                        if r.start == r.end </span><span class="cov0" title="0">{
+                                rangeStrings = append(rangeStrings, fmt.Sprintf("%d", r.start))
+                        }</span> else<span class="cov8" title="1"> {
+                                rangeStrings = append(rangeStrings, fmt.Sprintf("%d-%d", r.start, r.end))
+                        }</span>
+                }
+
+                <span class="cov8" title="1">errorMsg := fmt.Sprintf("line(s) %v do not exist in diff for file '%s'", invalidLines, comment.Path)
+                if len(availableLines) &gt; 0 </span><span class="cov8" title="1">{
+                        errorMsg += fmt.Sprintf("\n\n💡 Available lines for comments: %s", strings.Join(rangeStrings, ", "))
+                        errorMsg += fmt.Sprintf("\n\nTip: Use 'gh comment lines %d %s' to see detailed line information", pr, comment.Path)
+                }</span> else<span class="cov0" title="0"> {
+                        errorMsg += fmt.Sprintf("\n\n💡 No commentable lines found in '%s' - file may not have changes in this PR", comment.Path)
+                }</span>
+                <span class="cov8" title="1">return fmt.Errorf("%s", errorMsg)</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">package cmd
 
 import (
         "fmt"
@@ -2750,6 +3342,10 @@ var rootCmd = &amp;cobra.Command{
                 Designed for developers, code review leads, and teams who need sophisticated
                 comment workflows beyond GitHub's web interface capabilities.
 
+                Comment Types:
+                • Issue comments: General PR discussion, appear in main conversation tab
+                • Review comments: Line-specific feedback, appear in "Files Changed" tab
+
                 Strategic GitHub PR Commenting - Beyond the Web Interface:
 
                 gh-comment is designed for professional code review workflows that require:
@@ -2764,16 +3360,15 @@ var rootCmd = &amp;cobra.Command{
         `),
         Example: heredoc.Doc(`
                 Commands:
-                  add           Add targeted comments to specific lines
-                  add-review    Create draft reviews with multiple comments
-                  batch         Process comments from YAML configuration files
-                  edit          Modify existing comments
-                  list          List and filter comments with advanced options
-                  reply         Reply to comments and manage reactions
-                  resolve       Resolve conversation threads
-                  review        Create reviews with comments in one operation
-                  submit-review Submit pending reviews with approval/changes
-                  help          Help about any command
+                  add                     Add general PR discussion comments
+                  close-pending-review    Submit GUI-created pending reviews
+                  edit                    Modify existing comments
+                  list                    List and filter comments with advanced options
+                  react                   Add or remove emoji reactions to comments
+                  reply                   Reply to comments with text messages
+                  resolve                 Resolve conversation threads
+                  review                  Create line-specific code reviews
+                  help                    Help about any command
 
                 Global Flags:
                   -p, --pr int        PR number (auto-detect from branch if omitted)
@@ -2797,17 +3392,23 @@ var rootCmd = &amp;cobra.Command{
                 Examples:
                 # Basic Operations
                 $ gh comment list 123                           List all comments on PR #123
-                $ gh comment add 123 "Looks good overall!"     Add general PR comment
+                $ gh comment add 123 "Looks good overall!"     Add general discussion comment
 
-                # Strategic Line Commenting (Unique Value)
-                $ gh comment add 123 src/api.js 42 "This handles the rate limiting edge case - consider moving to middleware"
-                $ gh comment add 123 auth.go 15:25 "This entire auth flow needs refactoring for OAuth2 compliance"
-                $ gh comment add 123 database.py 156 "This query is vulnerable to SQL injection - use parameterized queries"
+                # Issue Comments (General PR Discussion)
+                $ gh comment add 123 "LGTM! Just waiting for CI to pass"
+                $ gh comment add 123 "Thanks for addressing the security concerns"
+                $ gh comment reply 12345 "Good point, I'll make those changes"
+
+                # Review Comments (Line-Specific Code Feedback)
+                $ gh comment review 123 "Code review complete" \
+                  --comment src/api.js:42:"Add rate limiting middleware" \
+                  --comment auth.go:15:25:"Refactor for OAuth2 compliance" \
+                  --event REQUEST_CHANGES
 
                 # Advanced Filtering (Power User Features)
                 $ gh comment list 123 --author "senior-dev*" --status open --since "1 week ago"
                 $ gh comment list 123 --type review --author "*@company.com" --since "deployment-date"
-                $ gh comment list 123 --status resolved --until "2024-01-01" --format json
+                $ gh comment list 123 --status resolved --until "2024-01-01" --quiet
 
                 # Review Workflows (Professional Code Review)
                 $ gh comment review 123 "Migration review complete" \
@@ -2821,19 +3422,21 @@ var rootCmd = &amp;cobra.Command{
                   --comment api.js:134:140:"Extract business logic to service layer"
 
                 # Batch Operations (Systematic Reviews)
-                $ gh comment batch comprehensive-review.yaml
-                $ gh comment batch --dry-run security-audit.yaml
-                $ gh comment batch post-deployment-checklist.yaml --pr $(gh pr view --json number -q .number)
+                $ gh comment batch 123 review-config.yaml
+                $ gh comment batch 456 security-checklist.yaml --dry-run
+                $ gh comment batch 789 bulk-comments.yaml --verbose
 
                 # Conversation Management
                 $ gh comment reply 2246362251 "Fixed in commit abc123" --resolve
-                $ gh comment reply 3141344022 "Great catch! This would have caused issues in production" --reaction +1
+                $ gh comment react 3141344022 +1
+                $ gh comment react 2246362251 rocket
+                $ gh comment react 3141344022 heart --remove
                 $ gh comment resolve --thread 2246362251 --reason "Addressed in latest commit"
 
                 # Data Export &amp; Analysis (Automation)
-                $ gh comment list 123 --format json | jq '.comments[].author' | sort | uniq -c
-                $ gh comment list 123 --format csv --since "2024-01-01" --output q1-review-data.csv
-                $ gh comment list 123 --author "qa-team*" --format json | analyze-feedback.py
+                $ gh comment list 123 --quiet | grep "👤" | cut -d' ' -f2 | sort | uniq -c
+                $ gh comment list 123 --since "2024-01-01" --quiet | tee q1-review-data.txt
+                $ gh comment list 123 --author "qa-team*" --quiet | analyze-feedback.py
 
                 # Automation &amp; CI Integration
                 $ gh comment add 123 src/security.js 67 "[SUGGEST: use crypto.randomBytes(32)]"
@@ -2842,7 +3445,7 @@ var rootCmd = &amp;cobra.Command{
 
                 # Advanced Comment Management
                 $ gh comment edit 2246362251 "Updated: This rate limiting logic handles concurrent requests properly"
-                $ gh comment list 123 --author "bot*" --format json | jq '.comments[].id' | xargs -I {} gh comment resolve {}
+                $ gh comment list 123 --author "bot*" --quiet | grep "ID:" | cut -d':' -f2 | xargs -I {} gh comment resolve {}
                 $ gh comment add 123 performance.js 89:95 "Consider caching this expensive calculation"
         `),
         Version: "1.0.0",
@@ -2870,12 +3473,12 @@ func getCurrentRepo() (string, error) <span class="cov8" title="1">{
         }</span>
 
         // Use gh CLI to get current repository
-        <span class="cov8" title="1">stdout, _, err := gh.Exec("repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner")
+        <span class="cov0" title="0">stdout, _, err := gh.Exec("repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner")
         if err != nil </span><span class="cov0" title="0">{
                 return "", fmt.Errorf("failed to get current repository: %w", err)
         }</span>
 
-        <span class="cov8" title="1">return strings.TrimSpace(stdout.String()), nil</span>
+        <span class="cov0" title="0">return strings.TrimSpace(stdout.String()), nil</span>
 }
 
 // Helper function to get current PR number if not specified
@@ -2885,8 +3488,8 @@ func getCurrentPR() (int, error) <span class="cov8" title="1">{
         }</span>
 
         // Use gh CLI to get PR for current branch
-        <span class="cov8" title="1">stdout, _, err := gh.Exec("pr", "view", "--json", "number", "-q", ".number")
-        if err != nil </span><span class="cov8" title="1">{
+        <span class="cov0" title="0">stdout, _, err := gh.Exec("pr", "view", "--json", "number", "-q", ".number")
+        if err != nil </span><span class="cov0" title="0">{
                 return 0, fmt.Errorf("failed to get current PR: %w (try specifying --pr)", err)
         }</span>
 
@@ -2899,184 +3502,8 @@ func getCurrentPR() (int, error) <span class="cov8" title="1">{
         <span class="cov0" title="0">return pr, nil</span>
 }
 </pre>
-
-		<pre class="file" id="file12" style="display: none">package cmd
-
-import (
-        "fmt"
-        "strconv"
-        "strings"
-
-        "github.com/silouanwright/gh-comment/internal/github"
-        "github.com/spf13/cobra"
-)
-
-var (
-        submitEvent   string
-        submitBody    string
-        submitClient  github.GitHubAPI
-)
-
-var submitReviewCmd = &amp;cobra.Command{
-        Use:   "submit-review [pr] [body]",
-        Short: "Submit a pending review",
-        Long: `Submit a pending review with a summary message and approval status.
-
-This command finds your pending review on the PR and submits it with the specified
-event type (APPROVE, REQUEST_CHANGES, or COMMENT) and optional summary body.
-
-Once submitted, the pending review becomes visible to others and you can create
-new reviews.
-
-Examples:
-  # Submit pending review with approval
-  gh comment submit-review 123 "LGTM! Great work" --event APPROVE
-
-  # Submit with change requests
-  gh comment submit-review 123 "Please address the comments" --event REQUEST_CHANGES
-
-  # Submit as general comment
-  gh comment submit-review 123 "Thanks for the updates" --event COMMENT
-
-  # Submit with minimal body (auto-detect PR)
-  gh comment submit-review "Looks good" --event APPROVE
-
-  # Submit without additional body
-  gh comment submit-review 123 --event APPROVE`,
-        Args: cobra.RangeArgs(0, 2),
-        RunE: runSubmitReview,
-}
-
-func init() <span class="cov8" title="1">{
-        rootCmd.AddCommand(submitReviewCmd)
-        submitReviewCmd.Flags().StringVar(&amp;submitEvent, "event", "COMMENT", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT")
-        submitReviewCmd.Flags().StringVar(&amp;submitBody, "body", "", "Review summary body (optional)")
-}</span>
-
-func runSubmitReview(cmd *cobra.Command, args []string) error <span class="cov8" title="1">{
-        // Initialize client if not set (production use)
-        if submitClient == nil </span><span class="cov0" title="0">{
-                submitClient = &amp;github.RealClient{}
-        }</span>
-
-        <span class="cov8" title="1">var pr int
-        var body string
-        var err error
-
-        // Parse arguments
-        if len(args) == 2 </span><span class="cov8" title="1">{
-                // PR number and body provided
-                pr, err = strconv.Atoi(args[0])
-                if err != nil </span><span class="cov8" title="1">{
-                        return formatValidationError("PR number", args[0], "must be a valid integer")
-                }</span>
-                <span class="cov8" title="1">body = args[1]</span>
-        } else<span class="cov8" title="1"> if len(args) == 1 </span><span class="cov8" title="1">{
-                // Check if it's a PR number or review body
-                if prNum, err := strconv.Atoi(args[0]); err == nil </span><span class="cov8" title="1">{
-                        // It's a PR number
-                        pr = prNum
-                }</span> else<span class="cov8" title="1"> {
-                        // It's a review body, auto-detect PR
-                        _, prNum, err := getPRContext()
-                        if err != nil </span><span class="cov0" title="0">{
-                                return err
-                        }</span>
-                        <span class="cov8" title="1">pr = prNum
-                        body = args[0]</span>
-                }
-        } else<span class="cov8" title="1"> {
-                // Auto-detect PR
-                _, prNum, err := getPRContext()
-                if err != nil </span><span class="cov0" title="0">{
-                        return err
-                }</span>
-                <span class="cov8" title="1">pr = prNum</span>
-        }
-
-        // Use --body flag if provided, otherwise use positional arg
-        <span class="cov8" title="1">if submitBody != "" </span><span class="cov8" title="1">{
-                body = submitBody
-        }</span>
-
-        // Validate event type
-        <span class="cov8" title="1">validEvents := []string{"APPROVE", "REQUEST_CHANGES", "COMMENT"}
-        isValidEvent := false
-        for _, validEvent := range validEvents </span><span class="cov8" title="1">{
-                if submitEvent == validEvent </span><span class="cov8" title="1">{
-                        isValidEvent = true
-                        break</span>
-                }
-        }
-        <span class="cov8" title="1">if !isValidEvent </span><span class="cov8" title="1">{
-                return fmt.Errorf("invalid event type: %s (must be APPROVE, REQUEST_CHANGES, or COMMENT)", submitEvent)
-        }</span>
-
-        // Get repository and PR context
-        <span class="cov8" title="1">repository, pr, err := getPRContext()
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-
-        // Parse owner/repo
-        <span class="cov8" title="1">parts := strings.Split(repository, "/")
-        if len(parts) != 2 </span><span class="cov8" title="1">{
-                return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
-        }</span>
-        <span class="cov8" title="1">owner, repoName := parts[0], parts[1]
-
-        if verbose </span><span class="cov8" title="1">{
-                fmt.Printf("Repository: %s\n", repository)
-                fmt.Printf("PR: %d\n", pr)
-                fmt.Printf("Review body: %s\n", body)
-                fmt.Printf("Review event: %s\n", submitEvent)
-                fmt.Println()
-        }</span>
-
-        <span class="cov8" title="1">if dryRun </span><span class="cov8" title="1">{
-                fmt.Printf("Would submit pending review on PR #%d:\n", pr)
-                fmt.Printf("Body: %s\n", body)
-                fmt.Printf("Event: %s\n", submitEvent)
-                return nil
-        }</span>
-
-        // Find the pending review
-        <span class="cov8" title="1">reviewID, err := submitClient.FindPendingReview(owner, repoName, pr)
-        if err != nil </span><span class="cov8" title="1">{
-                return fmt.Errorf("failed to find pending review: %w", err)
-        }</span>
-
-        <span class="cov8" title="1">if reviewID == 0 </span><span class="cov8" title="1">{
-                return fmt.Errorf("no pending review found on PR #%d", pr)
-        }</span>
-
-        <span class="cov8" title="1">if verbose </span><span class="cov8" title="1">{
-                fmt.Printf("Found pending review ID: %d\n", reviewID)
-        }</span>
-
-        // Submit the review
-        <span class="cov8" title="1">err = submitClient.SubmitReview(owner, repoName, pr, reviewID, body, submitEvent)
-        if err != nil </span><span class="cov8" title="1">{
-                return fmt.Errorf("failed to submit review: %w", err)
-        }</span>
-
-        // Display success message
-        <span class="cov8" title="1">eventText := ""
-        switch submitEvent </span>{
-        case "APPROVE":<span class="cov8" title="1">
-                eventText = "approved"</span>
-        case "REQUEST_CHANGES":<span class="cov8" title="1">
-                eventText = "requested changes"</span>
-        case "COMMENT":<span class="cov8" title="1">
-                eventText = "commented"</span>
-        }
-
-        <span class="cov8" title="1">fmt.Printf("✅ Successfully submitted review and %s PR #%d\n", eventText, pr)
-        return nil</span>
-}
-</pre>
-
-		<pre class="file" id="file13" style="display: none">package cmd
+		
+		<pre class="file" id="file15" style="display: none">package cmd
 
 import (
         "regexp"
@@ -3096,19 +3523,47 @@ func expandSuggestions(message string) string <span class="cov8" title="1">{
 
 // expandInlineSuggestions handles [SUGGEST: code] syntax
 func expandInlineSuggestions(message string) string <span class="cov8" title="1">{
-        // Regex to match [SUGGEST: code] patterns
-        re := regexp.MustCompile(`\[SUGGEST:\s*([^\]]+)\]`)
+        // Use a more sophisticated approach to handle nested brackets
+        result := message
+        for </span><span class="cov8" title="1">{
+                start := strings.Index(result, "[SUGGEST:")
+                if start == -1 </span><span class="cov8" title="1">{
+                        break</span> // No more suggestions found
+                }
 
-        return re.ReplaceAllStringFunc(message, func(match string) string </span><span class="cov8" title="1">{
-                // Extract the code part
-                submatches := re.FindStringSubmatch(match)
-                if len(submatches) &lt; 2 </span><span class="cov0" title="0">{
-                        return match // Return original if parsing fails
-                }</span>
+                // Find the matching closing bracket by counting bracket depth
+                <span class="cov8" title="1">bracketCount := 0
+                suggestStart := start + len("[SUGGEST:")
+                end := -1
 
-                <span class="cov8" title="1">code := strings.TrimSpace(submatches[1])
-                return "\n\n```suggestion\n" + code + "\n```\n\n"</span>
-        })
+                for i := suggestStart; i &lt; len(result); i++ </span><span class="cov8" title="1">{
+                        char := result[i]
+                        if char == '[' </span><span class="cov8" title="1">{
+                                bracketCount++
+                        }</span> else<span class="cov8" title="1"> if char == ']' </span><span class="cov8" title="1">{
+                                if bracketCount == 0 </span><span class="cov8" title="1">{
+                                        end = i
+                                        break</span>
+                                }
+                                <span class="cov8" title="1">bracketCount--</span>
+                        }
+                }
+
+                <span class="cov8" title="1">if end == -1 </span><span class="cov8" title="1">{
+                        break</span> // No matching closing bracket found
+                }
+
+                // Extract the code part and trim whitespace
+                <span class="cov8" title="1">code := strings.TrimSpace(result[suggestStart:end])
+
+                // Replace the [SUGGEST: code] with GitHub suggestion syntax
+                replacement := "\n\n```suggestion\n" + code + "\n```\n\n"
+
+                // Replace this occurrence and continue searching
+                result = result[:start] + replacement + result[end+1:]</span>
+        }
+
+        <span class="cov8" title="1">return result</span>
 }
 
 // expandMultilineSuggestions handles &lt;&lt;&lt;SUGGEST\ncode\nSUGGEST&gt;&gt;&gt; syntax
@@ -3128,7 +3583,7 @@ func expandMultilineSuggestions(message string) string <span class="cov8" title=
         })
 }
 </pre>
-
+		
 		</div>
 	</body>
 	<script>

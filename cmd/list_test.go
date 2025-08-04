@@ -575,6 +575,124 @@ func TestDisplayCommentsJSON(t *testing.T) {
 	}
 }
 
+func TestDisplayComments(t *testing.T) {
+	tests := []struct {
+		name             string
+		comments         []Comment
+		pr               int
+		expectedContains []string
+	}{
+		{
+			name:     "empty comments",
+			comments: []Comment{},
+			pr:       123,
+			expectedContains: []string{
+				"No comments found on PR #123",
+			},
+		},
+		{
+			name: "single issue comment",
+			comments: []Comment{
+				{ID: 1, Author: "user1", Body: "Issue comment", Type: "issue", CreatedAt: testTime()},
+			},
+			pr: 456,
+			expectedContains: []string{
+				"📝 Comments on PR #456 (1 total)",
+				"💬 General PR Comments (1)",
+				"[1] ID:1",
+				"Issue comment",
+			},
+		},
+		{
+			name: "single review comment",
+			comments: []Comment{
+				{ID: 2, Author: "reviewer", Body: "Review comment", Type: "review", Path: "test.go", Line: 42, CreatedAt: testTime()},
+			},
+			pr: 789,
+			expectedContains: []string{
+				"📝 Comments on PR #789 (1 total)",
+				"📋 Review Comments (1)",
+				"[1] ID:2",
+				"Review comment",
+			},
+		},
+		{
+			name: "line-specific comment (other type)",
+			comments: []Comment{
+				{ID: 3, Author: "dev", Body: "Line comment", Type: "line", Path: "main.go", Line: 10, CreatedAt: testTime()},
+			},
+			pr: 111,
+			expectedContains: []string{
+				"📝 Comments on PR #111 (1 total)",
+				"📍 Line-Specific Comments (1)",
+				"[1] ID:3",
+				"Line comment",
+			},
+		},
+		{
+			name: "mixed comment types",
+			comments: []Comment{
+				{ID: 1, Author: "user1", Body: "Issue comment", Type: "issue", CreatedAt: testTime()},
+				{ID: 2, Author: "reviewer", Body: "Review comment", Type: "review", Path: "test.go", Line: 42, CreatedAt: testTime()},
+				{ID: 3, Author: "dev", Body: "Line comment", Type: "line", Path: "main.go", Line: 10, CreatedAt: testTime()},
+			},
+			pr: 222,
+			expectedContains: []string{
+				"📝 Comments on PR #222 (3 total)",
+				"💬 General PR Comments (1)",
+				"📋 Review Comments (1)", 
+				"📍 Line-Specific Comments (1)",
+			},
+		},
+		{
+			name: "comments with single commit ID",
+			comments: []Comment{
+				{ID: 1, Author: "user1", Body: "Comment", Type: "issue", CommitID: "abc123", CreatedAt: testTime()},
+			},
+			pr: 333,
+			expectedContains: []string{
+				"📝 Comments on PR #333 (1 total, 1 commit)",
+			},
+		},
+		{
+			name: "comments with multiple commit IDs",
+			comments: []Comment{
+				{ID: 1, Author: "user1", Body: "Comment 1", Type: "issue", CommitID: "abc123", CreatedAt: testTime()},
+				{ID: 2, Author: "user2", Body: "Comment 2", Type: "review", CommitID: "def456", CreatedAt: testTime()},
+				{ID: 3, Author: "user3", Body: "Comment 3", Type: "issue", CommitID: "abc123", CreatedAt: testTime()}, // Duplicate commit ID
+			},
+			pr: 444,
+			expectedContains: []string{
+				"📝 Comments on PR #444 (3 total, 2 commits)",
+			},
+		},
+		{
+			name: "comments with mixed commit IDs (some empty)",
+			comments: []Comment{
+				{ID: 1, Author: "user1", Body: "Comment 1", Type: "issue", CommitID: "abc123", CreatedAt: testTime()},
+				{ID: 2, Author: "user2", Body: "Comment 2", Type: "review", CommitID: "", CreatedAt: testTime()}, // No commit ID
+				{ID: 3, Author: "user3", Body: "Comment 3", Type: "issue", CommitID: "def456", CreatedAt: testTime()},
+			},
+			pr: 555,
+			expectedContains: []string{
+				"📝 Comments on PR #555 (3 total, 2 commits)",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			output := captureOutput(func() {
+				displayComments(tt.comments, tt.pr)
+			})
+
+			for _, expected := range tt.expectedContains {
+				assert.Contains(t, output, expected, "Should contain: %s", expected)
+			}
+		})
+	}
+}
+
 func testTime() time.Time {
 	// Return a fixed time for consistent testing
 	return time.Date(2024, 1, 1, 12, 0, 0, 0, time.UTC)

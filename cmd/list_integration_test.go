@@ -337,7 +337,7 @@ func runListWithMock(cmd *cobra.Command, args []string, mockClient *MockGitHubCl
 	// Display general PR comments
 	if len(issueCommentsFiltered) > 0 {
 		fmt.Fprintf(output, "💬 General PR Comments (%d)\n", len(issueCommentsFiltered))
-		fmt.Fprintf(output, "%s\n", strings.Repeat("─", 50))
+		fmt.Fprintf(output, "%s\n", strings.Repeat("─", SeparatorLength))
 		for i, comment := range issueCommentsFiltered {
 			displayCommentToBuffer(comment, i+1, output)
 		}
@@ -347,7 +347,7 @@ func runListWithMock(cmd *cobra.Command, args []string, mockClient *MockGitHubCl
 	// Display review comments
 	if len(reviewCommentsFiltered) > 0 {
 		fmt.Fprintf(output, "📋 Review Comments (%d)\n", len(reviewCommentsFiltered))
-		fmt.Fprintf(output, "%s\n", strings.Repeat("─", 50))
+		fmt.Fprintf(output, "%s\n", strings.Repeat("─", SeparatorLength))
 		for i, comment := range reviewCommentsFiltered {
 			displayCommentToBuffer(comment, i+1, output)
 		}
@@ -375,8 +375,8 @@ func displayCommentToBuffer(comment Comment, index int, output *bytes.Buffer) {
 
 	// Comment body (truncate if too long)
 	body := strings.TrimSpace(comment.Body)
-	if len(body) > 200 {
-		body = body[:197] + "..."
+	if len(body) > MaxDisplayBodyLength {
+		body = body[:MaxDisplayBodyLength-TruncationReserve] + TruncationSuffix
 	}
 
 	// Indent the comment body

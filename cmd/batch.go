@@ -131,7 +131,7 @@ func runBatch(cmd *cobra.Command, args []string) error {
 	if dryRun {
 		fmt.Printf("Would process %d comments from %s on PR #%d:\n", len(config.Comments), configFile, pr)
 		for i, comment := range config.Comments {
-			fmt.Printf("  %d. %s:%s - %s\n", i+1, comment.File, formatLineOrRange(comment), truncateMessage(comment.Message, 50))
+			fmt.Printf("  %d. %s:%s - %s\n", i+1, comment.File, formatLineOrRange(comment), truncateMessage(comment.Message, MessageTruncateLength))
 		}
 		if config.Review != nil {
 			fmt.Printf("Would create review with event: %s\n", config.Review.Event)

@@ -49,13 +49,16 @@ var rootCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		Commands:
 		  add                     Add general PR discussion comments
+		  batch                   Process multiple comments from YAML configuration
 		  close-pending-review    Submit GUI-created pending reviews
 		  edit                    Modify existing comments
+		  lines                   Show commentable lines in PR files
 		  list                    List and filter comments with advanced options
+		  prompts                 Get AI-powered code review prompts and best practices
 		  react                   Add or remove emoji reactions to comments
-		  reply                   Reply to comments with text messages
 		  resolve                 Resolve conversation threads
 		  review                  Create line-specific code reviews
+		  review-reply            Reply to review comments with text messages
 		  help                    Help about any command
 
 		Global Flags:
@@ -85,7 +88,7 @@ var rootCmd = &cobra.Command{
 		# Issue Comments (General PR Discussion)
 		$ gh comment add 123 "LGTM! Just waiting for CI to pass"
 		$ gh comment add 123 "Thanks for addressing the security concerns"
-		$ gh comment reply 12345 "Good point, I'll make those changes"
+		$ gh comment review-reply 12345 "Good point, I'll make those changes"
 
 		# Review Comments (Line-Specific Code Feedback)
 		$ gh comment review 123 "Code review complete" \
@@ -105,7 +108,7 @@ var rootCmd = &cobra.Command{
 		  --comment tests/api_test.go:100:"Add edge case tests" \
 		  --event REQUEST_CHANGES
 
-		$ gh comment add-review 123 "Security audit findings" \
+		$ gh comment review 123 "Security audit findings" \
 		  --comment auth.go:67:"Use crypto.randomBytes(32) for tokens" \
 		  --comment api.js:134:140:"Extract business logic to service layer"
 
@@ -115,11 +118,11 @@ var rootCmd = &cobra.Command{
 		$ gh comment batch 789 bulk-comments.yaml --verbose
 
 		# Conversation Management
-		$ gh comment reply 2246362251 "Fixed in commit abc123" --resolve
+		$ gh comment review-reply 2246362251 "Fixed in commit abc123" --resolve
 		$ gh comment react 3141344022 +1
 		$ gh comment react 2246362251 rocket
 		$ gh comment react 3141344022 heart --remove
-		$ gh comment resolve --thread 2246362251 --reason "Addressed in latest commit"
+		$ gh comment resolve 2246362251
 
 		# Data Export & Analysis (Automation)
 		$ gh comment list 123 --quiet | grep "👤" | cut -d' ' -f2 | sort | uniq -c

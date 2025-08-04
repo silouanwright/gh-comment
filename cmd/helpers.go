@@ -8,9 +8,20 @@ import (
 
 // Constants for API limits and defaults
 const (
-	MaxGraphQLResults = 100
-	MaxCommentLength  = 65536
-	DefaultPageSize   = 30
+	MaxGraphQLResults     = 100
+	MaxCommentLength      = 65536  // GitHub's actual limit for comment body
+	MaxFilePathLength     = 4096   // Reasonable file path limit
+	MaxAuthorLength       = 39     // GitHub username max length
+	MaxRepoNameLength     = 100    // GitHub repository name max length
+	MaxBranchLength       = 255    // Git branch name max length
+	DefaultPageSize       = 30
+
+	// Display constants
+	MaxDisplayBodyLength  = 200    // Max length for comment body display
+	TruncationSuffix      = "..."
+	TruncationReserve     = 3      // Length of "..."
+	SeparatorLength       = 50     // Length of separator lines
+	MessageTruncateLength = 50     // Length for message truncation in batch dry-run
 )
 
 // getPRContext gets the repository and PR number, handling both flag and auto-detection
@@ -103,6 +114,57 @@ func parsePositiveInt(s, fieldName string) (int, error) {
 		return 0, formatValidationError(fieldName, s, "must be a positive integer")
 	}
 	return val, nil
+}
+
+// validateCommentBody validates comment body length and content
+func validateCommentBody(body string) error {
+	if len(body) > MaxCommentLength {
+		return fmt.Errorf("comment too long: %d characters (maximum %d allowed)", len(body), MaxCommentLength)
+	}
+	return nil
+}
+
+// validateFilePath validates file path length and format to prevent directory traversal
+func validateFilePath(path string) error {
+	if len(path) > MaxFilePathLength {
+		return fmt.Errorf("file path too long: %d characters (maximum %d allowed)", len(path), MaxFilePathLength)
+	}
+
+	// Check for directory traversal attempts
+	if strings.Contains(path, "..") {
+		return fmt.Errorf("invalid file path: directory traversal not allowed")
+	}
+
+	// Check for absolute paths (should be relative to repo root)
+	if strings.HasPrefix(path, "/") {
+		return fmt.Errorf("invalid file path: absolute paths not allowed, use relative paths from repository root")
+	}
+
+	return nil
+}
+
+// validateRepositoryName validates GitHub repository name format
+func validateRepositoryName(repo string) error {
+	if len(repo) > MaxRepoNameLength {
+		return fmt.Errorf("repository name too long: %d characters (maximum %d allowed)", len(repo), MaxRepoNameLength)
+	}
+
+	// Check for basic owner/repo format
+	parts := strings.Split(repo, "/")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid repository format: must be 'owner/repo'")
+	}
+
+	owner, repoName := parts[0], parts[1]
+	if len(owner) == 0 || len(repoName) == 0 {
+		return fmt.Errorf("invalid repository format: owner and repository name cannot be empty")
+	}
+
+	if len(owner) > MaxAuthorLength {
+		return fmt.Errorf("repository owner too long: %d characters (maximum %d allowed)", len(owner), MaxAuthorLength)
+	}
+
+	return nil
 }
 
 // lineRange represents a range of consecutive line numbers for display

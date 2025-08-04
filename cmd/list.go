@@ -447,7 +447,7 @@ func displayComments(comments []Comment, pr int) {
 	// Display general PR comments
 	if len(issueComments) > 0 {
 		fmt.Printf("💬 General PR Comments (%d)\n", len(issueComments))
-		fmt.Println(strings.Repeat("─", 50))
+		fmt.Println(strings.Repeat("─", SeparatorLength))
 		for i, comment := range issueComments {
 			displayComment(comment, i+1)
 		}
@@ -457,7 +457,7 @@ func displayComments(comments []Comment, pr int) {
 	// Display review-level comments (parent comments that group line-specific ones)
 	if len(reviewComments) > 0 {
 		fmt.Printf("📋 Review Comments (%d)\n", len(reviewComments))
-		fmt.Println(strings.Repeat("─", 50))
+		fmt.Println(strings.Repeat("─", SeparatorLength))
 		for i, comment := range reviewComments {
 			displayComment(comment, i+1)
 		}
@@ -467,7 +467,7 @@ func displayComments(comments []Comment, pr int) {
 	// Display line-specific comments
 	if len(lineComments) > 0 {
 		fmt.Printf("📍 Line-Specific Comments (%d)\n", len(lineComments))
-		fmt.Println(strings.Repeat("─", 50))
+		fmt.Println(strings.Repeat("─", SeparatorLength))
 		for i, comment := range lineComments {
 			displayComment(comment, i+1)
 		}
@@ -521,8 +521,8 @@ func displayComment(comment Comment, index int) {
 
 	// Comment body (truncate if too long)
 	body := strings.TrimSpace(comment.Body)
-	if len(body) > 200 {
-		body = body[:197] + "..."
+	if len(body) > MaxDisplayBodyLength {
+		body = body[:MaxDisplayBodyLength-TruncationReserve] + TruncationSuffix
 	}
 
 	// Indent the comment body

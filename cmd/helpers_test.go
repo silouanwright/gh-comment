@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -247,12 +248,104 @@ func TestConstants(t *testing.T) {
 	assert.Equal(t, 100, MaxGraphQLResults)
 	assert.Equal(t, 65536, MaxCommentLength)
 	assert.Equal(t, 30, DefaultPageSize)
+	assert.Equal(t, 200, MaxDisplayBodyLength)
+	assert.Equal(t, "...", TruncationSuffix)
+	assert.Equal(t, 3, TruncationReserve)
+	assert.Equal(t, 50, SeparatorLength)
+	assert.Equal(t, 50, MessageTruncateLength)
 
 	// Verify they're positive values
 	assert.Greater(t, MaxGraphQLResults, 0)
 	assert.Greater(t, MaxCommentLength, 0)
 	assert.Greater(t, DefaultPageSize, 0)
+	assert.Greater(t, MaxDisplayBodyLength, 0)
+	assert.Greater(t, SeparatorLength, 0)
+	assert.Greater(t, MessageTruncateLength, 0)
+	
+	// Verify consistency
+	assert.Equal(t, len(TruncationSuffix), TruncationReserve, "TruncationReserve should match TruncationSuffix length")
 }
+
+func TestParsePositiveInt(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		fieldName string
+		want      int
+		wantErr   bool
+		errMsg    string
+	}{
+		{
+			name:      "valid positive integer",
+			input:     "123",
+			fieldName: "comment ID",
+			want:      123,
+			wantErr:   false,
+		},
+		{
+			name:      "valid large integer",
+			input:     "999999",
+			fieldName: "PR number",
+			want:      999999,
+			wantErr:   false,
+		},
+		{
+			name:      "zero is invalid",
+			input:     "0",
+			fieldName: "comment ID",
+			want:      0,
+			wantErr:   true,
+			errMsg:    "must be a positive integer",
+		},
+		{
+			name:      "negative is invalid",
+			input:     "-1",
+			fieldName: "PR number",
+			want:      0,
+			wantErr:   true,
+			errMsg:    "must be a positive integer",
+		},
+		{
+			name:      "non-numeric string",
+			input:     "abc",
+			fieldName: "comment ID",
+			want:      0,
+			wantErr:   true,
+			errMsg:    "must be a valid integer",
+		},
+		{
+			name:      "empty string",
+			input:     "",
+			fieldName: "PR number",
+			want:      0,
+			wantErr:   true,
+			errMsg:    "must be a valid integer",
+		},
+		{
+			name:      "string with spaces",
+			input:     " 123 ",
+			fieldName: "comment ID",
+			want:      0,
+			wantErr:   true,
+			errMsg:    "must be a valid integer",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parsePositiveInt(tt.input, tt.fieldName)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+				assert.Equal(t, 0, got)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
+}
+
 
 func TestExecuteFunction(t *testing.T) {
 	// Test that Execute() function exists and delegates properly
@@ -268,3 +361,262 @@ func TestExecuteFunction(t *testing.T) {
 	err := Execute()
 	assert.NoError(t, err, "Execute should succeed when showing help")
 }
+
+func TestValidateCommentBody(t *testing.T) {
+	tests := []struct {
+		name    string
+		body    string
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name:    "short comment",
+			body:    "Short comment",
+			wantErr: false,
+		},
+		{
+			name:    "empty comment",
+			body:    "",
+			wantErr: false,
+		},
+		{
+			name:    "max length comment",
+			body:    strings.Repeat("a", MaxCommentLength),
+			wantErr: false,
+		},
+		{
+			name:    "too long comment",
+			body:    strings.Repeat("a", MaxCommentLength+1),
+			wantErr: true,
+			errMsg:  "comment too long",
+		},
+		{
+			name:    "unicode comment within limits",
+			body:    strings.Repeat("🚀", MaxCommentLength/4), // Unicode chars are multi-byte
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateCommentBody(tt.body)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateFilePath(t *testing.T) {
+	tests := []struct {
+		name    string
+		path    string
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name:    "valid relative path",
+			path:    "src/main.go",
+			wantErr: false,
+		},
+		{
+			name:    "valid nested path",
+			path:    "src/components/Button.tsx",
+			wantErr: false,
+		},
+		{
+			name:    "empty path",
+			path:    "",
+			wantErr: false,
+		},
+		{
+			name:    "directory traversal attempt",
+			path:    "../../../etc/passwd",
+			wantErr: true,
+			errMsg:  "directory traversal not allowed",
+		},
+		{
+			name:    "absolute path",
+			path:    "/usr/bin/test",
+			wantErr: true,
+			errMsg:  "absolute paths not allowed",
+		},
+		{
+			name:    "path too long",
+			path:    strings.Repeat("a/", MaxFilePathLength),
+			wantErr: true,
+			errMsg:  "file path too long",
+		},
+		{
+			name:    "max length path",
+			path:    strings.Repeat("a", MaxFilePathLength),
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateFilePath(tt.path)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateRepositoryName(t *testing.T) {
+	tests := []struct {
+		name    string
+		repo    string
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name:    "valid repository",
+			repo:    "owner/repo",
+			wantErr: false,
+		},
+		{
+			name:    "valid with hyphen",
+			repo:    "my-org/my-repo",
+			wantErr: false,
+		},
+		{
+			name:    "missing slash",
+			repo:    "invalidrepo",
+			wantErr: true,
+			errMsg:  "invalid repository format",
+		},
+		{
+			name:    "empty owner",
+			repo:    "/repo",
+			wantErr: true,
+			errMsg:  "owner and repository name cannot be empty",
+		},
+		{
+			name:    "empty repo name",
+			repo:    "owner/",
+			wantErr: true,
+			errMsg:  "owner and repository name cannot be empty",
+		},
+		{
+			name:    "too many slashes",
+			repo:    "owner/repo/extra",
+			wantErr: true,
+			errMsg:  "invalid repository format",
+		},
+		{
+			name:    "owner too long",
+			repo:    strings.Repeat("a", MaxAuthorLength+1) + "/repo",
+			wantErr: true,
+			errMsg:  "repository owner too long",
+		},
+		{
+			name:    "repo name too long",
+			repo:    "owner/" + strings.Repeat("a", MaxRepoNameLength+1),
+			wantErr: true,
+			errMsg:  "repository name too long",
+		},
+		{
+			name:    "max length owner",
+			repo:    strings.Repeat("a", MaxAuthorLength) + "/repo",
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateRepositoryName(tt.repo)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestContainsAny(t *testing.T) {
+	tests := []struct {
+		name       string
+		str        string
+		substrings []string
+		want       bool
+	}{
+		{
+			name:       "exact match",
+			str:        "HTTP 404: Not Found",
+			substrings: []string{"404", "500"},
+			want:       true,
+		},
+		{
+			name:       "case insensitive match",
+			str:        "Rate Limit Exceeded",
+			substrings: []string{"rate limit", "timeout"},
+			want:       true,
+		},
+		{
+			name:       "no match",
+			str:        "Unknown error",
+			substrings: []string{"404", "500", "timeout"},
+			want:       false,
+		},
+		{
+			name:       "partial match",
+			str:        "authentication failed",
+			substrings: []string{"auth", "permission"},
+			want:       true,
+		},
+		{
+			name:       "multiple matches (returns true on first)",
+			str:        "HTTP 422: Unprocessable Entity - validation failed",
+			substrings: []string{"422", "validation", "entity"},
+			want:       true,
+		},
+		{
+			name:       "empty string",
+			str:        "",
+			substrings: []string{"error", "fail"},
+			want:       false,
+		},
+		{
+			name:       "empty substrings",
+			str:        "some error message",
+			substrings: []string{},
+			want:       false,
+		},
+		{
+			name:       "case sensitivity test",
+			str:        "ERROR MESSAGE",
+			substrings: []string{"error message"},
+			want:       true,
+		},
+		{
+			name:       "special characters",
+			str:        "network timeout: connection refused",
+			substrings: []string{"timeout:", "refused"},
+			want:       true,
+		},
+		{
+			name:       "unicode characters",
+			str:        "Operation failed with 🚨 error",
+			substrings: []string{"🚨", "warning"},
+			want:       true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := containsAny(tt.str, tt.substrings)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
