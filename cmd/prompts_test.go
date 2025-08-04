@@ -369,7 +369,7 @@ func captureOutputFromPrompts(fn func()) string {
 	outputChan := make(chan string)
 	go func() {
 		var buf strings.Builder
-		buffer := make([]byte, 4096)
+		buffer := make([]byte, DefaultBufferSize)
 		for {
 			n, err := r.Read(buffer)
 			if n > 0 {

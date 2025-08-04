@@ -96,24 +96,24 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	// Legacy flags (kept for backward compatibility)
-	listCmd.Flags().BoolVar(&showResolved, "resolved", false, "Include resolved comments (legacy, use --status instead)")
-	listCmd.Flags().BoolVar(&onlyUnresolved, "unresolved", false, "Show only unresolved comments (legacy, use --status instead)")
+	listCmd.Flags().BoolVar(&showResolved, "resolved", false, "Include resolved comments (legacy, use --status instead) (default: false)")
+	listCmd.Flags().BoolVar(&onlyUnresolved, "unresolved", false, "Show only unresolved comments (legacy, use --status instead) (default: false)")
 
 	// Enhanced filtering flags
-	listCmd.Flags().StringVar(&author, "author", "", "Filter comments by author (supports wildcards: 'user*', '*@company.com')")
-	listCmd.Flags().StringVar(&status, "status", "all", "Filter by comment status: open, resolved, all")
-	listCmd.Flags().StringVar(&since, "since", "", "Show comments created after date (e.g., '2024-01-01', '1 week ago', '3 days ago')")
-	listCmd.Flags().StringVar(&until, "until", "", "Show comments created before date (e.g., '2024-12-31', '1 day ago')")
-	listCmd.Flags().StringVar(&resolved, "resolved-status", "", "Filter by resolution status: pending, resolved, dismissed")
-	listCmd.Flags().StringVar(&listType, "type", "all", "Filter by comment type: issue, review, all")
+	listCmd.Flags().StringVar(&author, "author", "", "Filter comments by author (supports wildcards: 'user*', '*@company.com') (default: all authors)")
+	listCmd.Flags().StringVar(&status, "status", "all", "Filter by comment status (open|resolved|all) (default: all)")
+	listCmd.Flags().StringVar(&since, "since", "", "Show comments created after date (e.g., '2024-01-01', '1 week ago', '3 days ago') (default: all dates)")
+	listCmd.Flags().StringVar(&until, "until", "", "Show comments created before date (e.g., '2024-12-31', '1 day ago') (default: all dates)")
+	listCmd.Flags().StringVar(&resolved, "resolved-status", "", "Filter by resolution status (pending|resolved|dismissed) (default: all)")
+	listCmd.Flags().StringVar(&listType, "type", "all", "Filter by comment type (issue|review|all) (default: all)")
 
 	// Display options
-	listCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Minimal output without URLs and IDs (default shows full context for AI)")
-	listCmd.Flags().BoolVar(&hideAuthors, "hide-authors", false, "Hide author names for privacy")
+	listCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Minimal output without URLs and IDs (default: false, shows full context)")
+	listCmd.Flags().BoolVar(&hideAuthors, "hide-authors", false, "Hide author names for privacy (default: false)")
 
 	// Output format options
-	listCmd.Flags().StringVar(&outputFormat, "format", "default", "Output format: default, json")
-	listCmd.Flags().BoolVar(&idsOnly, "ids-only", false, "Output only comment IDs (one per line)")
+	listCmd.Flags().StringVar(&outputFormat, "format", "default", "Output format (default|json) (default: default)")
+	listCmd.Flags().BoolVar(&idsOnly, "ids-only", false, "Output only comment IDs (one per line) (default: false)")
 }
 
 func runList(cmd *cobra.Command, args []string) error {
@@ -508,7 +508,7 @@ func displayComment(comment Comment, index int) {
 
 		// Show commit ID for review comments (helps with debugging and understanding)
 		if comment.CommitID != "" {
-			fmt.Printf(" • 📊 %s", comment.CommitID[:8]) // Show first 8 chars of commit SHA
+			fmt.Printf(" • 📊 %s", comment.CommitID[:CommitSHADisplayLength]) // Show first chars of commit SHA
 		}
 		fmt.Println()
 

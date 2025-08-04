@@ -9,8 +9,8 @@ import (
 
 func BenchmarkListComments(b *testing.B) {
 	// Create mock comments
-	comments := make([]Comment, 100)
-	for i := 0; i < 100; i++ {
+	comments := make([]Comment, MaxGraphQLResults)
+	for i := 0; i < MaxGraphQLResults; i++ {
 		comments[i] = Comment{
 			ID:        i + 1,
 			Author:    "testuser",

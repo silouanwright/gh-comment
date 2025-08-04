@@ -253,6 +253,8 @@ func TestConstants(t *testing.T) {
 	assert.Equal(t, 3, TruncationReserve)
 	assert.Equal(t, 50, SeparatorLength)
 	assert.Equal(t, 50, MessageTruncateLength)
+	assert.Equal(t, 8, CommitSHADisplayLength)
+	assert.Equal(t, 4096, DefaultBufferSize)
 
 	// Verify they're positive values
 	assert.Greater(t, MaxGraphQLResults, 0)

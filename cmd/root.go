@@ -129,8 +129,10 @@ var rootCmd = &cobra.Command{
 		$ gh comment list 123 --since "2024-01-01" --quiet | tee q1-review-data.txt
 		$ gh comment list 123 --author "qa-team*" --quiet | analyze-feedback.py
 
-		# Automation & CI Integration
+		# Automation & CI Integration with Suggestion Syntax
 		$ gh comment add 123 src/security.js 67 "[SUGGEST: use crypto.randomBytes(32)]"
+		$ gh comment add 123 src/api.js 42 "[SUGGEST:+2: const timeout = 5000;]"
+		$ gh comment add 123 src/utils.js 15 "[SUGGEST:-1: import { validateInput } from './validators';]"
 		$ for file in $(git diff --name-only); do gh comment add 123 "$file" 1 "Auto-generated security scan results"; done
 		$ gh comment list --since "deployment-date" --type review --status open | review-blocker-analysis.sh
 
@@ -138,6 +140,19 @@ var rootCmd = &cobra.Command{
 		$ gh comment edit 2246362251 "Updated: This rate limiting logic handles concurrent requests properly"
 		$ gh comment list 123 --author "bot*" --quiet | grep "ID:" | cut -d':' -f2 | xargs -I {} gh comment resolve {}
 		$ gh comment add 123 performance.js 89:95 "Consider caching this expensive calculation"
+
+		# Suggestion Syntax (Auto-expand to GitHub suggestion blocks):
+		Basic syntax:     [SUGGEST: improved_code]
+		Offset syntax:    [SUGGEST:+N: code_for_N_lines_below]
+		                  [SUGGEST:-N: code_for_N_lines_above]
+		Multi-line:       <<<SUGGEST
+		                  multi_line_code
+		                  SUGGEST>>>
+
+		Examples:
+		$ gh comment add 123 src/api.js 42 "[SUGGEST: const timeout = 5000;]"
+		$ gh comment add 123 src/api.js 40 "[SUGGEST:+2: // Add error handling]"
+		$ gh comment add 123 src/api.js 45 "[SUGGEST:-1: import { logger } from './utils';]"
 	`),
 	Version: "1.0.0",
 }
@@ -149,12 +164,12 @@ func Execute() error {
 
 func init() {
 	// Global flags
-	rootCmd.PersistentFlags().IntVarP(&prNumber, "pr", "p", 0, "PR number (auto-detect from branch if omitted)")
-	rootCmd.PersistentFlags().StringVarP(&repo, "repo", "R", "", "Repository (owner/repo format)")
+	rootCmd.PersistentFlags().IntVarP(&prNumber, "pr", "p", 0, "PR number (default: auto-detect from branch)")
+	rootCmd.PersistentFlags().StringVarP(&repo, "repo", "R", "", "Repository in owner/repo format (default: auto-detect from current directory)")
 
-	rootCmd.PersistentFlags().BoolVar(&validateDiff, "validate", true, "Validate line exists in diff before commenting")
-	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Show what would be commented without executing")
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show detailed API interactions")
+	rootCmd.PersistentFlags().BoolVar(&validateDiff, "validate", true, "Validate line exists in diff before commenting (default: true)")
+	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Show what would be commented without executing (default: false)")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show detailed API interactions (default: false)")
 }
 
 // Helper function to get current repository if not specified

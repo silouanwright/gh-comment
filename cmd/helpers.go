@@ -22,6 +22,8 @@ const (
 	TruncationReserve     = 3      // Length of "..."
 	SeparatorLength       = 50     // Length of separator lines
 	MessageTruncateLength = 50     // Length for message truncation in batch dry-run
+	CommitSHADisplayLength = 8     // Number of characters to show from commit SHA
+	DefaultBufferSize     = 4096   // Default buffer size for I/O operations
 )
 
 // getPRContext gets the repository and PR number, handling both flag and auto-detection

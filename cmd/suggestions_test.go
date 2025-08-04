@@ -338,3 +338,218 @@ func TestExpandInlineSuggestionsRegressionCases(t *testing.T) {
 		})
 	}
 }
+
+func TestOffsetSuggestions(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "positive offset suggestion",
+			input:    "Fix the code below: [SUGGEST:+2: const MAX = 100]",
+			expected: "Fix the code below: \n\n```suggestion:+2\nconst MAX = 100\n```\n\n",
+		},
+		{
+			name:     "negative offset suggestion",
+			input:    "Fix the code above: [SUGGEST:-1: import fs from 'fs']",
+			expected: "Fix the code above: \n\n```suggestion:-1\nimport fs from 'fs'\n```\n\n",
+		},
+		{
+			name:     "zero offset suggestion (explicit)",
+			input:    "Fix current line: [SUGGEST:0: const x = 1]",
+			expected: "Fix current line: \n\n```suggestion\nconst x = 1\n```\n\n",
+		},
+		{
+			name:     "multiple offset suggestions",
+			input:    "Fix line above: [SUGGEST:-1: import x] and below: [SUGGEST:+1: export y]",
+			expected: "Fix line above: \n\n```suggestion:-1\nimport x\n```\n\n and below: \n\n```suggestion:+1\nexport y\n```\n\n",
+		},
+		{
+			name:     "mixed regular and offset suggestions",
+			input:    "Current: [SUGGEST: const a = 1] and below: [SUGGEST:+2: const b = 2]",
+			expected: "Current: \n\n```suggestion\nconst a = 1\n```\n\n and below: \n\n```suggestion:+2\nconst b = 2\n```\n\n",
+		},
+		{
+			name:     "offset with extra spaces",
+			input:    "Fix below: [SUGGEST:+5:   spaced code   ]",
+			expected: "Fix below: \n\n```suggestion:+5\nspaced code\n```\n\n",
+		},
+		{
+			name:     "large positive offset",
+			input:    "Fix far below: [SUGGEST:+100: return true]",
+			expected: "Fix far below: \n\n```suggestion:+100\nreturn true\n```\n\n",
+		},
+		{
+			name:     "large negative offset",
+			input:    "Fix far above: [SUGGEST:-50: class Example]",
+			expected: "Fix far above: \n\n```suggestion:-50\nclass Example\n```\n\n",
+		},
+		{
+			name:     "offset at boundary (999)",
+			input:    "Max offset: [SUGGEST:+999: end of file]",
+			expected: "Max offset: \n\n```suggestion:+999\nend of file\n```\n\n",
+		},
+		{
+			name:     "offset at boundary (-999)",
+			input:    "Min offset: [SUGGEST:-999: start of file]",
+			expected: "Min offset: \n\n```suggestion:-999\nstart of file\n```\n\n",
+		},
+		{
+			name:     "invalid offset - too large",
+			input:    "Invalid: [SUGGEST:+1000: invalid code]",
+			expected: "Invalid: \n\n```suggestion\n+1000: invalid code\n```\n\n",
+		},
+		{
+			name:     "invalid offset - too small",
+			input:    "Invalid: [SUGGEST:-1000: invalid code]",
+			expected: "Invalid: \n\n```suggestion\n-1000: invalid code\n```\n\n",
+		},
+		{
+			name:     "invalid offset - non-numeric",
+			input:    "Invalid: [SUGGEST:+abc: invalid code]",
+			expected: "Invalid: \n\n```suggestion\n+abc: invalid code\n```\n\n",
+		},
+		{
+			name:     "malformed offset - missing colon",
+			input:    "Malformed: [SUGGEST:+2 missing colon]",
+			expected: "Malformed: \n\n```suggestion\n+2 missing colon\n```\n\n",
+		},
+		{
+			name:     "empty offset suggestion",
+			input:    "Empty: [SUGGEST:+1: ]",
+			expected: "Empty: \n\n```suggestion:+1\n\n```\n\n",
+		},
+		{
+			name:     "offset with nested brackets",
+			input:    "Complex: [SUGGEST:+1: arr[obj.prop] = func() { return data[idx]; }]",
+			expected: "Complex: \n\n```suggestion:+1\narr[obj.prop] = func() { return data[idx]; }\n```\n\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := expandInlineSuggestions(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestParseOffsetSuggestion(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          string
+		expectedOffset int
+		expectedCode   string
+	}{
+		{
+			name:           "positive offset",
+			input:          "+2: const x = 1",
+			expectedOffset: 2,
+			expectedCode:   "const x = 1",
+		},
+		{
+			name:           "negative offset",
+			input:          "-5: import fs",
+			expectedOffset: -5,
+			expectedCode:   "import fs",
+		},
+		{
+			name:           "zero offset",
+			input:          "0: return true",
+			expectedOffset: 0,
+			expectedCode:   "return true",
+		},
+		{
+			name:           "no offset",
+			input:          "const y = 2",
+			expectedOffset: 0,
+			expectedCode:   "const y = 2",
+		},
+		{
+			name:           "offset with extra spaces",
+			input:          "+3:   spaced code   ",
+			expectedOffset: 3,
+			expectedCode:   "spaced code",
+		},
+		{
+			name:           "invalid offset - too large",
+			input:          "+1000: invalid",
+			expectedOffset: 0,
+			expectedCode:   "+1000: invalid",
+		},
+		{
+			name:           "invalid offset - too small",
+			input:          "-1000: invalid",
+			expectedOffset: 0,
+			expectedCode:   "-1000: invalid",
+		},
+		{
+			name:           "invalid offset - non-numeric",
+			input:          "+abc: invalid",
+			expectedOffset: 0,
+			expectedCode:   "+abc: invalid",
+		},
+		{
+			name:           "boundary case - 999",
+			input:          "+999: max offset",
+			expectedOffset: 999,
+			expectedCode:   "max offset",
+		},
+		{
+			name:           "boundary case - -999",
+			input:          "-999: min offset",
+			expectedOffset: -999,
+			expectedCode:   "min offset",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			offset, code := parseOffsetSuggestion(tt.input)
+			assert.Equal(t, tt.expectedOffset, offset)
+			assert.Equal(t, tt.expectedCode, code)
+		})
+	}
+}
+
+func TestFormatOffset(t *testing.T) {
+	tests := []struct {
+		name     string
+		offset   int
+		expected string
+	}{
+		{
+			name:     "positive offset",
+			offset:   5,
+			expected: "+5",
+		},
+		{
+			name:     "negative offset",
+			offset:   -3,
+			expected: "-3",
+		},
+		{
+			name:     "zero offset",
+			offset:   0,
+			expected: "0",
+		},
+		{
+			name:     "large positive",
+			offset:   999,
+			expected: "+999",
+		},
+		{
+			name:     "large negative",
+			offset:   -999,
+			expected: "-999",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatOffset(tt.offset)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}

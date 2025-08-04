@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 )
@@ -16,17 +17,25 @@ var (
 var resolveCmd = &cobra.Command{
 	Use:   "resolve <comment-id>",
 	Short: "Resolve a conversation thread",
-	Long: `Resolve a conversation thread for a pull request review comment.
+	Long: heredoc.Doc(`
+		Resolve a conversation thread for a pull request review comment.
 
-This marks the conversation as resolved, indicating that the feedback
-has been addressed. Use the comment ID from 'gh comment list' output.
+		This marks the conversation as resolved, indicating that the feedback
+		has been addressed. Use the comment ID from 'gh comment list' output.
 
-Examples:
-  # Resolve a conversation
-  gh comment resolve 2246362251
+		Only review comments can be resolved - issue comments cannot be resolved
+		as they don't create conversation threads.
+	`),
+	Example: heredoc.Doc(`
+		# Resolve a conversation
+		$ gh comment resolve 2246362251
 
-  # Resolve with dry-run
-  gh comment resolve --dry-run 2246362251`,
+		# Resolve with dry-run preview
+		$ gh comment resolve --dry-run 2246362251
+
+		# Resolve multiple conversations (pipe from list)
+		$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+	`),
 	Args: cobra.ExactArgs(1),
 	RunE: runResolve,
 }

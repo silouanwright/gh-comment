@@ -258,11 +258,11 @@ func TestDisplayDiffHunkEdgeCases(t *testing.T) {
 		{
 			name: "very long lines in diff",
 			diffHunk: `@@ -1,1 +1,1 @@
--` + strings.Repeat("a", 200) + `
-+` + strings.Repeat("b", 200),
+-` + strings.Repeat("a", MaxDisplayBodyLength) + `
++` + strings.Repeat("b", MaxDisplayBodyLength),
 			expectedContains: []string{
-				"➖ -" + strings.Repeat("a", 200),
-				"➕ +" + strings.Repeat("b", 200),
+				"➖ -" + strings.Repeat("a", MaxDisplayBodyLength),
+				"➕ +" + strings.Repeat("b", MaxDisplayBodyLength),
 			},
 		},
 	}

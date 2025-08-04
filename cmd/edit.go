@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 )
@@ -18,28 +19,30 @@ var (
 var editCmd = &cobra.Command{
 	Use:   "edit <comment-id> [message]",
 	Short: "Edit an existing comment on a PR",
-	Long: `Edit an existing comment on a pull request.
+	Long: heredoc.Doc(`
+		Edit an existing comment on a pull request.
 
-You can edit with a new message using either positional argument or --message flags.
-Use the comment ID from the URL shown in 'gh comment list' output.
+		You can edit with a new message using either positional argument or --message flags.
+		Use the comment ID from the URL shown in 'gh comment list' output.
 
-Common use cases:
-- Fix typos in comments: "Fixed typo in previous comment"
-- Add more context: "Adding more details about the implementation"
-- Refine AI-generated comments: "Updating comment based on new analysis"
-- Correct mistakes: "Correcting the suggested approach"
+		Common use cases:
+		- Fix typos in comments: "Fixed typo in previous comment"
+		- Add more context: "Adding more details about the implementation"
+		- Refine AI-generated comments: "Updating comment based on new analysis"
+		- Correct mistakes: "Correcting the suggested approach"
+	`),
+	Example: heredoc.Doc(`
+		# Edit with new message
+		$ gh comment edit 2246362251 "Updated comment with better explanation"
 
-Examples:
-  # Edit with new message
-  gh comment edit 2246362251 "Updated comment with better explanation"
+		# Edit with multi-line content using --message flags (AI-friendly)
+		$ gh comment edit 2246362251 --message "First paragraph" --message "Second paragraph"
 
-  # Edit with multi-line content using --message flags (AI-friendly)
-  gh comment edit 2246362251 --message "First paragraph" --message "Second paragraph"
-
-  # Edit with multi-line content (shell native)
-  gh comment edit 2246362251 "Line 1
-Line 2
-Line 3"`,
+		# Edit with multi-line content (shell native)
+		$ gh comment edit 2246362251 "Line 1
+		Line 2
+		Line 3"
+	`),
 	Args: cobra.RangeArgs(1, 2),
 	RunE: runEdit,
 }

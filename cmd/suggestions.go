@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -16,7 +17,7 @@ func expandSuggestions(message string) string {
 	return message
 }
 
-// expandInlineSuggestions handles [SUGGEST: code] syntax
+// expandInlineSuggestions handles [SUGGEST: code] and [SUGGEST:<offset>: code] syntax
 func expandInlineSuggestions(message string) string {
 	// Use a more sophisticated approach to handle nested brackets
 	result := message
@@ -48,17 +49,57 @@ func expandInlineSuggestions(message string) string {
 			break // No matching closing bracket found
 		}
 
-		// Extract the code part and trim whitespace
-		code := strings.TrimSpace(result[suggestStart:end])
+		// Extract the content and parse for offset syntax
+		content := strings.TrimSpace(result[suggestStart:end])
+		offset, code := parseOffsetSuggestion(content)
 
-		// Replace the [SUGGEST: code] with GitHub suggestion syntax
-		replacement := "\n\n```suggestion\n" + code + "\n```\n\n"
+		// Replace the [SUGGEST: code] or [SUGGEST:<offset>: code] with GitHub suggestion syntax
+		var replacement string
+		if offset != 0 {
+			// Format with offset for GitHub
+			replacement = "\n\n```suggestion:" + formatOffset(offset) + "\n" + code + "\n```\n\n"
+		} else {
+			// Standard suggestion format
+			replacement = "\n\n```suggestion\n" + code + "\n```\n\n"
+		}
 
 		// Replace this occurrence and continue searching
 		result = result[:start] + replacement + result[end+1:]
 	}
 
 	return result
+}
+
+// parseOffsetSuggestion parses content for offset syntax: "<offset>: code" or just "code"
+func parseOffsetSuggestion(content string) (int, string) {
+	// Check for offset pattern: +N: or -N: or N:
+	offsetPattern := regexp.MustCompile(`^([+-]?\d+):\s*(.*)$`)
+	matches := offsetPattern.FindStringSubmatch(content)
+
+	if len(matches) == 3 {
+		// Parse the offset
+		offsetStr := matches[1]
+		code := strings.TrimSpace(matches[2])
+
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < -999 || offset > 999 {
+			// Invalid offset, treat as regular suggestion
+			return 0, content
+		}
+
+		return offset, code
+	}
+
+	// No offset found, return as regular suggestion
+	return 0, content
+}
+
+// formatOffset formats the offset for GitHub suggestion syntax
+func formatOffset(offset int) string {
+	if offset > 0 {
+		return "+" + strconv.Itoa(offset)
+	}
+	return strconv.Itoa(offset)
 }
 
 // expandMultilineSuggestions handles <<<SUGGEST\ncode\nSUGGEST>>> syntax

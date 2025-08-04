@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 )
@@ -18,42 +19,43 @@ var (
 var closePendingReviewCmd = &cobra.Command{
 	Use:   "close-pending-review [pr] [body]",
 	Short: "Close/submit a pending review created in GitHub's web interface",
-	Long: `Close and submit a pending review that was created in GitHub's web interface.
+	Long: heredoc.Doc(`
+		Close and submit a pending review that was created in GitHub's web interface.
 
-IMPORTANT: This command only works with pending reviews created through GitHub's
-web interface. The GitHub API cannot create pending reviews - only the web UI can.
+		IMPORTANT: This command only works with pending reviews created through GitHub's
+		web interface. The GitHub API cannot create pending reviews - only the web UI can.
 
-This command finds your existing pending review on the PR and submits it with
-the specified event type (APPROVE, REQUEST_CHANGES, or COMMENT) and optional
-summary body.
+		This command finds your existing pending review on the PR and submits it with
+		the specified event type (APPROVE, REQUEST_CHANGES, or COMMENT) and optional
+		summary body.
 
-Once submitted, the pending review becomes visible to others and you can create
-new reviews.
+		Once submitted, the pending review becomes visible to others and you can create
+		new reviews.
 
-Note: This does NOT work with reviews created via 'gh comment add-review' or
-'gh comment review' commands, as those create submitted reviews immediately.`,
-	Example: `  # Submit GUI-created pending review with approval
-  gh comment close-pending-review 123 "LGTM! Great work" --event APPROVE
+		Note: This does NOT work with reviews created via 'gh comment review' commands,
+		as those create submitted reviews immediately.
+	`),
+	Example: heredoc.Doc(`
+		# Submit GUI-created pending review with approval
+		$ gh comment close-pending-review 123 "LGTM! Great work" --event APPROVE
 
-  # Submit with change requests
-  gh comment close-pending-review 123 "Please address the comments" --event REQUEST_CHANGES
+		# Submit with change requests
+		$ gh comment close-pending-review 123 "Please address the comments" --event REQUEST_CHANGES
 
-  # Submit as general comment
-  gh comment close-pending-review 123 "Thanks for the updates" --event COMMENT
+		# Submit as general comment
+		$ gh comment close-pending-review 123 "Thanks for the updates" --event COMMENT
 
-  # Submit with minimal body (auto-detect PR)
-  gh comment close-pending-review "Looks good" --event APPROVE
-
-  # Submit without additional body
-  gh comment close-pending-review 123 --event APPROVE`,
+		# Submit with minimal body (auto-detect PR)
+		$ gh comment close-pending-review "Looks good" --event APPROVE
+	`),
 	Args: cobra.RangeArgs(0, 2),
 	RunE: runClosePendingReview,
 }
 
 func init() {
 	rootCmd.AddCommand(closePendingReviewCmd)
-	closePendingReviewCmd.Flags().StringVar(&closePendingEvent, "event", "COMMENT", "Review event: APPROVE, REQUEST_CHANGES, or COMMENT")
-	closePendingReviewCmd.Flags().StringVar(&closePendingBody, "body", "", "Review summary body (optional)")
+	closePendingReviewCmd.Flags().StringVar(&closePendingEvent, "event", "COMMENT", "Review event (APPROVE|REQUEST_CHANGES|COMMENT) (default: COMMENT)")
+	closePendingReviewCmd.Flags().StringVar(&closePendingBody, "body", "", "Review summary body (default: empty)")
 }
 
 func runClosePendingReview(cmd *cobra.Command, args []string) error {

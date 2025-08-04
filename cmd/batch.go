@@ -350,7 +350,7 @@ func truncateMessage(message string, maxLen int) string {
 	if len(message) <= maxLen {
 		return message
 	}
-	return message[:maxLen-3] + "..."
+	return message[:maxLen-TruncationReserve] + TruncationSuffix
 }
 
 func parseRange(rangeStr string) (startLine, endLine int, err error) {

@@ -30,7 +30,8 @@ var addCmd = &cobra.Command{
 		For line-specific code review comments, use: 'gh comment review'
 
 		The comment message supports GitHub markdown formatting and can include
-		code suggestions using the [SUGGEST: code] syntax.
+		code suggestions using the [SUGGEST: code] syntax. Use offset syntax
+		[SUGGEST:+N: code] for lines below or [SUGGEST:-N: code] for lines above.
 	`),
 	Example: heredoc.Doc(`
 		# General PR discussion comments
@@ -49,6 +50,11 @@ var addCmd = &cobra.Command{
 
 		# Request for changes with discussion
 		$ gh comment add 123 "Could you address the failing tests? Otherwise looks good to go"
+
+		# Comments with suggestion syntax (auto-expands to GitHub suggestion blocks)
+		$ gh comment add 123 "Consider using async/await: [SUGGEST: const result = await fetchData();]"
+		$ gh comment add 123 "Add error handling above: [SUGGEST:-1: try {]"
+		$ gh comment add 123 "Add timeout below: [SUGGEST:+2: const timeout = 5000;]"
 	`),
 	Args: cobra.RangeArgs(1, 2),
 	RunE: runAdd,
@@ -56,8 +62,8 @@ var addCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(addCmd)
-	addCmd.Flags().StringArrayVarP(&messages, "message", "m", []string{}, "Add message (can be used multiple times for multi-line comments)")
-	addCmd.Flags().BoolVar(&noExpandSuggestions, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax")
+	addCmd.Flags().StringArrayVarP(&messages, "message", "m", []string{}, "Add message (can be used multiple times for multi-line comments) (default: empty)")
+	addCmd.Flags().BoolVar(&noExpandSuggestions, "no-expand-suggestions", false, "Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax (default: false)")
 }
 
 func runAdd(cmd *cobra.Command, args []string) error {

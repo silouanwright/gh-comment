@@ -819,9 +819,9 @@ github.com/silouanwright/gh-comment/cmd/root.go:146.22,148.2 1 1
 github.com/silouanwright/gh-comment/cmd/root.go:150.13,158.2 5 1
 github.com/silouanwright/gh-comment/cmd/root.go:161.39,162.16 1 1
 github.com/silouanwright/gh-comment/cmd/root.go:162.16,164.3 1 1
-github.com/silouanwright/gh-comment/cmd/root.go:167.2,168.16 2 0
+github.com/silouanwright/gh-comment/cmd/root.go:167.2,168.16 2 1
 github.com/silouanwright/gh-comment/cmd/root.go:168.16,170.3 1 0
-github.com/silouanwright/gh-comment/cmd/root.go:172.2,172.48 1 0
+github.com/silouanwright/gh-comment/cmd/root.go:172.2,172.48 1 1
 github.com/silouanwright/gh-comment/cmd/root.go:176.34,177.19 1 1
 github.com/silouanwright/gh-comment/cmd/root.go:177.19,179.3 1 1
 github.com/silouanwright/gh-comment/cmd/root.go:182.2,183.16 2 1
