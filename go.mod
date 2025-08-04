@@ -7,6 +7,7 @@ toolchain go1.24.5
 require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/cli/go-gh/v2 v2.12.1
+	github.com/fatih/color v1.18.0
 	github.com/markusmobius/go-dateparser v1.2.4
 	github.com/rogpeppe/go-internal v1.14.1
 	github.com/spf13/cobra v1.8.0
@@ -27,6 +28,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/magefile/mage v1.14.0 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

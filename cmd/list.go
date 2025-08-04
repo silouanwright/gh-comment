@@ -481,9 +481,29 @@ func displayComments(comments []Comment, pr int) {
 		}
 	}
 
+	// Safe color functions
+	colorIssue := func(text string) string {
+		if ColorIssueComment != nil {
+			return ColorIssueComment.Sprint(text)
+		}
+		return text
+	}
+	colorReview := func(text string) string {
+		if ColorReviewComment != nil {
+			return ColorReviewComment.Sprint(text)
+		}
+		return text
+	}
+	colorHeader := func(text string) string {
+		if ColorHeader != nil {
+			return ColorHeader.Sprint(text)
+		}
+		return text
+	}
+
 	// Display general PR comments
 	if len(issueComments) > 0 {
-		fmt.Printf("💬 General PR Comments (%d)\n", len(issueComments))
+		fmt.Printf("%s (%d)\n", colorIssue("💬 General PR Comments"), len(issueComments))
 		fmt.Println(strings.Repeat("─", SeparatorLength))
 		for i, comment := range issueComments {
 			displayComment(comment, i+1)
@@ -493,7 +513,7 @@ func displayComments(comments []Comment, pr int) {
 
 	// Display review-level comments (parent comments that group line-specific ones)
 	if len(reviewComments) > 0 {
-		fmt.Printf("📋 Review Comments (%d)\n", len(reviewComments))
+		fmt.Printf("%s (%d)\n", colorReview("📋 Review Comments"), len(reviewComments))
 		fmt.Println(strings.Repeat("─", SeparatorLength))
 		for i, comment := range reviewComments {
 			displayComment(comment, i+1)
@@ -503,7 +523,7 @@ func displayComments(comments []Comment, pr int) {
 
 	// Display line-specific comments
 	if len(lineComments) > 0 {
-		fmt.Printf("📍 Line-Specific Comments (%d)\n", len(lineComments))
+		fmt.Printf("%s (%d)\n", colorHeader("📍 Line-Specific Comments"), len(lineComments))
 		fmt.Println(strings.Repeat("─", SeparatorLength))
 		for i, comment := range lineComments {
 			displayComment(comment, i+1)
@@ -514,24 +534,36 @@ func displayComments(comments []Comment, pr int) {
 func displayComment(comment Comment, index int) {
 	// Header with author and timestamp
 	timeAgo := formatTimeAgo(comment.CreatedAt)
+
+	// Safe color functions that work even if colors aren't initialized
+	colorID := func(text string) string {
+		if ColorCommentID != nil {
+			return ColorCommentID.Sprint(text)
+		}
+		return text
+	}
+	colorAuthor := func(text string) string {
+		if ColorAuthor != nil {
+			return ColorAuthor.Sprint(text)
+		}
+		return text
+	}
+	colorTime := func(text string) string {
+		if ColorTimestamp != nil {
+			return ColorTimestamp.Sprint(text)
+		}
+		return text
+	}
+
 	if hideAuthors {
-		fmt.Printf("[%d] ID:%d 👤 [hidden] • %s", index, comment.ID, timeAgo)
+		fmt.Printf("[%d] %s 👤 [hidden] • %s", index, colorID(fmt.Sprintf("ID:%d", comment.ID)), colorTime(timeAgo))
 	} else {
-		fmt.Printf("[%d] ID:%d 👤 %s • %s", index, comment.ID, comment.Author, timeAgo)
+		fmt.Printf("[%d] %s 👤 %s • %s", index, colorID(fmt.Sprintf("ID:%d", comment.ID)), colorAuthor(comment.Author), colorTime(timeAgo))
 	}
 
 	// Show review state for review-level comments
 	if comment.Type == "review" && comment.State != "" {
-		stateEmoji := "📝"
-		switch comment.State {
-		case "approved":
-			stateEmoji = "✅"
-		case "changes_requested":
-			stateEmoji = "🔴"
-		case "commented":
-			stateEmoji = "💬"
-		}
-		fmt.Printf(" %s %s", stateEmoji, comment.State)
+		fmt.Printf(" %s", ColorizeReviewState(comment.State))
 	}
 	fmt.Println()
 
@@ -541,11 +573,30 @@ func displayComment(comment Comment, index int) {
 		if comment.StartLine > 0 && comment.StartLine != comment.Line {
 			lineInfo = fmt.Sprintf("L%d-L%d", comment.StartLine, comment.Line)
 		}
-		fmt.Printf("📁 %s:%s", comment.Path, lineInfo)
+		colorFile := func(text string) string {
+			if ColorFilePath != nil {
+				return ColorFilePath.Sprint(text)
+			}
+			return text
+		}
+		colorLine := func(text string) string {
+			if ColorLineNumber != nil {
+				return ColorLineNumber.Sprint(text)
+			}
+			return text
+		}
+		colorSHA := func(text string) string {
+			if ColorCommitSHA != nil {
+				return ColorCommitSHA.Sprint(text)
+			}
+			return text
+		}
+
+		fmt.Printf("📁 %s:%s", colorFile(comment.Path), colorLine(lineInfo))
 
 		// Show commit ID for review comments (helps with debugging and understanding)
 		if comment.CommitID != "" {
-			fmt.Printf(" • 📊 %s", comment.CommitID[:CommitSHADisplayLength]) // Show first chars of commit SHA
+			fmt.Printf(" • 📊 %s", colorSHA(comment.CommitID[:CommitSHADisplayLength])) // Show first chars of commit SHA
 		}
 		fmt.Println()
 
@@ -570,7 +621,13 @@ func displayComment(comment Comment, index int) {
 
 	// Show URLs by default (AI-friendly), hide only in quiet mode
 	if !quiet {
-		fmt.Printf("   🔗 %s\n", comment.HTMLURL)
+		colorURL := func(text string) string {
+			if ColorURL != nil {
+				return ColorURL.Sprint(text)
+			}
+			return text
+		}
+		fmt.Printf("   🔗 %s\n", colorURL(comment.HTMLURL))
 	}
 
 	fmt.Println()

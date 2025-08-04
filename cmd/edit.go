@@ -121,6 +121,6 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return formatActionableError("comment editing", err)
 	}
 
-	fmt.Printf("✅ Edited comment #%d\n", commentID)
+	fmt.Printf("%s\n", ColorizeSuccess(fmt.Sprintf("Edited comment #%d", commentID)))
 	return nil
 }

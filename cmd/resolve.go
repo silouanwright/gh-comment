@@ -97,6 +97,6 @@ func runResolve(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to resolve conversation: %w", err)
 	}
 
-	fmt.Printf("✅ Resolved conversation for comment #%d\n", commentID)
+	fmt.Printf("%s\n", ColorizeSuccess(fmt.Sprintf("Resolved conversation for comment #%d", commentID)))
 	return nil
 }

@@ -312,7 +312,7 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
 		return fmt.Errorf("failed to create review: %w", err)
 	}
 
-	fmt.Printf("✅ Successfully created review with %d comments\n", len(reviewComments))
+	fmt.Printf("%s\n", ColorizeSuccess(fmt.Sprintf("Successfully created review with %d comments", len(reviewComments))))
 	return nil
 }
 
@@ -383,7 +383,7 @@ func processIndividualComments(client github.GitHubAPI, owner, repo string, pr i
 		successCount++
 	}
 
-	fmt.Printf("✅ Successfully created %d comments\n", successCount)
+	fmt.Printf("%s\n", ColorizeSuccess(fmt.Sprintf("Successfully created %d comments", successCount)))
 	return nil
 }
 

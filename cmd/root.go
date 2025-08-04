@@ -19,6 +19,7 @@ var (
 	dryRun       bool
 	verbose      bool
 	configPath   string
+	noColor      bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -173,9 +174,15 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&validateDiff, "validate", true, "Validate line exists in diff before commenting (default: true)")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Show what would be commented without executing (default: false)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show detailed API interactions (default: false)")
+	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output (default: false)")
 
-	// Load configuration before command execution
-	cobra.OnInitialize(initializeConfig)
+	// Load configuration and initialize colors before command execution
+	cobra.OnInitialize(initializeConfig, initializeColors)
+}
+
+// initializeColors initializes the color system
+func initializeColors() {
+	InitColors()
 }
 
 // initializeConfig loads the configuration and applies defaults
