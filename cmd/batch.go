@@ -52,13 +52,13 @@ var batchCmd = &cobra.Command{
 	`),
 	Example: heredoc.Doc(`
 		# Process comments from config
-		$ gh comment batch review-config.yaml
+		$ gh comment batch 123 review-config.yaml
 
 		# Validate config without executing
-		$ gh comment batch review-config.yaml --dry-run
+		$ gh comment batch 123 review-config.yaml --dry-run
 
-		# Process with custom PR number
-		$ gh comment batch review-config.yaml --pr 456
+		# Use verbose output
+		$ gh comment batch 123 review-config.yaml --verbose
 	`),
 	Args: cobra.ExactArgs(2),
 	RunE: runBatch,

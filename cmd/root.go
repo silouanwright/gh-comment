@@ -109,9 +109,9 @@ var rootCmd = &cobra.Command{
 		  --comment api.js:134:140:"Extract business logic to service layer"
 
 		# Batch Operations (Systematic Reviews)
-		$ gh comment batch comprehensive-review.yaml
-		$ gh comment batch --dry-run security-audit.yaml
-		$ gh comment batch post-deployment-checklist.yaml --pr $(gh pr view --json number -q .number)
+		$ gh comment batch 123 review-config.yaml
+		$ gh comment batch 456 security-checklist.yaml --dry-run
+		$ gh comment batch 789 bulk-comments.yaml --verbose
 
 		# Conversation Management
 		$ gh comment reply 2246362251 "Fixed in commit abc123" --resolve

@@ -1,0 +1,24 @@
+# Bulk comment configuration for mixed comment types
+pr: 789
+
+comments:
+  # General PR discussion comments (issue type)
+  - file: ""
+    message: "Overall this looks great! Just a few line-specific comments below."
+    type: issue
+
+  # Line-specific review comments
+  - file: src/database.py
+    range: "89-95"
+    message: "Extract this N+1 query to a single batch operation for better performance"
+    type: review
+
+  - file: src/cache.js
+    line: 156
+    message: "Consider Redis clustering for this high-traffic endpoint"
+    type: review
+
+  - file: README.md
+    line: 23
+    message: "Update installation instructions to include the new dependency"
+    type: review

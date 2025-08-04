@@ -1,0 +1,23 @@
+# Example batch configuration for comprehensive code review
+pr: 123
+repo: owner/repository
+
+review:
+  body: "Code review complete - found several optimization opportunities"
+  event: REQUEST_CHANGES
+
+comments:
+  - file: src/api.js
+    line: 42
+    message: "Consider adding rate limiting to prevent abuse"
+    type: review
+
+  - file: src/auth.go
+    range: "15-25"
+    message: "This auth flow should be refactored for OAuth2 compliance"
+    type: review
+
+  - file: tests/api_test.js
+    line: 89
+    message: "Add edge case tests for the rate limiting feature"
+    type: review
