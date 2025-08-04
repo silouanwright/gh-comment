@@ -20,9 +20,9 @@ Look at @TASKS.md
 
 ### **Architecture Status**
 
-- **Commands**: 12 total (use --help to see all of them)
+- **Commands**: 11 total (use --help to see all of them)
 - **Test Files**: 16+ comprehensive test files with full dependency injection + regression tests
-- **Coverage**: 73.3% (down from 80.7%, needs attention) + comprehensive regression protection
+- **Coverage**: 82.6% (improved from 73.3% via comprehensive root function testing) + comprehensive regression protection
 - **Code Quality**: A+ grade (professional-grade with regression protection)
 - **Prompt System**: 6 markdown-based templates embedded via go:embed
 

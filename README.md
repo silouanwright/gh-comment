@@ -104,15 +104,16 @@ gh comment --help
 | Command | Purpose | Key Features |
 |---------|---------|--------------|
 | **`add`** | Add comments to specific lines or general PR | Line-specific, range comments, suggestion syntax |
-| **`add-review`** | Create draft reviews with multiple comments | Batch comment creation, can be submitted later |
 | **`batch`** | Process comments from YAML configuration | Systematic reviews, automation-friendly |
+| **`close-pending-review`** | Submit GUI-created pending reviews | Approve, request changes, or comment |
 | **`edit`** | Modify existing comments | Update text, fix mistakes, add context |
+| **`lines`** | Show commentable lines in PR files | Diff analysis, validation helper |
 | **`list`** | List and filter all PR comments | Advanced filtering, unified view, AI-optimized output |
 | **`prompts`** | Get AI-powered code review prompts | Curated professional prompts, CREG system, best practices |
-| **`reply`** | Reply to comments and manage reactions | Universal system, reactions, threaded replies |
+| **`react`** | Add or remove emoji reactions to comments | Universal reactions, quick acknowledgments |
 | **`resolve`** | Resolve conversation threads | Thread management, resolution tracking |
 | **`review`** | Create and submit reviews in one operation | Streamlined workflow, immediate submission |
-| **`submit-review`** | Submit pending reviews | Approve, request changes, or comment |
+| **`review-reply`** | Reply to review comments with text messages | Threaded replies, review conversations |
 
 **Global Options Available on All Commands:**
 - `--pr` / `-p`: PR number (auto-detects from current branch)
@@ -128,7 +129,7 @@ gh comment --help
 - **General PR Comments**: Discussion like "LGTM", questions, or general feedback
 - **Line-Specific Review Comments**: Code review comments tied to specific files and lines
 
-`gh comment list` shows both types with full context, and `gh comment reply` works with both using the `--type` flag to automatically select the correct GitHub API endpoint.
+`gh comment list` shows both types with full context. Use `gh comment review-reply` for line-specific replies and reactions with `gh comment react`.
 
 ## Usage
 
@@ -311,26 +312,27 @@ gh comment list 123 --quiet
 
 ### Reply to Comments (Universal System)
 
-`gh comment reply` works with **both** comment types using the `--type` flag:
+Use specialized commands for different types of interactions:
 
 ```bash
-# Reply to line-specific review comment (default)
-gh comment reply 2246362251 "Good point, I'll fix this!"
+# Reply to line-specific review comment
+gh comment review-reply 2246362251 "Good point, I'll fix this!"
 
-# Reply to general PR discussion comment
-gh comment reply 3141344022 "Thanks for the feedback!" --type issue
+# General PR discussion happens via new issue comments
+gh comment add 123 "Thanks for the feedback!" # General discussion
 
 # Add reaction to any comment type
-gh comment reply 2246362251 --reaction +1
+gh comment react 2246362251 +1
 
 # Reply and resolve conversation (review comments only)
-gh comment reply 2246362251 "Fixed in latest commit" --resolve
+gh comment review-reply 2246362251 "Fixed in latest commit" --resolve
 
 # Remove reaction from any comment
-gh comment reply 2246362251 --remove-reaction +1
+gh comment react 2246362251 +1 --remove
 
-# Multiple reactions at once
-gh comment reply 2246362251 --reaction +1 --reaction heart
+# Multiple reactions - add them one by one  
+gh comment react 2246362251 +1
+gh comment react 2246362251 heart
 ```
 
 **Comment Types:**
@@ -484,14 +486,14 @@ gh comment add 998 src/api/client.js 120:135 "centralized error handling - repla
 gh comment list 998
 
 # 3. Reply to general PR discussion
-gh comment reply 3141344022 "Thanks for the overall feedback!" --type issue
+gh comment add 123 "Thanks for the overall feedback!" # General discussion
 
 # 4. Reply to specific line-specific review comments
-gh comment reply 2246362251 "Good point, I'll fix this!" --type review
-gh comment reply 2246362252 --reaction +1
+gh comment review-reply 2246362251 "Good point, I'll fix this!"
+gh comment react 2246362252 +1
 
 # 5. Resolve conversations after addressing feedback
-gh comment reply 2246362251 "Fixed in commit abc123" --resolve
+gh comment review-reply 2246362251 "Fixed in commit abc123" --resolve
 
 # 6. Edit comments to fix mistakes or add context
 gh comment edit 2246362251 "Updated: Fixed in commit abc123 with proper error handling"
