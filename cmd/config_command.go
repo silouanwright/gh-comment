@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	configFormat string
-	globalFlag   bool
-	showSource   bool
+	configFormat  string
+	globalFlag    bool
+	showSource    bool
 	showEffective bool
 )
 
@@ -129,7 +129,7 @@ func init() {
 	configShowCmd.Flags().BoolVar(&showSource, "source", false, "Show which file each setting comes from")
 	configShowCmd.Flags().BoolVar(&showEffective, "effective", false, "Show only effective (merged) configuration")
 
-	// Add to root command  
+	// Add to root command
 	rootCmd.AddCommand(configCmd)
 }
 
@@ -143,13 +143,13 @@ func runConfigInit(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get user home directory: %w", err)
 		}
-		
+
 		configDir := filepath.Join(homeDir, ".config", "gh-comment")
 		err = os.MkdirAll(configDir, 0755)
 		if err != nil {
 			return fmt.Errorf("failed to create config directory: %w", err)
 		}
-		
+
 		ext := "yaml"
 		if configFormat == "json" {
 			ext = "json"
@@ -171,13 +171,13 @@ func runConfigInit(cmd *cobra.Command, args []string) error {
 	// Generate config content
 	var content []byte
 	var err error
-	
+
 	if configFormat == "json" {
 		content, err = json.MarshalIndent(config, "", "  ")
 	} else {
 		content, err = yaml.Marshal(config)
 	}
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
@@ -212,7 +212,7 @@ func runConfigShow(cmd *cobra.Command, args []string) error {
 		fmt.Println("# 3. Configuration files")
 		fmt.Println("# 4. Built-in defaults (lowest priority)")
 		fmt.Println()
-		
+
 		// Find and show config file sources
 		configPath, _ := findConfigFile()
 		if configPath != "" {
@@ -260,7 +260,7 @@ func runConfigValidate(cmd *cobra.Command, args []string) error {
 
 	// Show any warnings
 	showConfigWarnings(config)
-	
+
 	return nil
 }
 

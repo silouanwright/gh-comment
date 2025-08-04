@@ -79,9 +79,19 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("must provide either a message argument or --message flags")
 	}
 
+	// Validate comment body length
+	if err := validateCommentBody(message); err != nil {
+		return err
+	}
+
 	// Get repository context
 	repository, prNumber, err := getPRContext()
 	if err != nil {
+		return err
+	}
+
+	// Validate repository name
+	if err := validateRepositoryName(repository); err != nil {
 		return err
 	}
 

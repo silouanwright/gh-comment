@@ -263,7 +263,7 @@ func TestConstants(t *testing.T) {
 	assert.Greater(t, MaxDisplayBodyLength, 0)
 	assert.Greater(t, SeparatorLength, 0)
 	assert.Greater(t, MessageTruncateLength, 0)
-	
+
 	// Verify consistency
 	assert.Equal(t, len(TruncationSuffix), TruncationReserve, "TruncationReserve should match TruncationSuffix length")
 }
@@ -347,7 +347,6 @@ func TestParsePositiveInt(t *testing.T) {
 		})
 	}
 }
-
 
 func TestExecuteFunction(t *testing.T) {
 	// Test that Execute() function exists and delegates properly
@@ -621,4 +620,3 @@ func TestContainsAny(t *testing.T) {
 		})
 	}
 }
-

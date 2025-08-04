@@ -464,13 +464,13 @@ func TestDisplayIDsOnly(t *testing.T) {
 			})
 
 			lines := strings.Split(strings.TrimSpace(output), "\n")
-			
+
 			if len(tt.expected) == 0 {
 				// Empty output should result in empty string when trimmed
 				assert.Equal(t, "", strings.TrimSpace(output))
 			} else {
 				assert.Len(t, lines, len(tt.expected), "Should have correct number of lines")
-				
+
 				for i, expectedID := range tt.expected {
 					assert.Equal(t, expectedID, lines[i], "ID should match at position %d", i)
 				}
@@ -545,10 +545,10 @@ func TestDisplayCommentsJSON(t *testing.T) {
 			name: "comment with special characters in JSON",
 			comments: []Comment{
 				{
-					ID:     999,
-					Author: "test\"user",
-					Body:   "Comment with \"quotes\" and \n newlines",
-					Type:   "issue",
+					ID:        999,
+					Author:    "test\"user",
+					Body:      "Comment with \"quotes\" and \n newlines",
+					Type:      "issue",
 					CreatedAt: testTime(),
 				},
 			},
@@ -640,7 +640,7 @@ func TestDisplayComments(t *testing.T) {
 			expectedContains: []string{
 				"📝 Comments on PR #222 (3 total)",
 				"💬 General PR Comments (1)",
-				"📋 Review Comments (1)", 
+				"📋 Review Comments (1)",
 				"📍 Line-Specific Comments (1)",
 			},
 		},

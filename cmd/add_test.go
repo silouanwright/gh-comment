@@ -159,9 +159,9 @@ func TestAddCommandEdgeCases(t *testing.T) {
 			expectedErrMsg: "must be a valid integer",
 		},
 		{
-			name:     "with --message flags and too many args",
-			args:     []string{"123", "456"},
-			messages: []string{"Test comment"},
+			name:           "with --message flags and too many args",
+			args:           []string{"123", "456"},
+			messages:       []string{"Test comment"},
 			wantErr:        true,
 			expectedErrMsg: "invalid arguments when using --message flags",
 		},

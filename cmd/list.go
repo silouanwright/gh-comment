@@ -88,7 +88,7 @@ var listCmd = &cobra.Command{
 		$ gh comment list 123 --author "all-reviewers*" --since "quarter-start" --quiet | process-review-data.sh
 		$ gh comment list 123 --ids-only --type review --status open | review-metrics.sh
 	`),
-	Args:  cobra.MaximumNArgs(1),
+	Args:   cobra.MaximumNArgs(1),
 	PreRun: applyListConfigDefaults,
 	RunE:   runList,
 }
@@ -96,7 +96,7 @@ var listCmd = &cobra.Command{
 // applyListConfigDefaults applies configuration defaults to list command flags
 func applyListConfigDefaults(cmd *cobra.Command, args []string) {
 	config := GetConfig()
-	
+
 	// Apply filter defaults if flags weren't explicitly set
 	if !cmd.Flags().Changed("author") && config.Defaults.Author != "" {
 		author = config.Defaults.Author
@@ -113,7 +113,7 @@ func applyListConfigDefaults(cmd *cobra.Command, args []string) {
 	if !cmd.Flags().Changed("until") && config.Filters.Until != "" {
 		until = config.Filters.Until
 	}
-	
+
 	// Apply display defaults
 	if !cmd.Flags().Changed("format") && config.Display.Format != "table" {
 		// Map config format to list command format

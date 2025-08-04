@@ -110,6 +110,11 @@ func runBatch(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// Validate repository name
+	if err := validateRepositoryName(repository); err != nil {
+		return err
+	}
+
 	// Parse owner/repo
 	parts := strings.Split(repository, "/")
 	if len(parts) != 2 {
@@ -212,10 +217,29 @@ func processBatchComments(client github.GitHubAPI, owner, repo string, pr int, c
 }
 
 func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config *BatchConfig) error {
+	// Validate review body if present
+	if config.Review != nil && config.Review.Body != "" {
+		if err := validateCommentBody(config.Review.Body); err != nil {
+			return fmt.Errorf("review body validation failed: %w", err)
+		}
+	}
+
 	// Convert comments to review comment format
 	var reviewComments []github.ReviewCommentInput
 
 	for _, comment := range config.Comments {
+		// Validate comment message
+		if err := validateCommentBody(comment.Message); err != nil {
+			return fmt.Errorf("comment validation failed: %w", err)
+		}
+
+		// Validate file path if present
+		if comment.File != "" {
+			if err := validateFilePath(comment.File); err != nil {
+				return fmt.Errorf("file path validation failed: %w", err)
+			}
+		}
+
 		if comment.Type == "issue" {
 			// Issue comments can't be part of a review, process separately
 			if verbose {
@@ -283,6 +307,18 @@ func processIndividualComments(client github.GitHubAPI, owner, repo string, pr i
 	successCount := 0
 
 	for i, comment := range comments {
+		// Validate comment message
+		if err := validateCommentBody(comment.Message); err != nil {
+			return fmt.Errorf("comment %d validation failed: %w", i+1, err)
+		}
+
+		// Validate file path if present
+		if comment.File != "" {
+			if err := validateFilePath(comment.File); err != nil {
+				return fmt.Errorf("comment %d file path validation failed: %w", i+1, err)
+			}
+		}
+
 		if verbose {
 			fmt.Printf("Processing comment %d/%d: %s:%s\n", i+1, len(comments), comment.File, formatLineOrRange(comment))
 		}

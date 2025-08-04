@@ -87,9 +87,21 @@ func runReviewReply(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("must provide either a message or --resolve")
 	}
 
+	// Validate comment body length if provided
+	if message != "" {
+		if err := validateCommentBody(message); err != nil {
+			return err
+		}
+	}
+
 	// Get repository context
 	repository, prNumber, err := getPRContext()
 	if err != nil {
+		return err
+	}
+
+	// Validate repository name
+	if err := validateRepositoryName(repository); err != nil {
 		return err
 	}
 

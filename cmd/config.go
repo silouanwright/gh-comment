@@ -13,15 +13,15 @@ import (
 
 // Config represents the complete configuration structure
 type Config struct {
-	Defaults    DefaultsConfig        `yaml:"defaults" json:"defaults"`
-	Behavior    BehaviorConfig        `yaml:"behavior" json:"behavior"`
-	Display     DisplayConfig         `yaml:"display" json:"display"`
-	Filters     FiltersConfig         `yaml:"filters" json:"filters"`
-	Review      ReviewDefaultsConfig  `yaml:"review" json:"review"`
-	API         APIConfig             `yaml:"api" json:"api"`
-	Suggestions SuggestionsConfig     `yaml:"suggestions" json:"suggestions"`
-	Aliases     map[string]string     `yaml:"aliases" json:"aliases"`
-	Templates   TemplatesConfig       `yaml:"templates" json:"templates"`
+	Defaults    DefaultsConfig       `yaml:"defaults" json:"defaults"`
+	Behavior    BehaviorConfig       `yaml:"behavior" json:"behavior"`
+	Display     DisplayConfig        `yaml:"display" json:"display"`
+	Filters     FiltersConfig        `yaml:"filters" json:"filters"`
+	Review      ReviewDefaultsConfig `yaml:"review" json:"review"`
+	API         APIConfig            `yaml:"api" json:"api"`
+	Suggestions SuggestionsConfig    `yaml:"suggestions" json:"suggestions"`
+	Aliases     map[string]string    `yaml:"aliases" json:"aliases"`
+	Templates   TemplatesConfig      `yaml:"templates" json:"templates"`
 }
 
 // DefaultsConfig holds default values for common flags
@@ -33,10 +33,10 @@ type DefaultsConfig struct {
 
 // BehaviorConfig holds default behavior settings
 type BehaviorConfig struct {
-	DryRun               bool `yaml:"dry_run" json:"dry_run"`
-	Verbose              bool `yaml:"verbose" json:"verbose"`
-	Validate             bool `yaml:"validate" json:"validate"`
-	NoExpandSuggestions  bool `yaml:"no_expand_suggestions" json:"no_expand_suggestions"`
+	DryRun              bool `yaml:"dry_run" json:"dry_run"`
+	Verbose             bool `yaml:"verbose" json:"verbose"`
+	Validate            bool `yaml:"validate" json:"validate"`
+	NoExpandSuggestions bool `yaml:"no_expand_suggestions" json:"no_expand_suggestions"`
 }
 
 // DisplayConfig holds display preference settings
@@ -61,8 +61,8 @@ type ReviewDefaultsConfig struct {
 
 // APIConfig holds API-related settings
 type APIConfig struct {
-	Timeout        int `yaml:"timeout" json:"timeout"`
-	RetryCount     int `yaml:"retry_count" json:"retry_count"`
+	Timeout         int `yaml:"timeout" json:"timeout"`
+	RetryCount      int `yaml:"retry_count" json:"retry_count"`
 	RateLimitBuffer int `yaml:"rate_limit_buffer" json:"rate_limit_buffer"`
 }
 

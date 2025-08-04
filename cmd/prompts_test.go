@@ -183,14 +183,14 @@ func TestListAvailablePrompts(t *testing.T) {
 	defer func() { promptCategory = originalCategory }()
 
 	tests := []struct {
-		name                 string
+		name                string
 		category            string
 		expectedContains    []string
 		expectedNotContains []string
 	}{
 		{
-			name:             "list all prompts",
-			category:         "",
+			name:     "list all prompts",
+			category: "",
 			expectedContains: []string{
 				"📋 **Available Code Review Prompts**",
 				"security-audit",
@@ -202,8 +202,8 @@ func TestListAvailablePrompts(t *testing.T) {
 			},
 		},
 		{
-			name:             "filter by security category",
-			category:         "security",
+			name:     "filter by security category",
+			category: "security",
 			expectedContains: []string{
 				"📋 **Code Review Prompts - Security Category**",
 				"security-audit",
@@ -215,8 +215,8 @@ func TestListAvailablePrompts(t *testing.T) {
 			},
 		},
 		{
-			name:             "filter by performance category",
-			category:         "performance",
+			name:     "filter by performance category",
+			category: "performance",
 			expectedContains: []string{
 				"📋 **Code Review Prompts - Performance Category**",
 				"performance-optimization",
@@ -228,8 +228,8 @@ func TestListAvailablePrompts(t *testing.T) {
 			},
 		},
 		{
-			name:             "filter by ai category",
-			category:         "ai",
+			name:     "filter by ai category",
+			category: "ai",
 			expectedContains: []string{
 				"📋 **Code Review Prompts - Ai Category**",
 				"ai-assistant",

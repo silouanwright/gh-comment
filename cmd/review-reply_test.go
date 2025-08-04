@@ -178,10 +178,10 @@ func TestReviewReplyValidation(t *testing.T) {
 			expectedErrMsg: "must be a positive integer",
 		},
 		{
-			name:    "resolve only without message",
-			args:    []string{"123456"},
+			name:         "resolve only without message",
+			args:         []string{"123456"},
 			setupResolve: true,
-			wantErr: false,
+			wantErr:      false,
 		},
 		{
 			name:    "message with whitespace only",

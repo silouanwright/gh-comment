@@ -8,22 +8,22 @@ import (
 
 // Constants for API limits and defaults
 const (
-	MaxGraphQLResults     = 100
-	MaxCommentLength      = 65536  // GitHub's actual limit for comment body
-	MaxFilePathLength     = 4096   // Reasonable file path limit
-	MaxAuthorLength       = 39     // GitHub username max length
-	MaxRepoNameLength     = 100    // GitHub repository name max length
-	MaxBranchLength       = 255    // Git branch name max length
-	DefaultPageSize       = 30
+	MaxGraphQLResults = 100
+	MaxCommentLength  = 65536 // GitHub's actual limit for comment body
+	MaxFilePathLength = 4096  // Reasonable file path limit
+	MaxAuthorLength   = 39    // GitHub username max length
+	MaxRepoNameLength = 100   // GitHub repository name max length
+	MaxBranchLength   = 255   // Git branch name max length
+	DefaultPageSize   = 30
 
 	// Display constants
-	MaxDisplayBodyLength  = 200    // Max length for comment body display
-	TruncationSuffix      = "..."
-	TruncationReserve     = 3      // Length of "..."
-	SeparatorLength       = 50     // Length of separator lines
-	MessageTruncateLength = 50     // Length for message truncation in batch dry-run
-	CommitSHADisplayLength = 8     // Number of characters to show from commit SHA
-	DefaultBufferSize     = 4096   // Default buffer size for I/O operations
+	MaxDisplayBodyLength   = 200 // Max length for comment body display
+	TruncationSuffix       = "..."
+	TruncationReserve      = 3    // Length of "..."
+	SeparatorLength        = 50   // Length of separator lines
+	MessageTruncateLength  = 50   // Length for message truncation in batch dry-run
+	CommitSHADisplayLength = 8    // Number of characters to show from commit SHA
+	DefaultBufferSize      = 4096 // Default buffer size for I/O operations
 )
 
 // getPRContext gets the repository and PR number, handling both flag and auto-detection

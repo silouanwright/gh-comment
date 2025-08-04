@@ -173,7 +173,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&validateDiff, "validate", true, "Validate line exists in diff before commenting (default: true)")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Show what would be commented without executing (default: false)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show detailed API interactions (default: false)")
-	
+
 	// Load configuration before command execution
 	cobra.OnInitialize(initializeConfig)
 }
@@ -187,7 +187,7 @@ func initializeConfig() {
 	}
 
 	config := GetConfig()
-	
+
 	// Apply config defaults if flags weren't explicitly set
 	applyConfigDefaults(config)
 }
@@ -201,7 +201,7 @@ func applyConfigDefaults(config *Config) {
 	if prNumber == 0 && config.Defaults.PR != 0 {
 		prNumber = config.Defaults.PR
 	}
-	
+
 	// Apply behavior defaults (these could be overridden by flags)
 	if !rootCmd.PersistentFlags().Changed("dry-run") {
 		dryRun = config.Behavior.DryRun

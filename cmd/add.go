@@ -95,10 +95,20 @@ func runAdd(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
+
+			// Validate repository name
+			if err := validateRepositoryName(repository); err != nil {
+				return err
+			}
 		} else if len(args) == 0 {
 			// Auto-detect PR + --message flags using centralized function
 			repository, pr, err = getPRContext()
 			if err != nil {
+				return err
+			}
+
+			// Validate repository name
+			if err := validateRepositoryName(repository); err != nil {
 				return err
 			}
 		} else {
@@ -117,10 +127,20 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+
+		// Validate repository name
+		if err := validateRepositoryName(repository); err != nil {
+			return err
+		}
 	} else if len(args) == 1 {
 		// Auto-detect PR from current branch + comment using centralized function
 		repository, pr, err = getPRContext()
 		if err != nil {
+			return err
+		}
+
+		// Validate repository name
+		if err := validateRepositoryName(repository); err != nil {
 			return err
 		}
 		comment = args[0]
@@ -131,6 +151,11 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	// Validate comment
 	if strings.TrimSpace(comment) == "" {
 		return fmt.Errorf("comment cannot be empty")
+	}
+
+	// Validate comment body length
+	if err := validateCommentBody(comment); err != nil {
+		return err
 	}
 
 	// Expand suggestion syntax to GitHub markdown (unless disabled)

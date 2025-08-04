@@ -127,10 +127,22 @@ func runReview(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("review must have either a body message or comments (use --comment)")
 	}
 
+	// Validate review body length if provided
+	if body != "" {
+		if err := validateCommentBody(body); err != nil {
+			return err
+		}
+	}
+
 	// Get repository context
 	repository, err := getCurrentRepo()
 	if err != nil {
 		return fmt.Errorf("failed to get repository: %w", err)
+	}
+
+	// Validate repository name
+	if err := validateRepositoryName(repository); err != nil {
+		return err
 	}
 
 	// If PR number wasn't parsed from args, try to auto-detect it
@@ -293,6 +305,16 @@ func parseReviewCommentSpec(spec string) (github.ReviewCommentInput, error) {
 	}
 	if message == "" {
 		return github.ReviewCommentInput{}, fmt.Errorf("message cannot be empty")
+	}
+
+	// Validate file path
+	if err := validateFilePath(filePath); err != nil {
+		return github.ReviewCommentInput{}, err
+	}
+
+	// Validate comment body length
+	if err := validateCommentBody(message); err != nil {
+		return github.ReviewCommentInput{}, err
 	}
 
 	comment := github.ReviewCommentInput{

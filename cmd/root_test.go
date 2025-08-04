@@ -15,9 +15,9 @@ func TestGetCurrentRepo(t *testing.T) {
 	// Test the main branch where repo is already set (most common case)
 	t.Run("repo already set in global variable", func(t *testing.T) {
 		repo = "owner/repo"
-		
+
 		gotRepo, err := getCurrentRepo()
-		
+
 		assert.NoError(t, err)
 		assert.Equal(t, "owner/repo", gotRepo)
 	})
@@ -32,15 +32,14 @@ func TestGetCurrentRepo(t *testing.T) {
 	for _, testRepo := range testRepos {
 		t.Run("repo set to "+testRepo, func(t *testing.T) {
 			repo = testRepo
-			
+
 			gotRepo, err := getCurrentRepo()
-			
+
 			assert.NoError(t, err)
 			assert.Equal(t, testRepo, gotRepo)
 		})
 	}
 }
-
 
 func TestGetCurrentRepo_ValidationIntegration(t *testing.T) {
 	// Save original state
