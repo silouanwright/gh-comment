@@ -1,0 +1,34 @@
+# Performance Optimization Review Configuration
+# Focus on performance improvements and bottlenecks
+review:
+  body: "Performance review - optimization opportunities identified"
+  event: "COMMENT"
+
+comments:
+  # Database optimization
+  - file: "models/user.py"
+    range: "67-75"
+    message: "Add database index on email field for faster lookups"
+    type: "review"
+
+  - file: "services/analytics.js"
+    line: 134
+    message: "Consider caching this expensive aggregation query"
+    type: "review"
+
+  # Frontend performance
+  - file: "components/DataTable.tsx"
+    line: 89
+    message: "Implement virtual scrolling for large datasets"
+    type: "review"
+
+  - file: "utils/api.js"
+    line: 45
+    message: "Add request debouncing to prevent excessive API calls"
+    type: "review"
+
+  # Memory optimization
+  - file: "workers/processor.go"
+    range: "156-170"
+    message: "Use streaming processing to reduce memory footprint"
+    type: "review"

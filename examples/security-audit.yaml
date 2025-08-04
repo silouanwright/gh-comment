@@ -1,0 +1,34 @@
+# Security Audit Review Configuration
+# Focus on security vulnerabilities and compliance
+review:
+  body: "Security audit findings - critical issues identified"
+  event: "REQUEST_CHANGES"
+
+comments:
+  # Authentication security
+  - file: "auth/login.go"
+    line: 45
+    message: "Password hashing should use bcrypt with cost factor 12+"
+    type: "review"
+
+  - file: "auth/jwt.go"
+    line: 78
+    message: "JWT secret should be loaded from environment variables"
+    type: "review"
+
+  # Input validation
+  - file: "api/handlers.go"
+    range: "120-130"
+    message: "Missing input validation - XSS vulnerability"
+    type: "review"
+
+  - file: "database/queries.go"
+    line: 89
+    message: "Use parameterized queries to prevent SQL injection"
+    type: "review"
+
+  # HTTPS and encryption
+  - file: "config/server.go"
+    line: 34
+    message: "Enforce HTTPS redirects for production"
+    type: "review"

@@ -1,0 +1,41 @@
+# Comprehensive Code Review Configuration
+# This example shows a complete security and performance review
+pr: 123
+repo: "owner/repo"
+review:
+  body: "Comprehensive security and performance review completed"
+  event: "REQUEST_CHANGES"
+
+comments:
+  # Security findings
+  - file: "src/auth.js"
+    line: 67
+    message: "Use crypto.randomBytes(32) instead of Math.random() for token generation"
+    type: "review"
+
+  - file: "src/api.js"
+    range: "134-140"
+    message: "This endpoint lacks rate limiting - vulnerable to DoS attacks"
+    type: "review"
+
+  - file: "src/validation.js"
+    line: 25
+    message: "Input sanitization missing - SQL injection risk"
+    type: "review"
+
+  # Performance improvements
+  - file: "src/database.py"
+    range: "89-95"
+    message: "Extract this N+1 query to a single batch operation"
+    type: "review"
+
+  - file: "src/cache.js"
+    line: 156
+    message: "Consider Redis clustering for this high-traffic endpoint"
+    type: "review"
+
+  # Architecture feedback
+  - file: "src/service-layer.js"
+    line: 45
+    message: "Excellent separation of concerns in the new service layer"
+    type: "review"
