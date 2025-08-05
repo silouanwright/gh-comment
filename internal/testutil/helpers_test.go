@@ -162,7 +162,7 @@ func TestLoadGoldenFile(t *testing.T) {
 	// Change to temp directory for test
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
 
@@ -179,7 +179,7 @@ func TestWriteGoldenFile(t *testing.T) {
 	tempDir := t.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
 
@@ -243,7 +243,7 @@ func TestAssertGoldenMatch(t *testing.T) {
 	tempDir := t.TempDir()
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+	defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 	err = os.Chdir(tempDir)
 	require.NoError(t, err)
 

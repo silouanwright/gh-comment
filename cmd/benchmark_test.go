@@ -94,7 +94,7 @@ func BenchmarkValidateCommentBody(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, testCase := range testCases {
-			validateCommentBody(testCase)
+			_, _ = validateCommentBody(testCase) // Benchmark only
 		}
 	}
 }
@@ -152,7 +152,7 @@ comments:
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, configFile := range tempFiles {
-			readBatchConfig(configFile)
+			_, _ = readBatchConfig(configFile) // Benchmark only
 		}
 	}
 }
@@ -174,7 +174,7 @@ func BenchmarkFormatActionableError(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, err := range testErrors {
-			formatActionableError("test-operation", err)
+			_ = formatActionableError("test-operation", err) // Benchmark only
 		}
 	}
 }
@@ -195,7 +195,7 @@ func BenchmarkParsePositiveInt(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, testCase := range testCases {
-			parsePositiveInt(testCase, "test")
+			_, _ = parsePositiveInt(testCase, "test") // Benchmark only
 		}
 	}
 }

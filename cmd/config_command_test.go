@@ -25,8 +25,8 @@ func TestRunConfigInit(t *testing.T) {
 		// Create temporary directory
 		tempDir := t.TempDir()
 		originalWd, _ := os.Getwd()
-		os.Chdir(tempDir)
-		defer os.Chdir(originalWd)
+		_ = os.Chdir(tempDir) // Test helper
+		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Run the command
 		err := runConfigInit(configInitCmd, []string{})
@@ -52,8 +52,8 @@ func TestRunConfigInit(t *testing.T) {
 		// Create temporary directory
 		tempDir := t.TempDir()
 		originalWd, _ := os.Getwd()
-		os.Chdir(tempDir)
-		defer os.Chdir(originalWd)
+		_ = os.Chdir(tempDir) // Test helper
+		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Run the command
 		err := runConfigInit(configInitCmd, []string{})
@@ -100,8 +100,8 @@ func TestRunConfigInit(t *testing.T) {
 		// Create temporary directory with existing config file
 		tempDir := t.TempDir()
 		originalWd, _ := os.Getwd()
-		os.Chdir(tempDir)
-		defer os.Chdir(originalWd)
+		_ = os.Chdir(tempDir) // Test helper
+		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Create existing config file
 		configFile := ".gh-comment.yaml"
@@ -203,8 +203,8 @@ func TestRunConfigShow(t *testing.T) {
 
 		// Change to temp directory so findConfigFile() finds the file
 		originalWd, _ := os.Getwd()
-		os.Chdir(tempDir)
-		defer os.Chdir(originalWd)
+		_ = os.Chdir(tempDir) // Test helper
+		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Clear global config so it loads from file
 		globalConfig = nil
@@ -235,8 +235,8 @@ display:
 
 		// Change to temp directory
 		originalWd, _ := os.Getwd()
-		os.Chdir(tempDir)
-		defer os.Chdir(originalWd)
+		_ = os.Chdir(tempDir) // Test helper
+		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Run the command
 		err = runConfigShow(configShowCmd, []string{})
@@ -284,8 +284,8 @@ filters:
 
 		// Change to temp directory
 		originalWd, _ := os.Getwd()
-		os.Chdir(tempDir)
-		defer os.Chdir(originalWd)
+		_ = os.Chdir(tempDir) // Test helper
+		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Run validation
 		err = runConfigValidate(configValidateCmd, []string{})
