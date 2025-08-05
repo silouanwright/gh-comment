@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -16,6 +17,11 @@ const (
 	MaxBranchLength   = 255   // Git branch name max length
 	DefaultPageSize   = 30
 
+	// Security validation constants
+	MaxCommentThreadDepth = 10    // Maximum nested comment thread depth
+	MaxRepositoryDepth    = 5     // Maximum repository path depth
+	MaxValidationErrors   = 50    // Maximum validation errors to report
+
 	// Display constants
 	MaxDisplayBodyLength   = 200 // Max length for comment body display
 	TruncationSuffix       = "..."
@@ -24,6 +30,18 @@ const (
 	MessageTruncateLength  = 50   // Length for message truncation in batch dry-run
 	CommitSHADisplayLength = 8    // Number of characters to show from commit SHA
 	DefaultBufferSize      = 4096 // Default buffer size for I/O operations
+)
+
+// Security validation patterns
+var (
+	// HTML/Script tag detection patterns
+	htmlTagPattern    = regexp.MustCompile(`(?i)<\s*\/?\s*(script|iframe|object|embed|form|input|meta|link)\b[^>]*>`)
+	scriptPattern     = regexp.MustCompile(`(?i)javascript\s*:|<\s*script\b`)
+	dangerousAttrPattern = regexp.MustCompile(`(?i)\b(on\w+|javascript|vbscript|data|mocha|livescript)\s*=`)
+	
+	// Repository validation patterns
+	validRepoPattern  = regexp.MustCompile(`^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$`)
+	validOwnerPattern = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
 )
 
 // getPRContext gets the repository and PR number, handling both flag and auto-detection
@@ -125,6 +143,16 @@ func formatValidationError(field, value, expected string) error {
 	return fmt.Errorf("invalid %s '%s': %s", field, value, expected)
 }
 
+// formatSecurityValidationError creates consistent error messages for security validation failures
+func formatSecurityValidationError(field, issue, guidance string) error {
+	return fmt.Errorf("🔒 security validation failed for %s: %s\n\n💡 Guidance: %s", field, issue, guidance)
+}
+
+// formatAccessValidationError creates consistent error messages for access validation failures
+func formatAccessValidationError(resource, action, guidance string) error {
+	return fmt.Errorf("🚫 access validation failed for %s: cannot %s\n\n💡 Guidance: %s", resource, action, guidance)
+}
+
 // formatNotFoundError creates consistent error messages for missing resources
 func formatNotFoundError(resource string, identifier interface{}) error {
 	return fmt.Errorf("%s not found: %v", resource, identifier)
@@ -142,11 +170,41 @@ func parsePositiveInt(s, fieldName string) (int, error) {
 	return val, nil
 }
 
-// validateCommentBody validates comment body length and content
+// validateCommentBody validates comment body length and content for security
 func validateCommentBody(body string) error {
 	if len(body) > MaxCommentLength {
-		return fmt.Errorf("comment too long: %d characters (maximum %d allowed)", len(body), MaxCommentLength)
+		return formatValidationError("comment body", fmt.Sprintf("%d chars", len(body)), 
+			fmt.Sprintf("must be %d characters or less", MaxCommentLength))
 	}
+
+	// Check for potentially dangerous HTML/script content
+	if err := validateCommentSecurity(body); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateCommentSecurity checks for potentially malicious content in comments
+func validateCommentSecurity(body string) error {
+	// Check for dangerous HTML tags
+	if htmlTagPattern.MatchString(body) {
+		return formatSecurityValidationError("comment body", "dangerous HTML tags detected", 
+			"HTML tags like <script>, <iframe>, <object>, <embed>, <form>, <input>, <meta>, <link> are not allowed")
+	}
+
+	// Check for JavaScript and event handlers
+	if scriptPattern.MatchString(body) {
+		return formatSecurityValidationError("comment body", "JavaScript content detected", 
+			"JavaScript code, inline event handlers, and script tags are not allowed")
+	}
+
+	// Check for dangerous attributes
+	if dangerousAttrPattern.MatchString(body) {
+		return formatSecurityValidationError("comment body", "dangerous attributes detected", 
+			"Event handlers and script attributes like onclick, onload, href='javascript:' are not allowed")
+	}
+
 	return nil
 }
 
@@ -191,6 +249,93 @@ func validateRepositoryName(repo string) error {
 	}
 
 	return nil
+}
+
+// validateRepositoryAccess validates if a repository format allows safe access
+func validateRepositoryAccess(repo string) error {
+	// First validate the basic format
+	if err := validateRepositoryName(repo); err != nil {
+		return err
+	}
+
+	parts := strings.Split(repo, "/")
+	owner, repoName := parts[0], parts[1]
+
+	// Check for potentially dangerous repository patterns
+	if strings.Contains(owner, "..") || strings.Contains(repoName, "..") {
+		return formatAccessValidationError("repository", "access repository with path traversal", 
+			"Repository names cannot contain '..' sequences for security reasons")
+	}
+
+	// Validate against pattern for additional security
+	if !validRepoPattern.MatchString(repo) {
+		return formatAccessValidationError("repository", "access repository with invalid characters", 
+			"Repository must match pattern 'owner/repo' with only alphanumeric, dot, underscore, and hyphen characters")
+	}
+
+	// Check for reserved or potentially dangerous names
+	dangerousNames := []string{".", "..", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"}
+	ownerUpper := strings.ToUpper(owner)
+	repoUpper := strings.ToUpper(repoName)
+	
+	for _, dangerous := range dangerousNames {
+		if ownerUpper == dangerous || repoUpper == dangerous {
+			return formatAccessValidationError("repository", "access repository with reserved name", 
+				"Repository owner or name cannot use reserved system names")
+		}
+	}
+
+	return nil
+}
+
+// validateCommentThreadDepth validates comment thread nesting depth for performance and UX
+func validateCommentThreadDepth(depth int) error {
+	if depth < 0 {
+		return formatValidationError("thread depth", fmt.Sprintf("%d", depth), "must be non-negative")
+	}
+	
+	if depth > MaxCommentThreadDepth {
+		return formatAccessValidationError("comment thread", fmt.Sprintf("nest deeper than %d levels", MaxCommentThreadDepth), 
+			fmt.Sprintf("Deep comment nesting can cause performance issues and poor user experience. Maximum allowed depth is %d levels", MaxCommentThreadDepth))
+	}
+
+	return nil
+}
+
+// ValidationResult represents the result of a validation check
+type ValidationResult struct {
+	Field   string
+	Valid   bool
+	Error   error
+	Message string
+}
+
+// validateMultipleFields validates multiple fields and returns comprehensive results
+func validateMultipleFields(validations []func() ValidationResult) []ValidationResult {
+	var results []ValidationResult
+	for _, validate := range validations {
+		result := validate()
+		results = append(results, result)
+		
+		// Stop early if we hit the max validation errors
+		if len(results) >= MaxValidationErrors {
+			break
+		}
+	}
+	return results
+}
+
+// createFieldValidator creates a validation function for a specific field
+func createFieldValidator(field string, value interface{}, validator func() error) func() ValidationResult {
+	return func() ValidationResult {
+		err := validator()
+		return ValidationResult{
+			Field:   field,
+			Valid:   err == nil,
+			Error:   err,
+			Message: fmt.Sprintf("Validation for %s: %v", field, value),
+		}
+	}
 }
 
 // lineRange represents a range of consecutive line numbers for display

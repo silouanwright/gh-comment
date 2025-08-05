@@ -389,7 +389,7 @@ func TestValidateCommentBody(t *testing.T) {
 			name:    "too long comment",
 			body:    strings.Repeat("a", MaxCommentLength+1),
 			wantErr: true,
-			errMsg:  "comment too long",
+			errMsg:  "must be 65536 characters or less",
 		},
 		{
 			name:    "unicode comment within limits",
