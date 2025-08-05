@@ -389,7 +389,7 @@ func exportMarkdown(w io.Writer, comments []ExportComment, repo string, pr int) 
 			fmt.Fprintf(w, "**Author:** @%s  \n", comment.Author)
 			fmt.Fprintf(w, "**Created:** %s  \n", comment.CreatedAt.Format("2006-01-02 15:04"))
 			fmt.Fprintf(w, "\n%s\n\n", comment.Body)
-			fmt.Fprintln(w, "---")
+			_, _ = fmt.Fprintln(w, "---") // Export output
 		}
 	}
 
@@ -402,15 +402,15 @@ func exportMarkdown(w io.Writer, comments []ExportComment, repo string, pr int) 
 			fmt.Fprintf(w, "**File:** `%s:%d`  \n", comment.File, comment.Line)
 			fmt.Fprintf(w, "**Created:** %s  \n", comment.CreatedAt.Format("2006-01-02 15:04"))
 			if comment.Resolved {
-				fmt.Fprintln(w, "**Status:** ✅ Resolved")
+				_, _ = fmt.Fprintln(w, "**Status:** ✅ Resolved") // Export output
 			}
 			fmt.Fprintf(w, "\n%s\n\n", comment.Body)
 			if comment.DiffHunk != "" {
-				fmt.Fprintln(w, "```diff")
-				fmt.Fprintln(w, comment.DiffHunk)
-				fmt.Fprintln(w, "```")
+				_, _ = fmt.Fprintln(w, "```diff") // Export output
+				_, _ = fmt.Fprintln(w, comment.DiffHunk) // Export output
+				_, _ = fmt.Fprintln(w, "```") // Export output
 			}
-			fmt.Fprintln(w, "---")
+			_, _ = fmt.Fprintln(w, "---") // Export output
 		}
 	}
 

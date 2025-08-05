@@ -88,7 +88,7 @@ func TestRunExport(t *testing.T) {
 
 			// Read captured output
 			buf := make([]byte, 1024)
-			n, _ := r.Read(buf)
+			n, _ := r.Read(buf) // Test output capture
 			output := string(buf[:n])
 
 			if tt.wantErr {
@@ -386,7 +386,7 @@ func TestExportFormatValidation(t *testing.T) {
 			w.Close()
 			os.Stdout = oldStdout
 			buf := make([]byte, 1024)
-			r.Read(buf) // drain the pipe
+			_, _ = r.Read(buf) // Test cleanup - drain the pipe
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -485,7 +485,7 @@ func TestExportWithResolvedFilter(t *testing.T) {
 		w.Close()
 		os.Stdout = oldStdout
 		outputBytes := make([]byte, 1024)
-		n, _ := r.Read(outputBytes)
+		n, _ := r.Read(outputBytes) // Test output capture
 		output := string(outputBytes[:n])
 
 		// Parse JSON output

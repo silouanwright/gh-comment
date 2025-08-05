@@ -227,7 +227,7 @@ func (s *MockGitHubServer) handleGetPRDetails(w http.ResponseWriter, r *http.Req
 	details.Head.SHA = "abc123def456" // Mock commit SHA
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(details)
+	_ = json.NewEncoder(w).Encode(details) // Test mock
 }
 
 // handleListComments handles GET /repos/{owner}/{repo}/pulls/{pr}/comments
@@ -243,7 +243,7 @@ func (s *MockGitHubServer) handleListComments(w http.ResponseWriter, r *http.Req
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(reviewComments)
+	_ = json.NewEncoder(w).Encode(reviewComments) // Test mock
 }
 
 // handleListIssueComments handles GET /repos/{owner}/{repo}/issues/{pr}/comments
@@ -259,7 +259,7 @@ func (s *MockGitHubServer) handleListIssueComments(w http.ResponseWriter, r *htt
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(issueComments)
+	_ = json.NewEncoder(w).Encode(issueComments) // Test mock
 }
 
 // handleCreateComment handles POST /repos/{owner}/{repo}/pulls/{pr}/comments
@@ -276,7 +276,7 @@ func (s *MockGitHubServer) handleCreateComment(w http.ResponseWriter, r *http.Re
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(comment)
+	_ = json.NewEncoder(w).Encode(comment) // Test mock
 }
 
 // handleCreateIssueComment handles POST /repos/{owner}/{repo}/issues/{pr}/comments
@@ -297,7 +297,7 @@ func (s *MockGitHubServer) handleCreateIssueComment(w http.ResponseWriter, r *ht
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(comment)
+	_ = json.NewEncoder(w).Encode(comment) // Test mock
 }
 
 // handleCreateReview handles POST /repos/{owner}/{repo}/pulls/{pr}/reviews
@@ -325,5 +325,5 @@ func (s *MockGitHubServer) handleCreateReview(w http.ResponseWriter, r *http.Req
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(review)
+	_ = json.NewEncoder(w).Encode(review) // Test mock
 }
