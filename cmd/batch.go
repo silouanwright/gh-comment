@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 
@@ -187,7 +187,7 @@ func handleBatchResults(client github.GitHubAPI, owner, repoName string, pr int,
 
 func readBatchConfig(configFile string) (*BatchConfig, error) {
 	// Read file
-	data, err := ioutil.ReadFile(configFile)
+	data, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %s: %w", configFile, err)
 	}
