@@ -26,6 +26,9 @@ var linesCmd = &cobra.Command{
 		lines are available for commenting. GitHub only allows comments on lines
 		that are part of the diff (added, modified, or in context).
 
+		Note: Newly added files may not show commentable lines due to GitHub API
+		limitations. If no lines are shown, try commenting on any line directly.
+
 		Use this command when you get HTTP 422 errors trying to add line comments.
 	`),
 	Example: heredoc.Doc(`
