@@ -1,15 +1,6 @@
-pr: 5
+pr: 12
 comments:
   - type: issue
-    body: "📊 Batch operation test - adding multiple comments in one go"
-
-  - type: review
-    file: integration-test-example.js
-    line: 1
-    body: "📌 Consider adding JSDoc comments for better documentation"
-
-  - type: review
-    file: integration-test-example.js
-    line: 13
-    end_line: 19
-    body: "🤔 This nested loop pattern could benefit from a performance profiler"
+    message: "This is a test comment from batch processing"
+  - type: issue
+    message: "Another batch comment with multiple lines\nThis is the second line"

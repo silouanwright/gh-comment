@@ -23,7 +23,7 @@ func TestInitColors(t *testing.T) {
 		// Set up environment for colors to be enabled
 		testTerminalOverride = &[]bool{true}[0] // Simulate terminal
 		noColor = false
-		
+
 		// Clear environment variables that would disable colors
 		originalTerm := os.Getenv("TERM")
 		originalNoColor := os.Getenv("NO_COLOR")
@@ -41,7 +41,7 @@ func TestInitColors(t *testing.T) {
 				os.Unsetenv("NO_COLOR")
 			}
 		}()
-		
+
 		InitColors()
 
 		// Check that all color objects are created
@@ -59,7 +59,7 @@ func TestInitColors(t *testing.T) {
 		assert.NotNil(t, ColorCommitSHA)
 		assert.NotNil(t, ColorIssueComment)
 		assert.NotNil(t, ColorReviewComment)
-		
+
 		// Verify that colors are actually enabled (not NoColor)
 		assert.False(t, color.NoColor)
 	})
@@ -84,7 +84,7 @@ func TestInitColors(t *testing.T) {
 		assert.NotNil(t, ColorCommitSHA)
 		assert.NotNil(t, ColorIssueComment)
 		assert.NotNil(t, ColorReviewComment)
-		
+
 		// Global color disable should be set
 		assert.True(t, color.NoColor)
 	})
@@ -94,7 +94,7 @@ func TestInitColors(t *testing.T) {
 		testTerminalOverride = &[]bool{true}[0] // Simulate terminal
 		noColor = false
 		// Don't preset colorEnabled - let InitColors() call ShouldUseColor()
-		
+
 		// Clear environment variables that would disable colors
 		originalTerm := os.Getenv("TERM")
 		originalNoColor := os.Getenv("NO_COLOR")
@@ -112,7 +112,7 @@ func TestInitColors(t *testing.T) {
 				os.Unsetenv("NO_COLOR")
 			}
 		}()
-		
+
 		InitColors()
 
 		// Colors should be enabled
@@ -125,7 +125,7 @@ func TestInitColors(t *testing.T) {
 		// Test the automatic detection path with colors disabled
 		testTerminalOverride = &[]bool{false}[0] // Simulate non-terminal
 		noColor = false
-		
+
 		InitColors()
 
 		// Colors should be disabled
@@ -173,68 +173,68 @@ func TestShouldUseColor(t *testing.T) {
 	}()
 
 	tests := []struct {
-		name            string
-		noColorFlag     bool
-		noColorEnv      string
-		termEnv         string
+		name             string
+		noColorFlag      bool
+		noColorEnv       string
+		termEnv          string
 		terminalOverride *bool
-		expected        bool
+		expected         bool
 	}{
 		{
-			name:        "no color flag set",
-			noColorFlag: true,
+			name:             "no color flag set",
+			noColorFlag:      true,
 			terminalOverride: &[]bool{true}[0], // Terminal is available but --no-color overrides
-			expected:    false,
+			expected:         false,
 		},
 		{
-			name:       "NO_COLOR environment variable set",
-			noColorEnv: "1",
+			name:             "NO_COLOR environment variable set",
+			noColorEnv:       "1",
 			terminalOverride: &[]bool{true}[0], // Terminal is available but NO_COLOR overrides
-			expected:   false,
+			expected:         false,
 		},
 		{
-			name:     "TERM environment variable dumb",
-			termEnv:  "dumb",
+			name:             "TERM environment variable dumb",
+			termEnv:          "dumb",
 			terminalOverride: &[]bool{true}[0], // Terminal is available but TERM=dumb overrides
-			expected: false,
+			expected:         false,
 		},
 		{
-			name:     "TERM environment variable empty",
-			termEnv:  "",
+			name:             "TERM environment variable empty",
+			termEnv:          "",
 			terminalOverride: &[]bool{true}[0], // Terminal is available but TERM="" overrides
-			expected: false,
+			expected:         false,
 		},
 		{
-			name:        "colors should be enabled with normal terminal",
-			noColorFlag: false,
-			noColorEnv:  "",
-			termEnv:     "xterm-256color",
+			name:             "colors should be enabled with normal terminal",
+			noColorFlag:      false,
+			noColorEnv:       "",
+			termEnv:          "xterm-256color",
 			terminalOverride: &[]bool{true}[0], // Simulate terminal is available
-			expected:    true,
+			expected:         true,
 		},
 		{
-			name:        "colors enabled with screen terminal",
-			noColorFlag: false,
-			noColorEnv:  "",
-			termEnv:     "screen",
+			name:             "colors enabled with screen terminal",
+			noColorFlag:      false,
+			noColorEnv:       "",
+			termEnv:          "screen",
 			terminalOverride: &[]bool{true}[0], // Simulate terminal is available
-			expected:    true,
+			expected:         true,
 		},
 		{
-			name:        "colors enabled with tmux terminal",
-			noColorFlag: false,
-			noColorEnv:  "",
-			termEnv:     "tmux-256color",
+			name:             "colors enabled with tmux terminal",
+			noColorFlag:      false,
+			noColorEnv:       "",
+			termEnv:          "tmux-256color",
 			terminalOverride: &[]bool{true}[0], // Simulate terminal is available
-			expected:    true,
+			expected:         true,
 		},
 		{
-			name:        "colors disabled when not a terminal",
-			noColorFlag: false,
-			noColorEnv:  "",
-			termEnv:     "xterm-256color",
+			name:             "colors disabled when not a terminal",
+			noColorFlag:      false,
+			noColorEnv:       "",
+			termEnv:          "xterm-256color",
 			terminalOverride: &[]bool{false}[0], // Simulate not a terminal (pipe/redirect)
-			expected:    false,
+			expected:         false,
 		},
 	}
 
@@ -259,15 +259,15 @@ func TestShouldUseColor(t *testing.T) {
 			// Set up test environment
 			noColor = tt.noColorFlag
 			testTerminalOverride = tt.terminalOverride
-			
+
 			// Handle NO_COLOR environment variable
 			if tt.noColorEnv != "" {
 				os.Setenv("NO_COLOR", tt.noColorEnv)
 			} else {
 				os.Unsetenv("NO_COLOR")
 			}
-			
-			// Handle TERM environment variable  
+
+			// Handle TERM environment variable
 			if tt.termEnv != "" {
 				os.Setenv("TERM", tt.termEnv)
 			} else if tt.name == "TERM environment variable empty" {
@@ -402,7 +402,7 @@ func TestColorizeError(t *testing.T) {
 }
 
 func TestColorizeWarning(t *testing.T) {
-	text := "Test warning message"  
+	text := "Test warning message"
 	result := ColorizeWarning(text)
 	assert.Contains(t, result, "⚠️")
 	assert.Contains(t, result, text)
@@ -410,13 +410,13 @@ func TestColorizeWarning(t *testing.T) {
 
 func TestColorFunctionsWithNilColors(t *testing.T) {
 	// Test that color functions work even when colors aren't initialized
-	
+
 	// Save original colors
 	originalColors := []interface{}{
 		ColorSuccess, ColorError, ColorWarning, ColorReviewState,
 		ColorIssueComment, ColorReviewComment,
 	}
-	
+
 	// Set colors to nil
 	ColorSuccess = nil
 	ColorError = nil
@@ -424,7 +424,7 @@ func TestColorFunctionsWithNilColors(t *testing.T) {
 	ColorReviewState = nil
 	ColorIssueComment = nil
 	ColorReviewComment = nil
-	
+
 	defer func() {
 		// Restore original colors
 		ColorSuccess = originalColors[0].(*color.Color)
@@ -459,10 +459,10 @@ func TestColorFunctionsWithNilColors(t *testing.T) {
 		result := ColorizeCommentType("issue")
 		// Should fall back to uncolored text when colors are nil
 		assert.Equal(t, "💬 General PR Comments", result)
-		
+
 		result2 := ColorizeCommentType("review")
 		assert.Equal(t, "📋 Review Comments", result2)
-		
+
 		result3 := ColorizeCommentType("unknown")
 		assert.Equal(t, "unknown", result3)
 	})

@@ -27,6 +27,9 @@ var reviewReplyCmd = &cobra.Command{
 		line-specific comments that appear in the "Files Changed" tab. Review
 		comment threading has limited GitHub API support.
 
+		Note: Some comment IDs may return 404 errors due to GitHub API limitations
+		with review comment threading. The --resolve flag works more reliably.
+
 		For general PR discussion, use 'gh comment add' instead.
 		For emoji reactions, use 'gh comment react' command.
 
