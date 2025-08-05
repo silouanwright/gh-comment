@@ -4,6 +4,88 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 ## 🚧 In Progress
 
+### **🔄 INTEGRATION TESTING LOOP - Automated Help Text Validation**
+**Status**: 🚧 In Progress - Loop 1 Complete, Analysis Phase  
+**Goal**: Fix all help text examples to work perfectly when copy/pasted by users  
+**Strategy**: Iterative loop - run tests, identify issues, fix, repeat until 100% success
+
+#### **✅ Loop 1 Results - Initial Test Run Complete**
+**Framework Status**: ✅ All scripts working perfectly
+**Test Execution**: ✅ Successfully tested 113 examples from help text
+**Issue Detection**: ✅ Found multiple categories of problems to fix
+
+**Key Discoveries**:
+- **`prompts` command**: ✅ All examples work perfectly (no fixes needed)
+- **`add` command**: ❌ Test script failures (syntax/execution issues)
+- **`review` command**: ❌ Test script failures (likely help text problems)
+- **`batch` command**: ⚠️ Missing example files (`review-config.yaml`)
+- **`edit` command**: ⚠️ Invalid comment IDs in examples
+- **`lines` command**: ⚠️ File path issues with test files
+- **`list` command**: ⚠️ Missing script dependencies in examples
+- **`react` command**: ⚠️ Permission issues with comment IDs
+- **`resolve` command**: ⚠️ Thread not found errors
+- **`review-reply` command**: ⚠️ Invalid comment IDs
+
+#### **🔄 Current Loop Tasks**
+**Loop Goal**: Fix the most critical help text issues and re-run integration tests
+
+- [ ] **Priority 1: Fix `batch` command examples**
+  - [ ] Create missing `review-config.yaml` example file
+  - [ ] Update help text with correct YAML structure
+  - [ ] Test batch command with real files
+
+- [ ] **Priority 2: Fix invalid comment ID examples**
+  - [ ] Replace placeholder comment IDs with dynamic examples
+  - [ ] Add note about getting real comment IDs from `list` command
+  - [ ] Update `edit`, `react`, `resolve`, `review-reply` examples
+
+- [ ] **Priority 3: Fix file path examples**
+  - [ ] Ensure all file examples match test PR structure
+  - [ ] Replace `src/src/main.go` with `src/main.go` (duplicate path bug)
+  - [ ] Verify all file references exist in test environment
+
+- [ ] **Priority 4: Debug script execution failures**
+  - [ ] Investigate `add` command test script syntax errors
+  - [ ] Fix `review` command test script issues
+  - [ ] Check for shell quoting problems in generated tests
+
+#### **🎯 Success Criteria for Current Loop**
+- [ ] All `batch` command examples execute successfully
+- [ ] All comment ID examples work with dynamic IDs
+- [ ] All file path examples reference existing files
+- [ ] Test scripts execute without syntax errors
+- [ ] Re-run integration tests show improvement in success rate
+
+#### **🔧 Integration Test Commands for Current Loop**
+```bash
+# After making fixes, test the loop:
+./scripts/integration/01_setup.sh          # Create new test PR
+./scripts/integration/02_parse_help.sh     # Extract updated examples
+./scripts/integration/03_run_tests.sh      # Test all examples
+./scripts/integration/04_cleanup.sh        # Clean up and analyze results
+
+# Quick test specific commands after fixes:
+go build && ./gh-comment batch --help      # Verify help text updates
+go build && ./gh-comment edit --help       # Check comment ID examples
+```
+
+#### **🗂️ Files to Update in Current Loop**
+- `cmd/batch.go` - Fix help text examples, add missing YAML file creation
+- `cmd/edit.go` - Replace static comment IDs with dynamic examples
+- `cmd/react.go` - Update comment ID examples
+- `cmd/resolve.go` - Fix thread/comment ID examples  
+- `cmd/review-reply.go` - Update comment ID examples
+- `cmd/lines.go` - Fix file path examples (remove duplicate `src/`)
+- `scripts/integration/` - Improve error reporting and test robustness
+
+#### **💡 Loop Optimization Ideas**
+- [ ] Add comment ID extraction from test PR to make examples dynamic
+- [ ] Create example YAML files as part of setup script
+- [ ] Improve test script error messages for easier debugging
+- [ ] Add validation of help text examples before running tests
+
+**Next**: Start with Priority 1 (batch command) as it's the easiest fix with highest impact.
+
 
 ### 🚨 URGENT BLOCKERS
 

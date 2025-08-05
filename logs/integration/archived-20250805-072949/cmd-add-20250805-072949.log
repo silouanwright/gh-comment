@@ -1,0 +1,30 @@
+🧪 Testing: ./gh-comment add 14 LGTM! Just a few minor suggestions below
+✓ Added comment to PR #14 (ID: 3155021998)
+✅ SUCCESS: add example 1
+
+🧪 Testing: ./gh-comment add 14 Thanks for addressing the security concerns
+✓ Added comment to PR #14 (ID: 3155022055)
+✅ SUCCESS: add example 2
+
+🧪 Testing: ./gh-comment add 14 This looks great - ready to merge after CI passes
+✓ Added comment to PR #14 (ID: 3155022135)
+✅ SUCCESS: add example 3
+
+🧪 Testing: ./gh-comment add 14 -m Overall this is excellent work! -m The architecture is clean and the tests are comprehensive
+✓ Added comment to PR #14 (ID: 3155022204)
+✅ SUCCESS: add example 4
+
+🧪 Testing: ./gh-comment add Looks good to merge!
+✓ Added comment to PR #14 (ID: 3155022294)
+✅ SUCCESS: add example 5
+
+🧪 Testing: ./gh-comment add 14 Approved! The performance improvements in this PR will make a huge difference
+✓ Added comment to PR #14 (ID: 3155022389)
+✅ SUCCESS: add example 6
+
+🧪 Testing: ./gh-comment add 14 Could you address the failing tests? Otherwise looks good to go
+✓ Added comment to PR #14 (ID: 3155022463)
+✅ SUCCESS: add example 7
+
+/Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-072949/add_examples.sh: line 89: syntax error near unexpected token `('
+/Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-072949/add_examples.sh: line 89: `echo "🧪 Testing: ./gh-comment add $PR_NUM "Consider using async/await: [SUGGEST: const result = await fetchData();]""'

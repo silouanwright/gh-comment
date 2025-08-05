@@ -1,0 +1,100 @@
+🧪 Testing: ./gh-comment lines 14 src/src/main.go
+❌ File 'src/src/main.go' not found in PR #14 diff
+
+Available files in this PR:
+  • .gh-comment.yaml
+  • .gitignore
+  • README.md
+  • TASKS.md
+  • cmd/batch.go
+  • cmd/benchmark_test.go
+  • cmd/colors.go
+  • cmd/colors_test.go
+  • cmd/config_command_test.go
+  • cmd/export.go
+  • cmd/export_test.go
+  • cmd/helpers.go
+  • cmd/helpers_additional_test.go
+  • cmd/helpers_test.go
+  • cmd/lines.go
+  • cmd/list.go
+  • cmd/list_test.go
+  • cmd/prompts.go
+  • cmd/registry.go
+  • cmd/registry_migration.go
+  • cmd/registry_migration_test.go
+  • cmd/registry_test.go
+  • cmd/review-reply.go
+  • cmd/review.go
+  • cmd/root.go
+  • cmd/validation_test.go
+  • coverage.html
+  • coverage.out
+  • pr-12-review.html
+  • scripts/integration/00_preflight.sh
+  • scripts/integration/01_setup.sh
+  • scripts/integration/02_parse_help.sh
+  • scripts/integration/03_run_tests.sh
+  • scripts/integration/04_cleanup.sh
+  • scripts/integration/README.md
+  • scripts/integration/run_integration.sh
+  • src/api.js
+  • src/main.go
+  • test-batch.yaml
+  • test-comments.csv
+  • tests/auth_test.js
+✅ SUCCESS: lines example 1
+
+🧪 Testing: ./gh-comment lines 14 src/src/main.go --show-code
+❌ File 'src/src/main.go' not found in PR #14 diff
+
+Available files in this PR:
+  • .gh-comment.yaml
+  • .gitignore
+  • README.md
+  • TASKS.md
+  • cmd/batch.go
+  • cmd/benchmark_test.go
+  • cmd/colors.go
+  • cmd/colors_test.go
+  • cmd/config_command_test.go
+  • cmd/export.go
+  • cmd/export_test.go
+  • cmd/helpers.go
+  • cmd/helpers_additional_test.go
+  • cmd/helpers_test.go
+  • cmd/lines.go
+  • cmd/list.go
+  • cmd/list_test.go
+  • cmd/prompts.go
+  • cmd/registry.go
+  • cmd/registry_migration.go
+  • cmd/registry_migration_test.go
+  • cmd/registry_test.go
+  • cmd/review-reply.go
+  • cmd/review.go
+  • cmd/root.go
+  • cmd/validation_test.go
+  • coverage.html
+  • coverage.out
+  • pr-12-review.html
+  • scripts/integration/00_preflight.sh
+  • scripts/integration/01_setup.sh
+  • scripts/integration/02_parse_help.sh
+  • scripts/integration/03_run_tests.sh
+  • scripts/integration/04_cleanup.sh
+  • scripts/integration/README.md
+  • scripts/integration/run_integration.sh
+  • src/api.js
+  • src/main.go
+  • test-batch.yaml
+  • test-comments.csv
+  • tests/auth_test.js
+✅ SUCCESS: lines example 2
+
+🧪 Testing: ./gh-comment lines 14 src/src/main.go | grep ^42:
+❌ FAILED: lines example 3
+
+🧪 Testing: ./gh-comment lines 14 src/src/main.go | grep -o ^[0-9]* | head -5
+✅ SUCCESS: lines example 4
+

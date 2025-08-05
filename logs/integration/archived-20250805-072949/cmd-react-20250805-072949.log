@@ -1,0 +1,372 @@
+🧪 Testing: ./gh-comment react  +1
+Error: accepts 2 arg(s), received 1
+Usage:
+  gh-comment react <comment-id> <emoji> [flags]
+
+Examples:
+# Add reactions to any comment type
+$ gh comment react 123456 +1
+$ gh comment react 789012 heart
+$ gh comment react 999999 rocket
+
+# Remove reactions
+$ gh comment react 123456 +1 --remove
+$ gh comment react 789012 heart --remove
+
+# Works with both issue and review comments automatically
+$ gh comment react 123456 eyes    # Works for issue comments
+$ gh comment react 789012 hooray  # Works for review comments
+
+
+Flags:
+  -h, --help     help for react
+      --remove   Remove reaction instead of adding it
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: accepts 2 arg(s), received 1
+❌ FAILED: react example 1
+
+🧪 Testing: ./gh-comment react 789012 heart
+Error: resource not found during reaction addition: Operation failed: comment #789012 not found
+
+❌ **Comment #789012 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #789012 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+Usage:
+  gh-comment react <comment-id> <emoji> [flags]
+
+Examples:
+# Add reactions to any comment type
+$ gh comment react 123456 +1
+$ gh comment react 789012 heart
+$ gh comment react 999999 rocket
+
+# Remove reactions
+$ gh comment react 123456 +1 --remove
+$ gh comment react 789012 heart --remove
+
+# Works with both issue and review comments automatically
+$ gh comment react 123456 eyes    # Works for issue comments
+$ gh comment react 789012 hooray  # Works for review comments
+
+
+Flags:
+  -h, --help     help for react
+      --remove   Remove reaction instead of adding it
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: resource not found during reaction addition: Operation failed: comment #789012 not found
+
+❌ **Comment #789012 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #789012 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+❌ FAILED: react example 2
+
+🧪 Testing: ./gh-comment react 999999 rocket
+Error: resource not found during reaction addition: Operation failed: comment #999999 not found
+
+❌ **Comment #999999 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #999999 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+Usage:
+  gh-comment react <comment-id> <emoji> [flags]
+
+Examples:
+# Add reactions to any comment type
+$ gh comment react 123456 +1
+$ gh comment react 789012 heart
+$ gh comment react 999999 rocket
+
+# Remove reactions
+$ gh comment react 123456 +1 --remove
+$ gh comment react 789012 heart --remove
+
+# Works with both issue and review comments automatically
+$ gh comment react 123456 eyes    # Works for issue comments
+$ gh comment react 789012 hooray  # Works for review comments
+
+
+Flags:
+  -h, --help     help for react
+      --remove   Remove reaction instead of adding it
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: resource not found during reaction addition: Operation failed: comment #999999 not found
+
+❌ **Comment #999999 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #999999 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+❌ FAILED: react example 3
+
+🧪 Testing: ./gh-comment react  +1 --remove
+Error: accepts 2 arg(s), received 1
+Usage:
+  gh-comment react <comment-id> <emoji> [flags]
+
+Examples:
+# Add reactions to any comment type
+$ gh comment react 123456 +1
+$ gh comment react 789012 heart
+$ gh comment react 999999 rocket
+
+# Remove reactions
+$ gh comment react 123456 +1 --remove
+$ gh comment react 789012 heart --remove
+
+# Works with both issue and review comments automatically
+$ gh comment react 123456 eyes    # Works for issue comments
+$ gh comment react 789012 hooray  # Works for review comments
+
+
+Flags:
+  -h, --help     help for react
+      --remove   Remove reaction instead of adding it
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: accepts 2 arg(s), received 1
+❌ FAILED: react example 4
+
+🧪 Testing: ./gh-comment react 789012 heart --remove
+Error: resource not found during reaction removal: Operation failed: comment #789012 not found
+
+❌ **Comment #789012 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #789012 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+Usage:
+  gh-comment react <comment-id> <emoji> [flags]
+
+Examples:
+# Add reactions to any comment type
+$ gh comment react 123456 +1
+$ gh comment react 789012 heart
+$ gh comment react 999999 rocket
+
+# Remove reactions
+$ gh comment react 123456 +1 --remove
+$ gh comment react 789012 heart --remove
+
+# Works with both issue and review comments automatically
+$ gh comment react 123456 eyes    # Works for issue comments
+$ gh comment react 789012 hooray  # Works for review comments
+
+
+Flags:
+  -h, --help     help for react
+      --remove   Remove reaction instead of adding it
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: resource not found during reaction removal: Operation failed: comment #789012 not found
+
+❌ **Comment #789012 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #789012 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+❌ FAILED: react example 5
+
+🧪 Testing: ./gh-comment react  eyes    # Works for issue comments
+Error: accepts 2 arg(s), received 1
+Usage:
+  gh-comment react <comment-id> <emoji> [flags]
+
+Examples:
+# Add reactions to any comment type
+$ gh comment react 123456 +1
+$ gh comment react 789012 heart
+$ gh comment react 999999 rocket
+
+# Remove reactions
+$ gh comment react 123456 +1 --remove
+$ gh comment react 789012 heart --remove
+
+# Works with both issue and review comments automatically
+$ gh comment react 123456 eyes    # Works for issue comments
+$ gh comment react 789012 hooray  # Works for review comments
+
+
+Flags:
+  -h, --help     help for react
+      --remove   Remove reaction instead of adding it
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: accepts 2 arg(s), received 1
+❌ FAILED: react example 6
+
+🧪 Testing: ./gh-comment react 789012 hooray  # Works for review comments
+Error: resource not found during reaction addition: Operation failed: comment #789012 not found
+
+❌ **Comment #789012 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #789012 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+Usage:
+  gh-comment react <comment-id> <emoji> [flags]
+
+Examples:
+# Add reactions to any comment type
+$ gh comment react 123456 +1
+$ gh comment react 789012 heart
+$ gh comment react 999999 rocket
+
+# Remove reactions
+$ gh comment react 123456 +1 --remove
+$ gh comment react 789012 heart --remove
+
+# Works with both issue and review comments automatically
+$ gh comment react 123456 eyes    # Works for issue comments
+$ gh comment react 789012 hooray  # Works for review comments
+
+
+Flags:
+  -h, --help     help for react
+      --remove   Remove reaction instead of adding it
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: resource not found during reaction addition: Operation failed: comment #789012 not found
+
+❌ **Comment #789012 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #789012 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+❌ FAILED: react example 7
+

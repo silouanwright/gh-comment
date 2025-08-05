@@ -1,0 +1,14 @@
+pr: 14
+review:
+  body: "Comprehensive code review - architecture and performance analysis"
+  event: "REQUEST_CHANGES"
+  comments:
+    - file: "src/main.go"
+      line: 10
+      message: "🤔 Why not use a proper CLI framework like cobra here?"
+    - file: "src/api.js"
+      line: 8
+      message: "♻️ Extract this configuration to environment variables"
+    - file: "tests/auth_test.js"
+      line: 15
+      message: "📝 Add edge case testing for malformed tokens"

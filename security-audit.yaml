@@ -1,0 +1,8 @@
+pr: 14
+comments:
+  - file: "src/api.js"
+    line: 65
+    message: "🔧 Security: This user input should be sanitized to prevent XSS"
+  - file: "src/api.js"
+    line: 47
+    message: "📝 Rate limiting: Consider implementing exponential backoff"
