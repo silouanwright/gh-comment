@@ -168,20 +168,20 @@ func TestExportFormats(t *testing.T) {
 		// Test all possible field types in the filter
 		exportInclude = []string{"id", "type", "author", "body", "file", "line", "created_at", "updated_at", "url", "diff_hunk", "commit_id", "in_reply_to", "resolved"}
 		defer func() { exportInclude = []string{} }()
-		
+
 		var buf bytes.Buffer
 		err := exportJSON(&buf, comments)
 		assert.NoError(t, err)
-		
+
 		var result []map[string]interface{}
 		err = json.Unmarshal(buf.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
-		
+
 		// Check first comment (issue comment)
 		comment := result[0]
 		assert.Equal(t, float64(123), comment["id"])
-		assert.Equal(t, "issue", comment["type"]) 
+		assert.Equal(t, "issue", comment["type"])
 		assert.Equal(t, "alice", comment["author"])
 		assert.Equal(t, "Test issue comment", comment["body"])
 		assert.Contains(t, comment, "created_at")
@@ -190,7 +190,7 @@ func TestExportFormats(t *testing.T) {
 		// File and line should not be present for issue comment
 		assert.NotContains(t, comment, "file")
 		assert.NotContains(t, comment, "line")
-		
+
 		// Check second comment (review comment)
 		reviewComment := result[1]
 		assert.Equal(t, float64(456), reviewComment["id"])
@@ -205,17 +205,17 @@ func TestExportFormats(t *testing.T) {
 	t.Run("JSON with empty field values", func(t *testing.T) {
 		exportInclude = []string{"file", "line", "diff_hunk", "commit_id", "in_reply_to"}
 		defer func() { exportInclude = []string{} }()
-		
+
 		// Use the issue comment which has empty file/line/diff_hunk
 		var buf bytes.Buffer
 		err := exportJSON(&buf, []ExportComment{comments[0]}) // Only issue comment
 		assert.NoError(t, err)
-		
+
 		var result []map[string]interface{}
 		err = json.Unmarshal(buf.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Len(t, result, 1)
-		
+
 		// Empty/zero fields should not be included
 		comment := result[0]
 		assert.NotContains(t, comment, "file")
@@ -228,16 +228,16 @@ func TestExportFormats(t *testing.T) {
 	t.Run("JSON with single field filter", func(t *testing.T) {
 		exportInclude = []string{"id"}
 		defer func() { exportInclude = []string{} }()
-		
+
 		var buf bytes.Buffer
 		err := exportJSON(&buf, comments)
 		assert.NoError(t, err)
-		
+
 		var result []map[string]interface{}
 		err = json.Unmarshal(buf.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
-		
+
 		// Should only contain ID field
 		comment := result[0]
 		assert.Len(t, comment, 1)
@@ -248,22 +248,22 @@ func TestExportFormats(t *testing.T) {
 	t.Run("JSON with mixed field types", func(t *testing.T) {
 		exportInclude = []string{"author", "resolved", "line"}
 		defer func() { exportInclude = []string{} }()
-		
+
 		var buf bytes.Buffer
 		err := exportJSON(&buf, comments)
 		assert.NoError(t, err)
-		
+
 		var result []map[string]interface{}
 		err = json.Unmarshal(buf.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Len(t, result, 2)
-		
+
 		// First comment (issue) - no line field
 		comment := result[0]
 		assert.Contains(t, comment, "author")
 		assert.Contains(t, comment, "resolved")
 		assert.NotContains(t, comment, "line") // Issue comment has no line
-		
+
 		// Second comment (review) - has line field
 		reviewComment := result[1]
 		assert.Contains(t, reviewComment, "author")
@@ -280,10 +280,10 @@ func TestExportFormats(t *testing.T) {
 		output := buf.String()
 		lines := strings.Split(strings.TrimSpace(output), "\n")
 		assert.Len(t, lines, 3) // header + 2 data rows
-		
+
 		// Check header
 		assert.Contains(t, lines[0], "ID,Type,Author")
-		
+
 		// Check data
 		assert.Contains(t, lines[1], "123,issue,alice")
 		assert.Contains(t, lines[2], "456,review,bob")
@@ -374,7 +374,7 @@ func TestExportFormatValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			exportFormat = tt.format
-			
+
 			// Redirect stdout to avoid output during tests
 			oldStdout := os.Stdout
 			r, w, _ := os.Pipe()
@@ -403,7 +403,7 @@ func TestExportFormatValidation(t *testing.T) {
 func TestFetchAllCommentsForExport(t *testing.T) {
 	mockClient := github.NewMockClient()
 
-	// Setup mock data  
+	// Setup mock data
 	issueComments := []github.Comment{
 		{ID: 1, User: github.User{Login: "alice"}, Body: "Issue comment 1", Type: "issue"},
 		{ID: 2, User: github.User{Login: "bob"}, Body: "Issue comment 2", Type: "issue"},
@@ -431,7 +431,7 @@ func TestFetchAllCommentsForExport(t *testing.T) {
 	assert.Equal(t, "charlie", comments[2].Author)
 	assert.Equal(t, "test.go", comments[2].File)
 	assert.Equal(t, 10, comments[2].Line)
-	
+
 	assert.Equal(t, "review", comments[3].Type)
 	assert.Equal(t, "dave", comments[3].Author)
 	assert.Equal(t, "main.go", comments[3].File)
@@ -471,7 +471,7 @@ func TestExportWithResolvedFilter(t *testing.T) {
 	// this test just verifies basic export functionality
 	t.Run("basic export functionality", func(t *testing.T) {
 		includeResolved = true
-		
+
 		// Capture output
 		exportOutput = ""
 		oldStdout := os.Stdout

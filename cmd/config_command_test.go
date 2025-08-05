@@ -21,7 +21,7 @@ func TestRunConfigInit(t *testing.T) {
 		// Setup
 		globalFlag = false
 		configFormat = "yaml"
-		
+
 		// Create temporary directory
 		tempDir := t.TempDir()
 		originalWd, _ := os.Getwd()
@@ -48,7 +48,7 @@ func TestRunConfigInit(t *testing.T) {
 		// Setup
 		globalFlag = false
 		configFormat = "json"
-		
+
 		// Create temporary directory
 		tempDir := t.TempDir()
 		originalWd, _ := os.Getwd()
@@ -75,7 +75,7 @@ func TestRunConfigInit(t *testing.T) {
 		// Setup
 		globalFlag = true
 		configFormat = "yaml"
-		
+
 		// Create temporary home directory
 		tempDir := t.TempDir()
 		originalHome := os.Getenv("HOME")
@@ -96,7 +96,7 @@ func TestRunConfigInit(t *testing.T) {
 		// Setup
 		globalFlag = false
 		configFormat = "yaml"
-		
+
 		// Create temporary directory with existing config file
 		tempDir := t.TempDir()
 		originalWd, _ := os.Getwd()
@@ -130,7 +130,7 @@ func TestRunConfigShow(t *testing.T) {
 		// Reset flags
 		showEffective = false
 		showSource = false
-		
+
 		// Set up test config
 		testConfig := &Config{
 			Defaults: DefaultsConfig{
@@ -152,7 +152,7 @@ func TestRunConfigShow(t *testing.T) {
 		// Set showEffective flag
 		showEffective = true
 		showSource = false
-		
+
 		// Set up test config
 		testConfig := &Config{
 			Defaults: DefaultsConfig{
@@ -173,7 +173,7 @@ func TestRunConfigShow(t *testing.T) {
 		// Set showSource flag
 		showEffective = false
 		showSource = true
-		
+
 		// Set up test config
 		testConfig := &Config{
 			Defaults: DefaultsConfig{
@@ -191,13 +191,13 @@ func TestRunConfigShow(t *testing.T) {
 		// Set showSource flag
 		showEffective = false
 		showSource = true
-		
+
 		// Create temporary config file
 		tempDir := t.TempDir()
 		configFile := filepath.Join(tempDir, ".gh-comment.yaml")
 		configContent := `defaults:
   author: "file-user"`
-		
+
 		err := os.WriteFile(configFile, []byte(configContent), 0644)
 		assert.NoError(t, err)
 
@@ -208,7 +208,7 @@ func TestRunConfigShow(t *testing.T) {
 
 		// Clear global config so it loads from file
 		globalConfig = nil
-		
+
 		// Run the command
 		err = runConfigShow(configShowCmd, []string{})
 		assert.NoError(t, err)
@@ -218,10 +218,10 @@ func TestRunConfigShow(t *testing.T) {
 		// Reset flags
 		showEffective = false
 		showSource = false
-		
+
 		// Clear global config
 		globalConfig = nil
-		
+
 		// Create temporary config file
 		tempDir := t.TempDir()
 		configFile := filepath.Join(tempDir, ".gh-comment.yaml")
@@ -229,7 +229,7 @@ func TestRunConfigShow(t *testing.T) {
   author: "file-user"
 display:
   format: "table"`
-		
+
 		err := os.WriteFile(configFile, []byte(configContent), 0644)
 		assert.NoError(t, err)
 
@@ -247,7 +247,7 @@ display:
 		// Set both flags (effective takes precedence)
 		showEffective = true
 		showSource = true
-		
+
 		testConfig := &Config{
 			Defaults: DefaultsConfig{
 				Author: "both-flags-user",
@@ -278,7 +278,7 @@ display:
 filters:
   status: "all"
   type: "all"`
-		
+
 		err := os.WriteFile(configFile, []byte(configContent), 0644)
 		assert.NoError(t, err)
 
@@ -298,7 +298,7 @@ filters:
 		configFile := filepath.Join(tempDir, "test-config.yaml")
 		configContent := `defaults:
   author: "test-user"`
-		
+
 		err := os.WriteFile(configFile, []byte(configContent), 0644)
 		assert.NoError(t, err)
 
@@ -312,7 +312,7 @@ filters:
 		tempDir := t.TempDir()
 		configFile := filepath.Join(tempDir, "invalid-config.yaml")
 		configContent := `invalid: [unclosed bracket`
-		
+
 		err := os.WriteFile(configFile, []byte(configContent), 0644)
 		assert.NoError(t, err)
 

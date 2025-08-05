@@ -14,19 +14,19 @@ var (
 	testTerminalOverride *bool
 
 	// Color definitions for different types of output
-	ColorCommentID    *color.Color
-	ColorAuthor       *color.Color
-	ColorTimestamp    *color.Color
-	ColorFilePath     *color.Color
-	ColorLineNumber   *color.Color
-	ColorURL          *color.Color
-	ColorSuccess      *color.Color
-	ColorError        *color.Color
-	ColorWarning      *color.Color
-	ColorHeader       *color.Color
-	ColorReviewState  *color.Color
-	ColorCommitSHA    *color.Color
-	ColorIssueComment *color.Color
+	ColorCommentID     *color.Color
+	ColorAuthor        *color.Color
+	ColorTimestamp     *color.Color
+	ColorFilePath      *color.Color
+	ColorLineNumber    *color.Color
+	ColorURL           *color.Color
+	ColorSuccess       *color.Color
+	ColorError         *color.Color
+	ColorWarning       *color.Color
+	ColorHeader        *color.Color
+	ColorReviewState   *color.Color
+	ColorCommitSHA     *color.Color
+	ColorIssueComment  *color.Color
 	ColorReviewComment *color.Color
 )
 
