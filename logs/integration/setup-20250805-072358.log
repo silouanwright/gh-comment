@@ -1,0 +1,1329 @@
+🔧 Building local binary...
+✅ Binary built successfully
+
+🌿 Creating test branch: integration-test-20250805-072358
+Switched to a new branch 'integration-test-20250805-072358'
+📁 Creating test files for help text examples...
+📄 Test files created:
+  • src/api.js (Express.js middleware)
+  • src/main.go (Go CLI application)
+  • tests/auth_test.js (Jest test suite)
+  • README.md (Documentation)
+
+💾 Committing test files...
+trim trailing whitespace.................................................Failed
+- hook id: trailing-whitespace
+- files were modified by this hook
+fix end of files.........................................................
+Failed
+- hook id: end-of-file-fixer
+- exit code: 1
+- files were modified by this hook
+
+Fixing logs/integration/setup-20250805-072358.log
+
+check yaml...........................................(no files to check)Skipped
+check for added large files..............................................Failed
+- hook id: check-added-large-files
+- files were modified by this hook
+check for merge conflicts................................................Failed
+- hook id: check-merge-conflict
+- files were modified by this hook
+ Go Build................................................................Failed
+- hook id: go-build-repo-mod
+- files were modified by this hook
+ Go Mod Tidy.............................................................Failed
+- hook id: go-mod-tidy-repo
+- files were modified by this hook
+ Go Unit Tests...........................................................Failed
+- hook id: go-test-repo-mod
+- files were modified by this hook
+
+ok  	github.com/silouanwright/gh-comment	2.218s
+ok  	github.com/silouanwright/gh-comment/cmd	4.717s
+ok  	github.com/silouanwright/gh-comment/internal/github	(cached)
+?   	github.com/silouanwright/gh-comment/internal/help	[no test files]
+ok  	github.com/silouanwright/gh-comment/internal/testutil	(cached)
+?   	github.com/silouanwright/gh-comment/src	[no test files]
+
+ Go Vet..................................................................Failed
+- hook id: go-vet-repo-mod
+- files were modified by this hook
+ Go Format...............................................................Failed
+- hook id: go-fmt-repo
+- exit code: 1
+- files were modified by this hook
+
+cmd/helpers.go
+diff cmd/helpers.go.orig cmd/helpers.go
+--- cmd/helpers.go.orig
++++ cmd/helpers.go
+@@ -18,9 +18,9 @@
+ 	DefaultPageSize   = 30
+ 
+ 	// Security validation constants
+-	MaxCommentThreadDepth = 10    // Maximum nested comment thread depth
+-	MaxRepositoryDepth    = 5     // Maximum repository path depth
+-	MaxValidationErrors   = 50    // Maximum validation errors to report
++	MaxCommentThreadDepth = 10 // Maximum nested comment thread depth
++	MaxRepositoryDepth    = 5  // Maximum repository path depth
++	MaxValidationErrors   = 50 // Maximum validation errors to report
+ 
+ 	// Display constants
+ 	MaxDisplayBodyLength   = 200 // Max length for comment body display
+@@ -35,10 +35,10 @@
+ // Security validation patterns
+ var (
+ 	// HTML/Script tag detection patterns
+-	htmlTagPattern    = regexp.MustCompile(`(?i)<\s*\/?\s*(script|iframe|object|embed|form|input|meta|link)\b[^>]*>`)
+-	scriptPattern     = regexp.MustCompile(`(?i)javascript\s*:|<\s*script\b`)
++	htmlTagPattern       = regexp.MustCompile(`(?i)<\s*\/?\s*(script|iframe|object|embed|form|input|meta|link)\b[^>]*>`)
++	scriptPattern        = regexp.MustCompile(`(?i)javascript\s*:|<\s*script\b`)
+ 	dangerousAttrPattern = regexp.MustCompile(`(?i)\b(on\w+|javascript|vbscript|data|mocha|livescript)\s*=`)
+-	
++
+ 	// Repository validation patterns
+ 	validRepoPattern  = regexp.MustCompile(`^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$`)
+ 	validOwnerPattern = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+@@ -173,7 +173,7 @@
+ // validateCommentBody validates comment body length and content for security
+ func validateCommentBody(body string) error {
+ 	if len(body) > MaxCommentLength {
+-		return formatValidationError("comment body", fmt.Sprintf("%d chars", len(body)), 
++		return formatValidationError("comment body", fmt.Sprintf("%d chars", len(body)),
+ 			fmt.Sprintf("must be %d characters or less", MaxCommentLength))
+ 	}
+ 
+@@ -189,19 +189,19 @@
+ func validateCommentSecurity(body string) error {
+ 	// Check for dangerous HTML tags
+ 	if htmlTagPattern.MatchString(body) {
+-		return formatSecurityValidationError("comment body", "dangerous HTML tags detected", 
++		return formatSecurityValidationError("comment body", "dangerous HTML tags detected",
+ 			"HTML tags like <script>, <iframe>, <object>, <embed>, <form>, <input>, <meta>, <link> are not allowed")
+ 	}
+ 
+ 	// Check for JavaScript and event handlers
+ 	if scriptPattern.MatchString(body) {
+-		return formatSecurityValidationError("comment body", "JavaScript content detected", 
++		return formatSecurityValidationError("comment body", "JavaScript content detected",
+ 			"JavaScript code, inline event handlers, and script tags are not allowed")
+ 	}
+ 
+ 	// Check for dangerous attributes
+ 	if dangerousAttrPattern.MatchString(body) {
+-		return formatSecurityValidationError("comment body", "dangerous attributes detected", 
++		return formatSecurityValidationError("comment body", "dangerous attributes detected",
+ 			"Event handlers and script attributes like onclick, onload, href='javascript:' are not allowed")
+ 	}
+ 
+@@ -263,13 +263,13 @@
+ 
+ 	// Check for potentially dangerous repository patterns
+ 	if strings.Contains(owner, "..") || strings.Contains(repoName, "..") {
+-		return formatAccessValidationError("repository", "access repository with path traversal", 
++		return formatAccessValidationError("repository", "access repository with path traversal",
+ 			"Repository names cannot contain '..' sequences for security reasons")
+ 	}
+ 
+ 	// Validate against pattern for additional security
+ 	if !validRepoPattern.MatchString(repo) {
+-		return formatAccessValidationError("repository", "access repository with invalid characters", 
++		return formatAccessValidationError("repository", "access repository with invalid characters",
+ 			"Repository must match pattern 'owner/repo' with only alphanumeric, dot, underscore, and hyphen characters")
+ 	}
+ 
+@@ -277,10 +277,10 @@
+ 	dangerousNames := []string{".", "..", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"}
+ 	ownerUpper := strings.ToUpper(owner)
+ 	repoUpper := strings.ToUpper(repoName)
+-	
++
+ 	for _, dangerous := range dangerousNames {
+ 		if ownerUpper == dangerous || repoUpper == dangerous {
+-			return formatAccessValidationError("repository", "access repository with reserved name", 
++			return formatAccessValidationError("repository", "access repository with reserved name",
+ 				"Repository owner or name cannot use reserved system names")
+ 		}
+ 	}
+@@ -293,9 +293,9 @@
+ 	if depth < 0 {
+ 		return formatValidationError("thread depth", fmt.Sprintf("%d", depth), "must be non-negative")
+ 	}
+-	
++
+ 	if depth > MaxCommentThreadDepth {
+-		return formatAccessValidationError("comment thread", fmt.Sprintf("nest deeper than %d levels", MaxCommentThreadDepth), 
++		return formatAccessValidationError("comment thread", fmt.Sprintf("nest deeper than %d levels", MaxCommentThreadDepth),
+ 			fmt.Sprintf("Deep comment nesting can cause performance issues and poor user experience. Maximum allowed depth is %d levels", MaxCommentThreadDepth))
+ 	}
+ 
+@@ -316,7 +316,7 @@
+ 	for _, validate := range validations {
+ 		result := validate()
+ 		results = append(results, result)
+-		
++
+ 		// Stop early if we hit the max validation errors
+ 		if len(results) >= MaxValidationErrors {
+ 			break
+cmd/registry.go
+diff cmd/registry.go.orig cmd/registry.go
+--- cmd/registry.go.orig
++++ cmd/registry.go
+@@ -25,25 +25,25 @@
+ type CommandRegistry interface {
+ 	// Register adds a command to the registry
+ 	Register(info CommandInfo) error
+-	
++
+ 	// GetCommand returns a specific command by name
+ 	GetCommand(name string) (*cobra.Command, error)
+-	
++
+ 	// GetAllCommands returns all registered commands
+ 	GetAllCommands() map[string]*cobra.Command
+-	
++
+ 	// GetCommandsByCategory returns commands grouped by category
+ 	GetCommandsByCategory() map[string][]*CommandInfo
+-	
++
+ 	// ListCommands returns a sorted list of command names
+ 	ListCommands() []string
+-	
++
+ 	// BuildAll builds all registered commands and adds them to the root command
+ 	BuildAll(rootCmd *cobra.Command) error
+-	
++
+ 	// GetCommandInfo returns metadata for a command
+ 	GetCommandInfo(name string) (*CommandInfo, error)
+-	
++
+ 	// GetRegisteredCount returns the number of registered commands
+ 	GetRegisteredCount() int
+ }
+@@ -65,15 +65,15 @@
+ 	if info.Name == "" {
+ 		return fmt.Errorf("command name cannot be empty")
+ 	}
+-	
++
+ 	if info.Builder == nil {
+ 		return fmt.Errorf("command builder cannot be nil for command %s", info.Name)
+ 	}
+-	
++
+ 	if _, exists := r.commands[info.Name]; exists {
+ 		return fmt.Errorf("command %s is already registered", info.Name)
+ 	}
+-	
++
+ 	// Set defaults
+ 	if info.Category == "" {
+ 		info.Category = "general"
+@@ -81,7 +81,7 @@
+ 	if info.Description == "" {
+ 		info.Description = "No description available"
+ 	}
+-	
++
+ 	r.commands[info.Name] = &info
+ 	return nil
+ }
+@@ -92,7 +92,7 @@
+ 	if !exists {
+ 		return nil, fmt.Errorf("command %s not found", name)
+ 	}
+-	
++
+ 	// Build command if not already cached
+ 	if info.Command == nil {
+ 		info.Command = info.Builder()
+@@ -100,7 +100,7 @@
+ 			return nil, fmt.Errorf("command builder for %s returned nil", name)
+ 		}
+ 	}
+-	
++
+ 	return info.Command, nil
+ }
+ 
+@@ -107,7 +107,7 @@
+ // GetAllCommands returns all registered commands
+ func (r *DefaultCommandRegistry) GetAllCommands() map[string]*cobra.Command {
+ 	result := make(map[string]*cobra.Command)
+-	
++
+ 	for name, info := range r.commands {
+ 		if info.Command == nil {
+ 			info.Command = info.Builder()
+@@ -116,7 +116,7 @@
+ 			result[name] = info.Command
+ 		}
+ 	}
+-	
++
+ 	return result
+ }
+ 
+@@ -123,11 +123,11 @@
+ // GetCommandsByCategory returns commands grouped by category
+ func (r *DefaultCommandRegistry) GetCommandsByCategory() map[string][]*CommandInfo {
+ 	result := make(map[string][]*CommandInfo)
+-	
++
+ 	for _, info := range r.commands {
+ 		result[info.Category] = append(result[info.Category], info)
+ 	}
+-	
++
+ 	// Sort each category by priority, then by name
+ 	for category := range result {
+ 		sort.Slice(result[category], func(i, j int) bool {
+@@ -137,7 +137,7 @@
+ 			return result[category][i].Name < result[category][j].Name
+ 		})
+ 	}
+-	
++
+ 	return result
+ }
+ 
+@@ -154,24 +154,24 @@
+ // BuildAll builds all registered commands and adds them to the root command
+ func (r *DefaultCommandRegistry) BuildAll(rootCmd *cobra.Command) error {
+ 	var errors []string
+-	
+-	for name, info := range r.commands {
+-		if info.Command == nil {
+-			info.Command = info.Builder()
+-		}
+-		
++
++	for name, info := range r.commands {
++		if info.Command == nil {
++			info.Command = info.Builder()
++		}
++
+ 		if info.Command == nil {
+ 			errors = append(errors, fmt.Sprintf("command %s builder returned nil", name))
+ 			continue
+ 		}
+-		
++
+ 		rootCmd.AddCommand(info.Command)
+ 	}
+-	
++
+ 	if len(errors) > 0 {
+ 		return fmt.Errorf("failed to build commands: %s", strings.Join(errors, "; "))
+ 	}
+-	
++
+ 	return nil
+ }
+ 
+@@ -181,7 +181,7 @@
+ 	if !exists {
+ 		return nil, fmt.Errorf("command %s not found", name)
+ 	}
+-	
++
+ 	// Return a copy to prevent modification
+ 	infoCopy := *info
+ 	return &infoCopy, nil
+@@ -216,4 +216,4 @@
+ // BuildAllCommands builds all registered commands and adds them to the root command
+ func BuildAllCommands(rootCmd *cobra.Command) error {
+ 	return GetRegistry().BuildAll(rootCmd)
+-}
+\ No newline at end of file
++}
+cmd/registry_migration.go
+diff cmd/registry_migration.go.orig cmd/registry_migration.go
+--- cmd/registry_migration.go.orig
++++ cmd/registry_migration.go
+@@ -9,11 +9,11 @@
+ 
+ // CommandCategories defines standard command categories for consistent organization
+ const (
+-	CategoryCore    = "core"      // Primary commenting operations (add, review, list)
+-	CategoryManage  = "manage"    // Comment management (edit, resolve, react)
+-	CategoryAdmin   = "admin"     // Administrative tasks (config, export)
+-	CategoryUtility = "utility"   // Helper commands (lines, prompts)
+-	CategoryTest    = "test"      // Testing and integration commands
++	CategoryCore    = "core"    // Primary commenting operations (add, review, list)
++	CategoryManage  = "manage"  // Comment management (edit, resolve, react)
++	CategoryAdmin   = "admin"   // Administrative tasks (config, export)
++	CategoryUtility = "utility" // Helper commands (lines, prompts)
++	CategoryTest    = "test"    // Testing and integration commands
+ )
+ 
+ // CommandPriorities defines standard priority levels for help display ordering
+@@ -55,13 +55,13 @@
+ 			Builder:     buildBatchCommand,
+ 		},
+ 	}
+-	
++
+ 	for _, info := range coreCommands {
+ 		if err := registry.Register(info); err != nil {
+ 			return err
+ 		}
+ 	}
+-	
++
+ 	return nil
+ }
+ 
+@@ -104,13 +104,13 @@
+ 			Builder:     buildClosePendingReviewCommand,
+ 		},
+ 	}
+-	
++
+ 	for _, info := range managementCommands {
+ 		if err := registry.Register(info); err != nil {
+ 			return err
+ 		}
+ 	}
+-	
++
+ 	return nil
+ }
+ 
+@@ -132,13 +132,13 @@
+ 			Builder:     buildExportCommand,
+ 		},
+ 	}
+-	
++
+ 	for _, info := range adminCommands {
+ 		if err := registry.Register(info); err != nil {
+ 			return err
+ 		}
+ 	}
+-	
++
+ 	return nil
+ }
+ 
+@@ -160,13 +160,13 @@
+ 			Builder:     buildPromptsCommand,
+ 		},
+ 	}
+-	
++
+ 	for _, info := range utilityCommands {
+ 		if err := registry.Register(info); err != nil {
+ 			return err
+ 		}
+ 	}
+-	
++
+ 	return nil
+ }
+ 
+@@ -181,13 +181,13 @@
+ 			Builder:     buildTestIntegrationCommand,
+ 		},
+ 	}
+-	
++
+ 	for _, info := range testCommands {
+ 		if err := registry.Register(info); err != nil {
+ 			return err
+ 		}
+ 	}
+-	
++
+ 	return nil
+ }
+ 
+@@ -200,13 +200,13 @@
+ 		RegisterUtilityCommands,
+ 		RegisterTestCommands,
+ 	}
+-	
++
+ 	for _, registerFunc := range registrationFunctions {
+ 		if err := registerFunc(registry); err != nil {
+ 			return err
+ 		}
+ 	}
+-	
++
+ 	return nil
+ }
+ 
+@@ -293,7 +293,7 @@
+ 		Use:   "config",
+ 		Short: "Manage configuration files and settings",
+ 	}
+-	
++
+ 	// Add subcommands (in a real implementation, these would be built from the original)
+ 	// For now, returning the parent command structure
+ 	return cmd
+@@ -351,4 +351,4 @@
+ 		return err
+ 	}
+ 	return BuildAllCommands(rootCmd)
+-}
+\ No newline at end of file
++}
+cmd/registry_migration_test.go
+diff cmd/registry_migration_test.go.orig cmd/registry_migration_test.go
+--- cmd/registry_migration_test.go.orig
++++ cmd/registry_migration_test.go
+@@ -11,11 +11,11 @@
+ 	// Test that category constants are defined correctly
+ 	categories := []string{CategoryCore, CategoryManage, CategoryAdmin, CategoryUtility, CategoryTest}
+ 	expectedCategories := []string{"core", "manage", "admin", "utility", "test"}
+-	
++
+ 	if len(categories) != len(expectedCategories) {
+ 		t.Errorf("Expected %d categories, got %d", len(expectedCategories), len(categories))
+ 	}
+-	
++
+ 	for i, expected := range expectedCategories {
+ 		if i < len(categories) && categories[i] != expected {
+ 			t.Errorf("Category[%d] = %s, want %s", i, categories[i], expected)
+@@ -38,12 +38,12 @@
+ 
+ func TestRegisterCoreCommands(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	err := RegisterCoreCommands(registry)
+ 	if err != nil {
+ 		t.Errorf("RegisterCoreCommands() unexpected error = %v", err)
+ 	}
+-	
++
+ 	// Check that core commands were registered
+ 	expectedCommands := []string{"add", "review", "list", "batch"}
+ 	for _, cmdName := range expectedCommands {
+@@ -52,13 +52,13 @@
+ 			t.Errorf("Core command %s not registered: %v", cmdName, err)
+ 		}
+ 	}
+-	
++
+ 	// Verify command count
+ 	if registry.GetRegisteredCount() != len(expectedCommands) {
+-		t.Errorf("RegisterCoreCommands() registered %d commands, want %d", 
+-			registry.GetRegisteredCount(), len(expectedCommands))
+-	}
+-	
++		t.Errorf("RegisterCoreCommands() registered %d commands, want %d",
++			registry.GetRegisteredCount(), len(expectedCommands))
++	}
++
+ 	// Verify commands are in correct category
+ 	categories := registry.GetCommandsByCategory()
+ 	coreCommands := categories[CategoryCore]
+@@ -69,14 +69,14 @@
+ 
+ func TestRegisterManagementCommands(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	err := RegisterManagementCommands(registry)
+ 	if err != nil {
+ 		t.Errorf("RegisterManagementCommands() unexpected error = %v", err)
+ 	}
+-	
++
+ 	expectedCommands := []string{"edit", "resolve", "react", "review-reply", "close-pending-review"}
+-	
++
+ 	// Verify all management commands were registered
+ 	for _, cmdName := range expectedCommands {
+ 		info, err := registry.GetCommandInfo(cmdName)
+@@ -86,9 +86,9 @@
+ 			t.Errorf("Command %s has category %s, want %s", cmdName, info.Category, CategoryManage)
+ 		}
+ 	}
+-	
+-	if registry.GetRegisteredCount() != len(expectedCommands) {
+-		t.Errorf("RegisterManagementCommands() registered %d commands, want %d", 
++
++	if registry.GetRegisteredCount() != len(expectedCommands) {
++		t.Errorf("RegisterManagementCommands() registered %d commands, want %d",
+ 			registry.GetRegisteredCount(), len(expectedCommands))
+ 	}
+ }
+@@ -95,14 +95,14 @@
+ 
+ func TestRegisterAdminCommands(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	err := RegisterAdminCommands(registry)
+ 	if err != nil {
+ 		t.Errorf("RegisterAdminCommands() unexpected error = %v", err)
+ 	}
+-	
++
+ 	expectedCommands := []string{"config", "export"}
+-	
++
+ 	for _, cmdName := range expectedCommands {
+ 		info, err := registry.GetCommandInfo(cmdName)
+ 		if err != nil {
+@@ -115,14 +115,14 @@
+ 
+ func TestRegisterUtilityCommands(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	err := RegisterUtilityCommands(registry)
+ 	if err != nil {
+ 		t.Errorf("RegisterUtilityCommands() unexpected error = %v", err)
+ 	}
+-	
++
+ 	expectedCommands := []string{"lines", "prompts"}
+-	
++
+ 	for _, cmdName := range expectedCommands {
+ 		info, err := registry.GetCommandInfo(cmdName)
+ 		if err != nil {
+@@ -135,14 +135,14 @@
+ 
+ func TestRegisterTestCommands(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	err := RegisterTestCommands(registry)
+ 	if err != nil {
+ 		t.Errorf("RegisterTestCommands() unexpected error = %v", err)
+ 	}
+-	
++
+ 	expectedCommands := []string{"test-integration"}
+-	
++
+ 	for _, cmdName := range expectedCommands {
+ 		info, err := registry.GetCommandInfo(cmdName)
+ 		if err != nil {
+@@ -155,19 +155,19 @@
+ 
+ func TestRegisterAllCommands(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	err := RegisterAllCommands(registry)
+ 	if err != nil {
+ 		t.Errorf("RegisterAllCommands() unexpected error = %v", err)
+ 	}
+-	
++
+ 	// Count expected total commands
+ 	expectedTotal := 4 + 5 + 2 + 2 + 1 // core + manage + admin + utility + test
+ 	if registry.GetRegisteredCount() != expectedTotal {
+-		t.Errorf("RegisterAllCommands() registered %d commands, want %d", 
++		t.Errorf("RegisterAllCommands() registered %d commands, want %d",
+ 			registry.GetRegisteredCount(), expectedTotal)
+ 	}
+-	
++
+ 	// Verify all categories are present
+ 	categories := registry.GetCommandsByCategory()
+ 	expectedCategories := []string{CategoryCore, CategoryManage, CategoryAdmin, CategoryUtility, CategoryTest}
+@@ -176,7 +176,7 @@
+ 			t.Errorf("RegisterAllCommands() missing category %s", expectedCategory)
+ 		}
+ 	}
+-	
++
+ 	// Verify specific high-priority commands exist
+ 	highPriorityCommands := []string{"add", "review", "list"}
+ 	for _, cmdName := range highPriorityCommands {
+@@ -192,7 +192,7 @@
+ func TestCommandBuilders(t *testing.T) {
+ 	// Test that each command builder returns a valid command
+ 	builders := map[string]func() *cobra.Command{
+-		"add":                   buildAddCommand,
++		"add":                  buildAddCommand,
+ 		"review":               buildReviewCommand,
+ 		"list":                 buildListCommand,
+ 		"batch":                buildBatchCommand,
+@@ -207,7 +207,7 @@
+ 		"prompts":              buildPromptsCommand,
+ 		"test-integration":     buildTestIntegrationCommand,
+ 	}
+-	
++
+ 	for cmdName, builder := range builders {
+ 		t.Run(cmdName, func(t *testing.T) {
+ 			cmd := builder()
+@@ -215,21 +215,21 @@
+ 				t.Errorf("Builder for %s returned nil", cmdName)
+ 				return
+ 			}
+-			
++
+ 			if cmd.Use == "" {
+ 				t.Errorf("Builder for %s created command with empty Use", cmdName)
+ 			}
+-			
++
+ 			// Verify the Use field matches expected command name
+ 			if !strings.HasPrefix(cmd.Use, cmdName) {
+-				t.Errorf("Builder for %s created command with Use=%s, expected to start with %s", 
++				t.Errorf("Builder for %s created command with Use=%s, expected to start with %s",
+ 					cmdName, cmd.Use, cmdName)
+ 			}
+-			
++
+ 			if cmd.Short == "" {
+ 				t.Errorf("Builder for %s created command with empty Short description", cmdName)
+ 			}
+-			
++
+ 			// Note: We can't test RunE functions without significant setup,
+ 			// but we can verify they're not nil for most commands
+ 			if cmd.RunE == nil {
+@@ -244,20 +244,20 @@
+ 	// Save original registry
+ 	originalRegistry := defaultRegistry
+ 	defer func() { defaultRegistry = originalRegistry }()
+-	
+-	// Reset to clean state
+-	defaultRegistry = nil
+-	
++
++	// Reset to clean state
++	defaultRegistry = nil
++
+ 	err := InitializeCommandRegistry()
+ 	if err != nil {
+ 		t.Errorf("InitializeCommandRegistry() unexpected error = %v", err)
+ 	}
+-	
++
+ 	registry := GetRegistry()
+ 	if registry.GetRegisteredCount() == 0 {
+ 		t.Error("InitializeCommandRegistry() should have registered commands")
+ 	}
+-	
++
+ 	// Verify we can get some core commands
+ 	coreCommands := []string{"add", "review", "list"}
+ 	for _, cmdName := range coreCommands {
+@@ -272,22 +272,22 @@
+ 	// Save original registry
+ 	originalRegistry := defaultRegistry
+ 	defer func() { defaultRegistry = originalRegistry }()
+-	
+-	// Reset to clean state
+-	defaultRegistry = nil
+-	
++
++	// Reset to clean state
++	defaultRegistry = nil
++
+ 	rootCmd := &cobra.Command{Use: "root"}
+-	
++
+ 	err := BuildAndRegisterCommands(rootCmd)
+ 	if err != nil {
+ 		t.Errorf("BuildAndRegisterCommands() unexpected error = %v", err)
+ 	}
+-	
++
+ 	// Verify commands were added to root
+ 	if len(rootCmd.Commands()) == 0 {
+ 		t.Error("BuildAndRegisterCommands() should have added commands to root")
+ 	}
+-	
++
+ 	// Verify specific commands exist in root
+ 	coreCommands := []string{"add", "review", "list"}
+ 	for _, expectedCmd := range coreCommands {
+@@ -307,45 +307,45 @@
+ func TestRegistryMigrationIntegration(t *testing.T) {
+ 	// Test the complete migration workflow
+ 	registry := NewCommandRegistry()
+-	
++
+ 	// Register all commands
+ 	err := RegisterAllCommands(registry)
+ 	if err != nil {
+ 		t.Errorf("RegisterAllCommands() failed: %v", err)
+ 	}
+-	
++
+ 	// Create root command
+ 	rootCmd := &cobra.Command{Use: "gh-comment"}
+-	
++
+ 	// Build all commands and add to root
+ 	err = registry.BuildAll(rootCmd)
+ 	if err != nil {
+ 		t.Errorf("BuildAll() failed: %v", err)
+ 	}
+-	
++
+ 	// Verify the integration worked
+ 	if len(rootCmd.Commands()) == 0 {
+ 		t.Error("Integration test failed: no commands added to root")
+ 	}
+-	
++
+ 	// Test command discoverability
+ 	commandNames := registry.ListCommands()
+ 	if len(commandNames) == 0 {
+ 		t.Error("Integration test failed: no commands discoverable")
+ 	}
+-	
++
+ 	// Test category organization
+ 	categories := registry.GetCommandsByCategory()
+ 	if len(categories) == 0 {
+ 		t.Error("Integration test failed: no command categories")
+ 	}
+-	
++
+ 	// Verify core commands are prioritized correctly
+ 	coreCommands := categories[CategoryCore]
+ 	if len(coreCommands) == 0 {
+ 		t.Error("Integration test failed: no core commands")
+ 	}
+-	
++
+ 	// Check priority ordering in core category
+ 	for i := 1; i < len(coreCommands); i++ {
+ 		if coreCommands[i-1].Priority > coreCommands[i].Priority {
+@@ -356,7 +356,7 @@
+ 
+ func TestRegistryVsInitPatternComparison(t *testing.T) {
+ 	// This test demonstrates the benefits of the registry pattern over init()
+-	
++
+ 	// 1. Test discoverability - registry pattern allows introspection
+ 	registry := NewCommandRegistry()
+ 	err := RegisterAllCommands(registry)
+@@ -363,19 +363,19 @@
+ 	if err != nil {
+ 		t.Errorf("Failed to register commands: %v", err)
+ 	}
+-	
++
+ 	// We can now discover commands programmatically
+ 	allCommands := registry.ListCommands()
+ 	if len(allCommands) == 0 {
+ 		t.Error("Registry pattern should allow command discovery")
+ 	}
+-	
++
+ 	// 2. Test categorization - registry pattern allows organization
+ 	categories := registry.GetCommandsByCategory()
+ 	if len(categories) < 2 { // Should have at least core and one other category
+ 		t.Error("Registry pattern should support command categorization")
+ 	}
+-	
++
+ 	// 3. Test selective registration - registry pattern allows control
+ 	selectiveRegistry := NewCommandRegistry()
+ 	err = RegisterCoreCommands(selectiveRegistry)
+@@ -382,24 +382,24 @@
+ 	if err != nil {
+ 		t.Errorf("Failed to register core commands: %v", err)
+ 	}
+-	
++
+ 	coreCount := selectiveRegistry.GetRegisteredCount()
+ 	fullCount := registry.GetRegisteredCount()
+-	
++
+ 	if coreCount >= fullCount {
+ 		t.Error("Selective registration should register fewer commands than full registration")
+ 	}
+-	
++
+ 	// 4. Test metadata access - registry pattern provides rich information
+ 	info, err := registry.GetCommandInfo("add")
+ 	if err != nil {
+ 		t.Errorf("Failed to get command info: %v", err)
+ 	}
+-	
++
+ 	if info.Category == "" || info.Description == "" {
+ 		t.Error("Registry pattern should provide rich command metadata")
+ 	}
+-	
++
+ 	// These capabilities are difficult or impossible with the init() pattern
+ 	t.Logf("Registry pattern successfully provides:")
+ 	t.Logf("- Command discovery: %d commands", len(allCommands))
+@@ -406,4 +406,4 @@
+ 	t.Logf("- Categorization: %d categories", len(categories))
+ 	t.Logf("- Selective registration: %d/%d commands", coreCount, fullCount)
+ 	t.Logf("- Rich metadata: category=%s, priority=%d", info.Category, info.Priority)
+-}
+\ No newline at end of file
++}
+cmd/registry_test.go
+diff cmd/registry_test.go.orig cmd/registry_test.go
+--- cmd/registry_test.go.orig
++++ cmd/registry_test.go
+@@ -12,7 +12,7 @@
+ 	if registry == nil {
+ 		t.Error("NewCommandRegistry() returned nil")
+ 	}
+-	
++
+ 	count := registry.GetRegisteredCount()
+ 	if count != 0 {
+ 		t.Errorf("NewCommandRegistry() should start with 0 commands, got %d", count)
+@@ -76,7 +76,7 @@
+ 		t.Run(tt.name, func(t *testing.T) {
+ 			registry := NewCommandRegistry()
+ 			err := registry.Register(tt.info)
+-			
++
+ 			if tt.wantErr {
+ 				if err == nil {
+ 					t.Errorf("Register() expected error but got nil")
+@@ -91,7 +91,7 @@
+ 					if registry.GetRegisteredCount() != 1 {
+ 						t.Errorf("Register() should have 1 command, got %d", registry.GetRegisteredCount())
+ 					}
+-					
++
+ 					// Test defaults were applied
+ 					if tt.info.Name == "test-cmd-defaults" {
+ 						info, err := registry.GetCommandInfo(tt.info.Name)
+@@ -114,7 +114,7 @@
+ 
+ func TestCommandRegistryDuplicateRegistration(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	info := CommandInfo{
+ 		Name: "duplicate-test",
+ 		Builder: func() *cobra.Command {
+@@ -121,13 +121,13 @@
+ 			return &cobra.Command{Use: "duplicate-test"}
+ 		},
+ 	}
+-	
++
+ 	// First registration should succeed
+ 	err := registry.Register(info)
+ 	if err != nil {
+ 		t.Errorf("First Register() unexpected error = %v", err)
+ 	}
+-	
++
+ 	// Second registration should fail
+ 	err = registry.Register(info)
+ 	if err == nil {
+@@ -139,7 +139,7 @@
+ 
+ func TestCommandRegistryGetCommand(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	info := CommandInfo{
+ 		Name: "get-test",
+ 		Builder: func() *cobra.Command {
+@@ -149,13 +149,13 @@
+ 			}
+ 		},
+ 	}
+-	
++
+ 	// Register the command
+ 	err := registry.Register(info)
+ 	if err != nil {
+ 		t.Errorf("Register() unexpected error = %v", err)
+ 	}
+-	
++
+ 	// Get existing command
+ 	cmd, err := registry.GetCommand("get-test")
+ 	if err != nil {
+@@ -166,7 +166,7 @@
+ 	} else if cmd.Use != "get-test" {
+ 		t.Errorf("GetCommand() returned command with wrong Use: got %s, want get-test", cmd.Use)
+ 	}
+-	
++
+ 	// Test command caching - second call should return same instance
+ 	cmd2, err := registry.GetCommand("get-test")
+ 	if err != nil {
+@@ -175,7 +175,7 @@
+ 	if cmd != cmd2 {
+ 		t.Error("GetCommand() should return cached instance on second call")
+ 	}
+-	
++
+ 	// Get non-existent command
+ 	_, err = registry.GetCommand("non-existent")
+ 	if err == nil {
+@@ -187,7 +187,7 @@
+ 
+ func TestCommandRegistryGetAllCommands(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	// Register multiple commands
+ 	commands := []string{"cmd1", "cmd2", "cmd3"}
+ 	for _, name := range commands {
+@@ -204,12 +204,12 @@
+ 			t.Errorf("Register(%s) unexpected error = %v", name, err)
+ 		}
+ 	}
+-	
++
+ 	allCommands := registry.GetAllCommands()
+ 	if len(allCommands) != len(commands) {
+ 		t.Errorf("GetAllCommands() returned %d commands, want %d", len(allCommands), len(commands))
+ 	}
+-	
++
+ 	for _, name := range commands {
+ 		if cmd, exists := allCommands[name]; !exists {
+ 			t.Errorf("GetAllCommands() missing command %s", name)
+@@ -221,7 +221,7 @@
+ 
+ func TestCommandRegistryGetCommandsByCategory(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	// Register commands in different categories
+ 	testCases := []struct {
+ 		name     string
+@@ -235,7 +235,7 @@
+ 		{"export", "utility", 1},
+ 		{"lines", "utility", 2},
+ 	}
+-	
++
+ 	for _, tc := range testCases {
+ 		info := CommandInfo{
+ 			Name:     tc.name,
+@@ -252,9 +252,9 @@
+ 			t.Errorf("Register(%s) unexpected error = %v", tc.name, err)
+ 		}
+ 	}
+-	
++
+ 	categories := registry.GetCommandsByCategory()
+-	
++
+ 	// Check expected categories exist
+ 	expectedCategories := []string{"core", "admin", "utility"}
+ 	for _, category := range expectedCategories {
+@@ -262,7 +262,7 @@
+ 			t.Errorf("GetCommandsByCategory() missing category %s", category)
+ 		}
+ 	}
+-	
++
+ 	// Check core category has correct commands in priority order
+ 	coreCommands := categories["core"]
+ 	if len(coreCommands) != 3 {
+@@ -279,7 +279,7 @@
+ 
+ func TestCommandRegistryListCommands(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	// Register commands in random order
+ 	commands := []string{"zebra", "alpha", "beta", "gamma"}
+ 	for _, name := range commands {
+@@ -296,14 +296,14 @@
+ 			t.Errorf("Register(%s) unexpected error = %v", name, err)
+ 		}
+ 	}
+-	
++
+ 	commandList := registry.ListCommands()
+ 	expectedOrder := []string{"alpha", "beta", "gamma", "zebra"} // Alphabetical order
+-	
++
+ 	if len(commandList) != len(expectedOrder) {
+ 		t.Errorf("ListCommands() returned %d commands, want %d", len(commandList), len(expectedOrder))
+ 	}
+-	
++
+ 	for i, expected := range expectedOrder {
+ 		if i >= len(commandList) || commandList[i] != expected {
+ 			t.Errorf("ListCommands()[%d] = %s, want %s", i, commandList[i], expected)
+@@ -314,7 +314,7 @@
+ func TestCommandRegistryBuildAll(t *testing.T) {
+ 	registry := NewCommandRegistry()
+ 	rootCmd := &cobra.Command{Use: "root"}
+-	
++
+ 	// Register test commands
+ 	commands := []string{"build1", "build2", "build3"}
+ 	for _, name := range commands {
+@@ -334,18 +334,18 @@
+ 			t.Errorf("Register(%s) unexpected error = %v", name, err)
+ 		}
+ 	}
+-	
++
+ 	// Test BuildAll
+ 	err := registry.BuildAll(rootCmd)
+ 	if err != nil {
+ 		t.Errorf("BuildAll() unexpected error = %v", err)
+ 	}
+-	
++
+ 	// Verify commands were added to root
+ 	if len(rootCmd.Commands()) != len(commands) {
+ 		t.Errorf("BuildAll() added %d commands to root, want %d", len(rootCmd.Commands()), len(commands))
+ 	}
+-	
++
+ 	// Verify each command was added correctly
+ 	for _, expectedName := range commands {
+ 		found := false
+@@ -364,7 +364,7 @@
+ func TestCommandRegistryBuildAllWithFailingBuilder(t *testing.T) {
+ 	registry := NewCommandRegistry()
+ 	rootCmd := &cobra.Command{Use: "root"}
+-	
++
+ 	// Register a command with a failing builder
+ 	info := CommandInfo{
+ 		Name: "failing-cmd",
+@@ -376,7 +376,7 @@
+ 	if err != nil {
+ 		t.Errorf("Register() unexpected error = %v", err)
+ 	}
+-	
++
+ 	// BuildAll should fail
+ 	err = registry.BuildAll(rootCmd)
+ 	if err == nil {
+@@ -388,7 +388,7 @@
+ 
+ func TestCommandRegistryGetCommandInfo(t *testing.T) {
+ 	registry := NewCommandRegistry()
+-	
++
+ 	originalInfo := CommandInfo{
+ 		Name:        "info-test",
+ 		Category:    "testing",
+@@ -398,12 +398,12 @@
+ 			return &cobra.Command{Use: "info-test"}
+ 		},
+ 	}
+-	
++
+ 	err := registry.Register(originalInfo)
+ 	if err != nil {
+ 		t.Errorf("Register() unexpected error = %v", err)
+ 	}
+-	
++
+ 	// Get command info
+ 	info, err := registry.GetCommandInfo("info-test")
+ 	if err != nil {
+@@ -425,7 +425,7 @@
+ 			t.Errorf("GetCommandInfo() Priority = %d, want %d", info.Priority, originalInfo.Priority)
+ 		}
+ 	}
+-	
++
+ 	// Test non-existent command
+ 	_, err = registry.GetCommandInfo("non-existent")
+ 	if err == nil {
+@@ -439,31 +439,31 @@
+ 	// Save original registry
+ 	originalRegistry := defaultRegistry
+ 	defer func() { defaultRegistry = originalRegistry }()
+-	
++
+ 	// Reset to ensure clean state
+ 	defaultRegistry = nil
+-	
++
+ 	// Test GetRegistry creates a new registry
+ 	registry := GetRegistry()
+ 	if registry == nil {
+ 		t.Error("GetRegistry() returned nil")
+ 	}
+-	
++
+ 	// Second call should return same instance
+ 	registry2 := GetRegistry()
+ 	if registry != registry2 {
+ 		t.Error("GetRegistry() should return same instance on subsequent calls")
+ 	}
+-	
++
+ 	// Test SetRegistry
+ 	customRegistry := NewCommandRegistry()
+ 	SetRegistry(customRegistry)
+-	
++
+ 	registry3 := GetRegistry()
+ 	if registry3 != customRegistry {
+ 		t.Error("GetRegistry() should return custom registry after SetRegistry()")
+ 	}
+-	
++
+ 	// Test RegisterCommand convenience function
+ 	info := CommandInfo{
+ 		Name: "global-test",
+@@ -471,17 +471,17 @@
+ 			return &cobra.Command{Use: "global-test"}
+ 		},
+ 	}
+-	
++
+ 	err := RegisterCommand(info)
+ 	if err != nil {
+ 		t.Errorf("RegisterCommand() unexpected error = %v", err)
+ 	}
+-	
++
+ 	// Verify command was registered
+ 	if customRegistry.GetRegisteredCount() != 1 {
+ 		t.Errorf("RegisterCommand() should register 1 command, got %d", customRegistry.GetRegisteredCount())
+ 	}
+-	
++
+ 	// Test BuildAllCommands convenience function
+ 	rootCmd := &cobra.Command{Use: "root"}
+ 	err = BuildAllCommands(rootCmd)
+@@ -488,8 +488,8 @@
+ 	if err != nil {
+ 		t.Errorf("BuildAllCommands() unexpected error = %v", err)
+ 	}
+-	
++
+ 	if len(rootCmd.Commands()) != 1 {
+ 		t.Errorf("BuildAllCommands() should add 1 command to root, got %d", len(rootCmd.Commands()))
+ 	}
+-}
+\ No newline at end of file
++}
+cmd/validation_test.go
+diff cmd/validation_test.go.orig cmd/validation_test.go
+--- cmd/validation_test.go.orig
++++ cmd/validation_test.go
+@@ -455,7 +455,7 @@
+ 	for _, tt := range tests {
+ 		t.Run(tt.name, func(t *testing.T) {
+ 			result := tt.validationFunc()
+-			
++
+ 			if result.Field != tt.wantField {
+ 				t.Errorf("ValidationResult.Field = %v, want %v", result.Field, tt.wantField)
+ 			}
+@@ -489,7 +489,7 @@
+ 			name: "some validations fail",
+ 			validations: []func() ValidationResult{
+ 				createFieldValidator("field1", "value1", func() error { return nil }),
+-				createFieldValidator("field2", "value2", func() error { 
++				createFieldValidator("field2", "value2", func() error {
+ 					return formatValidationError("field2", "value2", "invalid")
+ 				}),
+ 			},
+@@ -507,11 +507,11 @@
+ 	for _, tt := range tests {
+ 		t.Run(tt.name, func(t *testing.T) {
+ 			results := validateMultipleFields(tt.validations)
+-			
++
+ 			if len(results) != tt.wantResultsLen {
+ 				t.Errorf("validateMultipleFields() returned %d results, want %d", len(results), tt.wantResultsLen)
+ 			}
+-			
++
+ 			allValid := true
+ 			for _, result := range results {
+ 				if !result.Valid {
+@@ -519,10 +519,10 @@
+ 					break
+ 				}
+ 			}
+-			
++
+ 			if allValid != tt.wantAllValid {
+ 				t.Errorf("validateMultipleFields() allValid = %v, want %v", allValid, tt.wantAllValid)
+ 			}
+ 		})
+ 	}
+-}
+\ No newline at end of file
++}
+src/main.go
+diff src/main.go.orig src/main.go
+--- src/main.go.orig
++++ src/main.go
+@@ -1,37 +1,37 @@
+ package main
+ 
+ import (
+-    "fmt"
+-    "log"
+-    "os"
++	"fmt"
++	"log"
++	"os"
+ )
+ 
+ func main() {
+-    // TODO: Add proper error handling
+-    if len(os.Args) < 2 {
+-        log.Fatal("Usage: main <command>")
+-    }
+-
+-    command := os.Args[1]
+-    fmt.Printf("Executing command: %s\n", command)
+-
+-    // TODO: Implement actual command processing
+-    switch command {
+-    case "start":
+-        startServer()
+-    case "stop":
+-        stopServer()
+-    default:
+-        fmt.Printf("Unknown command: %s\n", command)
+-    }
++	// TODO: Add proper error handling
++	if len(os.Args) < 2 {
++		log.Fatal("Usage: main <command>")
++	}
++
++	command := os.Args[1]
++	fmt.Printf("Executing command: %s\n", command)
++
++	// TODO: Implement actual command processing
++	switch command {
++	case "start":
++		startServer()
++	case "stop":
++		stopServer()
++	default:
++		fmt.Printf("Unknown command: %s\n", command)
++	}
+ }
+ 
+ // Function that could use better error handling
+ func startServer() {
+-    fmt.Println("Starting server...")
+-    // TODO: Add proper server initialization
++	fmt.Println("Starting server...")
++	// TODO: Add proper server initialization
+ }
+ 
+ func stopServer() {
+-    fmt.Println("Stopping server...")
++	fmt.Println("Stopping server...")
+ }
+
