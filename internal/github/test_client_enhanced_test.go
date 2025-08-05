@@ -15,7 +15,7 @@ func TestTestClientEnhancedErrorHandling(t *testing.T) {
 	// Create a mock server that returns errors
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"message": "Internal server error"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"message": "Internal server error"})
 	}))
 	defer server.Close()
 
@@ -92,7 +92,7 @@ func TestTestClientSuccessfulResponses(t *testing.T) {
 						Type:      "issue",
 					},
 				}
-				json.NewEncoder(w).Encode(comments)
+				_ = json.NewEncoder(w).Encode(comments)
 			} else if r.Method == "POST" {
 				comment := Comment{
 					ID:        789,
@@ -103,7 +103,7 @@ func TestTestClientSuccessfulResponses(t *testing.T) {
 					Type:      "issue",
 				}
 				w.WriteHeader(http.StatusCreated)
-				json.NewEncoder(w).Encode(comment)
+				_ = json.NewEncoder(w).Encode(comment)
 			}
 		case "/repos/owner/repo/pulls/123/comments":
 			if r.Method == "GET" {
@@ -119,7 +119,7 @@ func TestTestClientSuccessfulResponses(t *testing.T) {
 						Type:      "review",
 					},
 				}
-				json.NewEncoder(w).Encode(comments)
+				_ = json.NewEncoder(w).Encode(comments)
 			} else if r.Method == "POST" {
 				comment := Comment{
 					ID:        987,
@@ -132,7 +132,7 @@ func TestTestClientSuccessfulResponses(t *testing.T) {
 					Type:      "review",
 				}
 				w.WriteHeader(http.StatusCreated)
-				json.NewEncoder(w).Encode(comment)
+				_ = json.NewEncoder(w).Encode(comment)
 			}
 		case "/repos/owner/repo/pulls/123/reviews":
 			if r.Method == "POST" {
@@ -142,7 +142,7 @@ func TestTestClientSuccessfulResponses(t *testing.T) {
 					"user":  map[string]interface{}{"login": "testuser"},
 				}
 				w.WriteHeader(http.StatusCreated)
-				json.NewEncoder(w).Encode(review)
+				_ = json.NewEncoder(w).Encode(review)
 			}
 		case "/repos/owner/repo/pulls/123":
 			if r.Method == "GET" {
@@ -154,7 +154,7 @@ func TestTestClientSuccessfulResponses(t *testing.T) {
 						"sha": "abc123def456",
 					},
 				}
-				json.NewEncoder(w).Encode(prDetails)
+				_ = json.NewEncoder(w).Encode(prDetails)
 			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
@@ -237,7 +237,7 @@ func TestTestClientJSONParsingErrors(t *testing.T) {
 	// Create a server that returns invalid JSON
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte("invalid json {"))
+		_, _ = w.Write([]byte("invalid json {"))
 	}))
 	defer server.Close()
 
@@ -269,13 +269,13 @@ func TestTestClientRequestBodyMarshaling(t *testing.T) {
 		// For POST requests, verify the body was properly marshaled
 		if r.Method == "POST" {
 			var requestBody map[string]interface{}
-			json.NewDecoder(r.Body).Decode(&requestBody)
+			_ = json.NewDecoder(r.Body).Decode(&requestBody)
 
 			// Echo back the request for verification with proper status
 			w.WriteHeader(http.StatusCreated)
-			json.NewEncoder(w).Encode(requestBody)
+			_ = json.NewEncoder(w).Encode(requestBody)
 		} else {
-			json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+			_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 		}
 	}))
 	defer server.Close()

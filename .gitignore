@@ -22,9 +22,16 @@ pr-*-review.html
 repomix-output.xml
 showcase-example.*
 
+# API keys and secrets (should never be committed)
+.env
+*.key
+.env.*
+config.json
+
 # IDE and editor files
 .vscode/
 .idea/
+.ropeproject/
 *.swp
 *.swo
 *~

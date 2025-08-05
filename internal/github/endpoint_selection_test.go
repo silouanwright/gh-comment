@@ -94,7 +94,7 @@ func TestEndpointSelection(t *testing.T) {
 				}
 
 				if r.Method == "PATCH" || (r.Method == "POST" && strings.Contains(r.URL.Path, "/reactions")) {
-					w.Write([]byte(`{}`))
+					_, _ = w.Write([]byte(`{}`))
 				}
 			}))
 			defer server.Close()
