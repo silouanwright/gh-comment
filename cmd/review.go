@@ -21,7 +21,7 @@ var (
 )
 
 var reviewCmd = &cobra.Command{
-	Use:   "review <pr> <body>",
+	Use:   "review <pr> [body]",
 	Short: "Create a code review with line-specific comments",
 	Long: heredoc.Doc(`
 		Create a code review with multiple line-specific comments attached to code.
@@ -41,8 +41,8 @@ var reviewCmd = &cobra.Command{
 		  --comment tests/auth_test.js:2:"Input sanitization missing - SQL injection risk" \
 		  --event REQUEST_CHANGES
 
-		# Performance optimization review
-		$ gh comment review 123 "Performance review - optimization opportunities identified" \
+		# Review with comments only (no body text)
+		$ gh comment review 123 \
 		  --comment src/main.go:3:4:"Extract this N+1 query to a single batch operation" \
 		  --comment src/api.js:4:"Consider Redis clustering for this high-traffic endpoint" \
 		  --comment src/main.go:4:"Add performance metrics for this critical path" \
@@ -97,8 +97,9 @@ func runReview(cmd *cobra.Command, args []string) error {
 	} else if len(args) == 1 {
 		// Check if it's a PR number or review body
 		if prNum, err := strconv.Atoi(args[0]); err == nil {
-			// It's a PR number
+			// It's a PR number, body is optional
 			pr = prNum
+			body = "" // Body is optional when PR number is provided
 		} else {
 			// It's a review body, auto-detect PR
 			_, pr, err = getPRContext()
@@ -124,7 +125,7 @@ func runReview(cmd *cobra.Command, args []string) error {
 
 	// Validate that we have either a body or comments
 	if body == "" && len(reviewCommentsFlag) == 0 {
-		return fmt.Errorf("review must have either a body message or comments (use --comment)")
+		return fmt.Errorf("review must have either a body message or comments (use --comment flag to add line-specific comments)")
 	}
 
 	// Validate review body length if provided
