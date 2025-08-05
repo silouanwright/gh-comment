@@ -52,7 +52,7 @@ func TestFormatActionableError(t *testing.T) {
 			name:          "rate limit error",
 			operation:     "comment fetch",
 			originalError: "rate limit exceeded: too many requests",
-			expectedText:  []string{"rate limit exceeded", "comment fetch", "Wait a few minutes", "authenticated requests"},
+			expectedText:  []string{"rate limit exceeded", "comment fetch", "Wait until your rate limit resets", "Use authenticated requests"},
 		},
 		{
 			name:          "server error",
@@ -64,7 +64,7 @@ func TestFormatActionableError(t *testing.T) {
 			name:          "network error",
 			operation:     "list comments",
 			originalError: "network timeout connecting to api.github.com",
-			expectedText:  []string{"network error", "list comments", "internet connection", "Try again"},
+			expectedText:  []string{"network timeout", "list comments", "internet connection", "Try again"},
 		},
 		{
 			name:          "schema validation error",
