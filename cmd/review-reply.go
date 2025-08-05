@@ -23,12 +23,15 @@ var reviewReplyCmd = &cobra.Command{
 	Long: heredoc.Doc(`
 		Reply to an existing review comment with a text message.
 
-		This command is specifically for review comment threading - replying to
-		line-specific comments that appear in the "Files Changed" tab. Review
-		comment threading has limited GitHub API support.
+		⚠️  **Important GitHub API Limitation**:
+		This command only works for "standalone" review comments (added via "Add single comment").
+		Comments created through "Start a Review" → "Submit Review" cannot be replied to due to
+		GitHub's review threading architecture. This is a known API limitation, not a tool issue.
 
-		Note: Some comment IDs may return 404 errors due to GitHub API limitations
-		with review comment threading. The --resolve flag works more reliably.
+		When replies fail, the command provides intelligent alternatives:
+		• Add new comments at the same location
+		• Use emoji reactions for quick feedback
+		• Resolve conversations (often works when replies don't)
 
 		For general PR discussion, use 'gh comment add' instead.
 		For emoji reactions, use 'gh comment react' command.
@@ -36,20 +39,26 @@ var reviewReplyCmd = &cobra.Command{
 		Comment IDs can be found in the output of 'gh comment list'.
 	`),
 	Example: heredoc.Doc(`
-		# Reply to review comment with message
+		# Try to reply to review comment (may fail due to API limitations)
 		$ gh comment review-reply 789012 "Fixed this issue"
 
-		# Reply and resolve conversation in one operation
-		$ gh comment review-reply 789012 "Addressed your feedback" --resolve
-
-		# Just resolve conversation without adding message
+		# Resolve conversation without adding message (more reliable)
 		$ gh comment review-reply 789012 --resolve
 
-		# For general PR discussion, use add command instead:
-		# $ gh comment add 123 "Thanks for the review!"
+		# If reply fails, alternatives will be suggested:
 
-		# For emoji reactions, use react command instead:
-		# $ gh comment react 789012 +1
+		# Alternative 1: Add new comment at same location
+		$ gh comment add 123 src/main.go 42 "Fixed this issue"
+
+		# Alternative 2: Use emoji reactions for quick feedback
+		$ gh comment react 789012 +1
+		$ gh comment react 789012 heart
+
+		# Alternative 3: General PR discussion
+		$ gh comment add 123 "Thanks for the review feedback!"
+
+		# Note: When reply fails, the tool provides specific alternatives
+		# based on the comment type and failure reason.
 	`),
 	Args: cobra.RangeArgs(1, 2),
 	RunE: runReviewReply,
@@ -146,10 +155,11 @@ func runReviewReply(cmd *cobra.Command, args []string) error {
 			message = expandSuggestions(message)
 		}
 
-		// Reply to review comment
+		// Try to reply to review comment with intelligent fallback
 		_, err = reviewReplyClient.CreateReviewCommentReply(owner, repoName, commentID, message)
 		if err != nil {
-			return fmt.Errorf("failed to create reply: %w", err)
+			// Enhanced error handling with intelligent fallback suggestions
+			return handleReviewReplyError(err, commentID, message, owner, repoName, prNumber)
 		}
 		fmt.Printf("✅ Replied to review comment #%d: %s\n", commentID, message)
 	}
@@ -171,4 +181,54 @@ func runReviewReply(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// handleReviewReplyError provides intelligent error analysis and fallback suggestions for review-reply failures
+func handleReviewReplyError(err error, commentID int, message, owner, repo string, prNumber int) error {
+	errMsg := err.Error()
+
+	// Check for comment type mismatch first (more specific than general 404)
+	if strings.Contains(errMsg, "issues/comments") {
+		fmt.Printf("\n⚠️  Comment type mismatch detected for comment #%d\n\n", commentID)
+		fmt.Printf("🔍 **Issue**: This appears to be an issue comment (general PR discussion)\n")
+		fmt.Printf("   • Issue comments appear in the main conversation tab\n")
+		fmt.Printf("   • They don't support threading like review comments do\n\n")
+
+		fmt.Printf("💡 **Solution**: Use the general comment command instead:\n")
+		fmt.Printf("      gh comment add %d \"%s\"\n\n", prNumber, message)
+
+		return fmt.Errorf("comment #%d is an issue comment - use 'gh comment add' for general PR discussion", commentID)
+	}
+
+	// Check for the most common issue: GitHub API limitation with review comment threading
+	if strings.Contains(errMsg, "404") {
+		fmt.Printf("\n⚠️  Review comment threading limitation detected for comment #%d\n\n", commentID)
+		fmt.Printf("🔍 **Root Cause Analysis**:\n")
+		fmt.Printf("   • GitHub's REST API only supports replies to 'standalone' review comments\n")
+		fmt.Printf("   • Comments created via 'Start a Review' → 'Submit Review' cannot be replied to directly\n")
+		fmt.Printf("   • This is a known GitHub API architectural limitation, not a tool issue\n\n")
+
+		fmt.Printf("💡 **Alternative Approaches**:\n")
+		fmt.Printf("   1. **Add a new comment at the same location**:\n")
+		fmt.Printf("      gh comment list %d --format json | jq '.comments[] | select(.id == %d)'\n", prNumber, commentID)
+		fmt.Printf("      # Find the file and line, then:\n")
+		fmt.Printf("      gh comment add %d <file> <line> \"%s\"\n\n", prNumber, message)
+
+		fmt.Printf("   2. **Use emoji reactions for quick feedback**:\n")
+		fmt.Printf("      gh comment react %d +1        # Agree\n", commentID)
+		fmt.Printf("      gh comment react %d heart     # Appreciate\n", commentID)
+		fmt.Printf("      gh comment react %d hooray    # Celebrate\n\n", commentID)
+
+		fmt.Printf("   3. **Try resolving the conversation** (often works even when replies don't):\n")
+		fmt.Printf("      gh comment review-reply %d --resolve\n\n", commentID)
+
+		fmt.Printf("📖 **Background**: This limitation exists because review comments are part of\n")
+		fmt.Printf("    'review threads' in GitHub's data model, which have limited REST API support.\n")
+		fmt.Printf("    The GraphQL API has better threading, but requires different permissions.\n\n")
+
+		return fmt.Errorf("review comment threading not supported for this comment type - see alternatives above")
+	}
+
+	// For other errors, use the existing intelligent error system
+	return fmt.Errorf("failed to create reply: %w", err)
 }

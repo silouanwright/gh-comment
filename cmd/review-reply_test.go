@@ -82,14 +82,10 @@ func TestRunReviewReplyWithMockClient(t *testing.T) {
 }
 
 // INTEGRATION TEST: Document GitHub API limitation for review comment threading
-func TestReviewReplyToReviewCommentKnownLimitations(t *testing.T) {
+func TestReviewReplyErrorHandling(t *testing.T) {
 	// Save original client
 	originalClient := reviewReplyClient
 	defer func() { reviewReplyClient = originalClient }()
-
-	// Set up mock client (mock client allows operations that real GitHub would reject)
-	mockClient := github.NewMockClient()
-	reviewReplyClient = mockClient
 
 	// Save original globals
 	originalRepo := repo
@@ -127,6 +123,10 @@ func TestReviewReplyToReviewCommentKnownLimitations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Set up fresh mock client for each test
+			mockClient := github.NewMockClient()
+			reviewReplyClient = mockClient
+			
 			// This test documents the limitation - real implementation would handle the error
 			err := runReviewReply(nil, []string{tt.commentID, tt.message})
 

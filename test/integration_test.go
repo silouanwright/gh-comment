@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 
 func TestIntegration(t *testing.T) {
 	testscript.Run(t, testscript.Params{
-		Dir: "testdata/scripts",
+		Dir: "../testdata/scripts",
 		Setup: func(env *testscript.Env) error {
 			// Set up test environment
 			env.Setenv("GH_TOKEN", "test-token")
@@ -49,7 +49,7 @@ func TestIntegration(t *testing.T) {
 
 func TestEnhancedIntegration(t *testing.T) {
 	testscript.Run(t, testscript.Params{
-		Dir: "testdata/enhanced-scripts",
+		Dir: "../testdata/enhanced-scripts",
 		Setup: func(env *testscript.Env) error {
 			// Start mock GitHub API server
 			mockServer = cmd.NewMockGitHubServer()
