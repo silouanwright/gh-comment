@@ -380,34 +380,63 @@ func submitReviewWithComments(client github.GitHubAPI, owner, repo string, pr in
 func processIndividualComments(client github.GitHubAPI, owner, repo string, pr int, comments []CommentConfig) error {
 	successCount := 0
 
-	for i, comment := range comments {
-		// Validate comment message
-		if err := validateCommentBody(comment.Message); err != nil {
-			return fmt.Errorf("comment %d validation failed: %w", i+1, err)
-		}
+	// Group comments by type
+	var issueComments []CommentConfig
+	var reviewComments []CommentConfig
 
-		// Validate file path if present
-		if comment.File != "" {
-			if err := validateFilePath(comment.File); err != nil {
-				return fmt.Errorf("comment %d file path validation failed: %w", i+1, err)
-			}
-		}
-
-		if verbose {
-			fmt.Printf("Processing comment %d/%d: %s:%s\n", i+1, len(comments), comment.File, formatLineOrRange(comment))
-		}
-
+	for _, comment := range comments {
 		commentType := comment.Type
 		if commentType == "" {
 			commentType = "review" // Default to review comments
 		}
 
-		var err error
 		if commentType == "issue" {
-			_, err = client.CreateIssueComment(owner, repo, pr, expandSuggestions(comment.Message))
+			issueComments = append(issueComments, comment)
 		} else {
-			// For review comments, we need the commit SHA
-			// Note: GitHub automatically uses the latest commit SHA for review comments
+			reviewComments = append(reviewComments, comment)
+		}
+	}
+
+	// Process issue comments individually
+	for i, comment := range issueComments {
+		// Validate comment message
+		if err := validateCommentBody(comment.Message); err != nil {
+			return fmt.Errorf("issue comment %d validation failed: %w", i+1, err)
+		}
+
+		if verbose {
+			fmt.Printf("Processing issue comment %d/%d: general discussion\n", i+1, len(issueComments))
+		}
+
+		_, err := client.CreateIssueComment(owner, repo, pr, expandSuggestions(comment.Message))
+		if err != nil {
+			return fmt.Errorf("failed to create issue comment %d: %w", i+1, err)
+		}
+
+		successCount++
+	}
+
+	// Process review comments as a single review (if any)
+	if len(reviewComments) > 0 {
+		// Convert to ReviewInput format
+		var reviewCommentInputs []github.ReviewCommentInput
+
+		for i, comment := range reviewComments {
+			// Validate comment message
+			if err := validateCommentBody(comment.Message); err != nil {
+				return fmt.Errorf("review comment %d validation failed: %w", i+1, err)
+			}
+
+			// Validate file path if present
+			if comment.File != "" {
+				if err := validateFilePath(comment.File); err != nil {
+					return fmt.Errorf("review comment %d file path validation failed: %w", i+1, err)
+				}
+			}
+
+			if verbose {
+				fmt.Printf("Processing review comment %d/%d: %s:%s\n", i+1, len(reviewComments), comment.File, formatLineOrRange(comment))
+			}
 
 			reviewComment := github.ReviewCommentInput{
 				Body: expandSuggestions(comment.Message),
@@ -430,18 +459,26 @@ func processIndividualComments(client github.GitHubAPI, owner, repo string, pr i
 			// Validate line exists in diff if validation is enabled
 			if validateDiff {
 				if err := validateCommentLine(client, owner, repo, pr, reviewComment); err != nil {
-					return fmt.Errorf("comment %d validation failed: %w", i+1, err)
+					return fmt.Errorf("review comment %d validation failed: %w", i+1, err)
 				}
 			}
 
-			err = client.AddReviewComment(owner, repo, pr, reviewComment)
+			reviewCommentInputs = append(reviewCommentInputs, reviewComment)
 		}
 
+		// Create the review with all comments
+		reviewInput := github.ReviewInput{
+			Body:     "", // No review body for individual comments
+			Event:    "COMMENT",
+			Comments: reviewCommentInputs,
+		}
+
+		err := client.CreateReview(owner, repo, pr, reviewInput)
 		if err != nil {
-			return fmt.Errorf("failed to create comment %d: %w", i+1, err)
+			return fmt.Errorf("failed to create review with %d comments: %w", len(reviewComments), err)
 		}
 
-		successCount++
+		successCount += len(reviewComments)
 	}
 
 	fmt.Printf("%s\n", ColorizeSuccess(fmt.Sprintf("Successfully created %d comments", successCount)))
