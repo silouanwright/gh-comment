@@ -140,6 +140,52 @@ describe('Authentication Tests', () => {
 });
 EOF
 
+# Create example YAML files for batch command testing
+cat > review-config.yaml << 'EOF'
+pr: 14
+review:
+  body: "Integration test review - comprehensive analysis"
+  event: "COMMENT"
+  comments:
+    - file: "src/api.js"
+      line: 6
+      message: "🔧 Good use of middleware pattern for rate limiting"
+    - file: "src/main.go"
+      line: 4
+      message: "📝 Consider adding error handling for empty arguments"
+    - file: "tests/auth_test.js"
+      line: 2
+      message: "♻️ Add more comprehensive test coverage"
+EOF
+
+cat > security-audit.yaml << 'EOF'
+pr: 14
+comments:
+  - file: "src/api.js"
+    line: 65
+    message: "🔧 Security: This user input should be sanitized to prevent XSS"
+  - file: "src/api.js"
+    line: 47
+    message: "📝 Rate limiting: Consider implementing exponential backoff"
+EOF
+
+cat > comprehensive-review.yaml << 'EOF'
+pr: 14
+review:
+  body: "Comprehensive code review - architecture and performance analysis"
+  event: "REQUEST_CHANGES"
+  comments:
+    - file: "src/main.go"
+      line: 10
+      message: "🤔 Why not use a proper CLI framework like cobra here?"
+    - file: "src/api.js"
+      line: 8
+      message: "♻️ Extract this configuration to environment variables"
+    - file: "tests/auth_test.js"
+      line: 15
+      message: "📝 Add edge case testing for malformed tokens"
+EOF
+
 # Create README.md for additional testing
 cat > README.md << 'EOF'
 # Integration Test Repository
@@ -151,6 +197,9 @@ This is a temporary repository created for integration testing `gh-comment`.
 - `src/api.js` - Express.js API with authentication middleware
 - `src/main.go` - Go command-line application
 - `tests/auth_test.js` - Jest test suite for authentication
+- `review-config.yaml` - Example batch review configuration
+- `security-audit.yaml` - Security-focused batch comments
+- `comprehensive-review.yaml` - Full review workflow example
 
 ## Purpose
 
@@ -158,6 +207,7 @@ These files contain realistic code examples that match the help text examples in
 - Security issues for testing security-focused prompts
 - TODO comments for improvement suggestions
 - Various file types (.js, .go, .js) for comprehensive testing
+- YAML configuration files for batch operations
 
 ## Usage
 
@@ -168,6 +218,9 @@ echo "📄 Test files created:"
 echo "  • src/api.js (Express.js middleware)"
 echo "  • src/main.go (Go CLI application)"
 echo "  • tests/auth_test.js (Jest test suite)"
+echo "  • review-config.yaml (Batch review example)"
+echo "  • security-audit.yaml (Security batch comments)"
+echo "  • comprehensive-review.yaml (Full review workflow)"
 echo "  • README.md (Documentation)"
 echo ""
 
@@ -178,11 +231,14 @@ git commit --no-verify -m "feat: add test files for gh-comment integration testi
 - src/api.js: Express middleware with auth and rate limiting
 - src/main.go: Go CLI application with command processing
 - tests/auth_test.js: Jest test suite for authentication
+- review-config.yaml: Batch review configuration example
+- security-audit.yaml: Security-focused batch comments
+- comprehensive-review.yaml: Full review workflow example
 - README.md: Documentation for test repository
 
 These files provide realistic examples that match gh-comment help text,
 including security issues and improvement opportunities for testing
-various comment and review scenarios."
+various comment and review scenarios, plus YAML configs for batch operations."
 
 echo "🚀 Pushing test branch..."
 git push -u origin "$TEST_BRANCH"
@@ -249,6 +305,9 @@ export TEST_FILES=(
     "src/api.js"
     "src/main.go"
     "tests/auth_test.js"
+    "review-config.yaml"
+    "security-audit.yaml"
+    "comprehensive-review.yaml"
     "README.md"
 )
 EOF
