@@ -133,37 +133,18 @@ echo "📊 Review complete:"
 gh comment list $PR --since "1 hour ago" --quiet | wc -l | xargs echo "New comments:"
 ```
 
-### CI/CD Integration Examples
+### CI/CD Integration
 
-#### GitHub Actions Workflow
+gh-comment works seamlessly in CI/CD pipelines. Install the extension and use it directly:
 
-```yaml
-# .github/workflows/automated-review.yml
-name: Automated Code Review
+```bash
+# Install in CI
+gh extension install silouanwright/gh-comment
 
-on:
-  pull_request:
-    types: [opened, synchronize]
-
-jobs:
-  review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install gh-comment
-        run: gh extension install silouanwright/gh-comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Security scan comments
-        run: |
-          # Example: Add comments based on security scan results
-          if npm audit --json | jq -e '.vulnerabilities | length > 0'; then
-            gh comment add ${{ github.event.number }} "🔒 Security vulnerabilities detected. Please run \`npm audit fix\`"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# Use in scripts
+gh comment review $PR_NUMBER "Automated security scan results" \
+  --comment src/api.js:42:"Vulnerability detected: use crypto.randomBytes()" \
+  --event REQUEST_CHANGES
 ```
 
 ### Automated Comment Management
@@ -241,19 +222,18 @@ gh comment list 123 --quiet | grep "👤" | cut -d' ' -f2 | sort | uniq -c | sor
 ### Integration with External Tools
 
 ```bash
-# Slack notifications for new comments
-gh comment list $PR --since "1 hour ago" --quiet | \
-while IFS= read -r comment; do
-  curl -X POST -H 'Content-type: application/json' \
-    --data "{\"text\":\"New PR comment: $comment\"}" \
-    "$SLACK_WEBHOOK_URL"
-done
-
-# JIRA integration
+# JIRA integration - link related tickets
 ISSUE_KEY=$(gh pr view $PR --json title | jq -r '.title' | grep -o '[A-Z]+-[0-9]+')
 if [ -n "$ISSUE_KEY" ]; then
   gh comment add $PR "🔗 Related JIRA: https://company.atlassian.net/browse/$ISSUE_KEY"
 fi
+
+# Custom notifications
+gh comment list $PR --since "1 hour ago" --quiet | \
+while IFS= read -r comment; do
+  # Process new comments for your notification system
+  echo "New comment: $comment" >> notifications.log
+done
 ```
 
 ## Command Combinations
