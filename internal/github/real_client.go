@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/cli/go-gh/v2/pkg/api"
@@ -582,19 +583,18 @@ func (c *RealClient) wrapAPIError(err error, operation string, args ...interface
 
 // Helper function to parse diff content
 func parseDiff(diffContent string) *PullRequestDiff {
-	// This is a simplified diff parser
-	// In a real implementation, you'd want to use a proper diff parsing library
+	// Enhanced diff parser that properly extracts commentable line numbers
 	diff := &PullRequestDiff{
 		Files: []DiffFile{},
 	}
 
-	// Basic parsing logic - this would need to be more sophisticated
 	lines := strings.Split(diffContent, "\n")
 	var currentFile *DiffFile
+	var currentNewLine int // Track the current line number in the new file
 
 	for _, line := range lines {
 		if strings.HasPrefix(line, "diff --git") {
-			// Extract filename
+			// Extract filename from "diff --git a/filename b/filename"
 			parts := strings.Fields(line)
 			if len(parts) >= 4 {
 				filename := strings.TrimPrefix(parts[3], "b/")
@@ -603,10 +603,41 @@ func parseDiff(diffContent string) *PullRequestDiff {
 					Lines:    make(map[int]bool),
 				}
 				diff.Files = append(diff.Files, *currentFile)
+				// Update the last element in place since Go appends by value
+				currentFile = &diff.Files[len(diff.Files)-1]
 			}
 		} else if strings.HasPrefix(line, "@@") && currentFile != nil {
-			// Parse line numbers from hunk header
-			// This is simplified - real implementation would parse the hunk header properly
+			// Parse hunk header: @@ -old_start,old_count +new_start,new_count @@
+			// We need the new_start to track line numbers
+			parts := strings.Fields(line)
+			for _, part := range parts {
+				if strings.HasPrefix(part, "+") {
+					// Parse +new_start,new_count or just +new_start
+					newPart := strings.TrimPrefix(part, "+")
+					if commaIdx := strings.Index(newPart, ","); commaIdx != -1 {
+						newPart = newPart[:commaIdx] // Take only the start line number
+					}
+					if newStart, err := strconv.Atoi(newPart); err == nil {
+						currentNewLine = newStart
+					}
+					break
+				}
+			}
+		} else if currentFile != nil && currentNewLine > 0 {
+			// Process diff lines to identify commentable lines
+			if strings.HasPrefix(line, "+") {
+				// Added line - commentable
+				currentFile.Lines[currentNewLine] = true
+				currentNewLine++
+			} else if strings.HasPrefix(line, "-") {
+				// Deleted line - don't increment new line counter
+				// These lines aren't commentable in the new version
+			} else if strings.HasPrefix(line, " ") {
+				// Context line - commentable (unchanged lines visible in diff)
+				currentFile.Lines[currentNewLine] = true
+				currentNewLine++
+			}
+			// Ignore other line types (like file mode changes, etc.)
 		}
 	}
 
