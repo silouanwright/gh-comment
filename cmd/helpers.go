@@ -18,9 +18,9 @@ const (
 	DefaultPageSize   = 30
 
 	// Security validation constants
-	MaxCommentThreadDepth = 10    // Maximum nested comment thread depth
-	MaxRepositoryDepth    = 5     // Maximum repository path depth
-	MaxValidationErrors   = 50    // Maximum validation errors to report
+	MaxCommentThreadDepth = 10 // Maximum nested comment thread depth
+	MaxRepositoryDepth    = 5  // Maximum repository path depth
+	MaxValidationErrors   = 50 // Maximum validation errors to report
 
 	// Display constants
 	MaxDisplayBodyLength   = 200 // Max length for comment body display
@@ -35,10 +35,10 @@ const (
 // Security validation patterns
 var (
 	// HTML/Script tag detection patterns
-	htmlTagPattern    = regexp.MustCompile(`(?i)<\s*\/?\s*(script|iframe|object|embed|form|input|meta|link)\b[^>]*>`)
-	scriptPattern     = regexp.MustCompile(`(?i)javascript\s*:|<\s*script\b`)
+	htmlTagPattern       = regexp.MustCompile(`(?i)<\s*\/?\s*(script|iframe|object|embed|form|input|meta|link)\b[^>]*>`)
+	scriptPattern        = regexp.MustCompile(`(?i)javascript\s*:|<\s*script\b`)
 	dangerousAttrPattern = regexp.MustCompile(`(?i)\b(on\w+|javascript|vbscript|data|mocha|livescript)\s*=`)
-	
+
 	// Repository validation patterns
 	validRepoPattern  = regexp.MustCompile(`^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$`)
 	validOwnerPattern = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
@@ -173,7 +173,7 @@ func parsePositiveInt(s, fieldName string) (int, error) {
 // validateCommentBody validates comment body length and content for security
 func validateCommentBody(body string) error {
 	if len(body) > MaxCommentLength {
-		return formatValidationError("comment body", fmt.Sprintf("%d chars", len(body)), 
+		return formatValidationError("comment body", fmt.Sprintf("%d chars", len(body)),
 			fmt.Sprintf("must be %d characters or less", MaxCommentLength))
 	}
 
@@ -189,19 +189,19 @@ func validateCommentBody(body string) error {
 func validateCommentSecurity(body string) error {
 	// Check for dangerous HTML tags
 	if htmlTagPattern.MatchString(body) {
-		return formatSecurityValidationError("comment body", "dangerous HTML tags detected", 
+		return formatSecurityValidationError("comment body", "dangerous HTML tags detected",
 			"HTML tags like <script>, <iframe>, <object>, <embed>, <form>, <input>, <meta>, <link> are not allowed")
 	}
 
 	// Check for JavaScript and event handlers
 	if scriptPattern.MatchString(body) {
-		return formatSecurityValidationError("comment body", "JavaScript content detected", 
+		return formatSecurityValidationError("comment body", "JavaScript content detected",
 			"JavaScript code, inline event handlers, and script tags are not allowed")
 	}
 
 	// Check for dangerous attributes
 	if dangerousAttrPattern.MatchString(body) {
-		return formatSecurityValidationError("comment body", "dangerous attributes detected", 
+		return formatSecurityValidationError("comment body", "dangerous attributes detected",
 			"Event handlers and script attributes like onclick, onload, href='javascript:' are not allowed")
 	}
 
@@ -263,13 +263,13 @@ func validateRepositoryAccess(repo string) error {
 
 	// Check for potentially dangerous repository patterns
 	if strings.Contains(owner, "..") || strings.Contains(repoName, "..") {
-		return formatAccessValidationError("repository", "access repository with path traversal", 
+		return formatAccessValidationError("repository", "access repository with path traversal",
 			"Repository names cannot contain '..' sequences for security reasons")
 	}
 
 	// Validate against pattern for additional security
 	if !validRepoPattern.MatchString(repo) {
-		return formatAccessValidationError("repository", "access repository with invalid characters", 
+		return formatAccessValidationError("repository", "access repository with invalid characters",
 			"Repository must match pattern 'owner/repo' with only alphanumeric, dot, underscore, and hyphen characters")
 	}
 
@@ -277,10 +277,10 @@ func validateRepositoryAccess(repo string) error {
 	dangerousNames := []string{".", "..", "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"}
 	ownerUpper := strings.ToUpper(owner)
 	repoUpper := strings.ToUpper(repoName)
-	
+
 	for _, dangerous := range dangerousNames {
 		if ownerUpper == dangerous || repoUpper == dangerous {
-			return formatAccessValidationError("repository", "access repository with reserved name", 
+			return formatAccessValidationError("repository", "access repository with reserved name",
 				"Repository owner or name cannot use reserved system names")
 		}
 	}
@@ -293,9 +293,9 @@ func validateCommentThreadDepth(depth int) error {
 	if depth < 0 {
 		return formatValidationError("thread depth", fmt.Sprintf("%d", depth), "must be non-negative")
 	}
-	
+
 	if depth > MaxCommentThreadDepth {
-		return formatAccessValidationError("comment thread", fmt.Sprintf("nest deeper than %d levels", MaxCommentThreadDepth), 
+		return formatAccessValidationError("comment thread", fmt.Sprintf("nest deeper than %d levels", MaxCommentThreadDepth),
 			fmt.Sprintf("Deep comment nesting can cause performance issues and poor user experience. Maximum allowed depth is %d levels", MaxCommentThreadDepth))
 	}
 
@@ -316,7 +316,7 @@ func validateMultipleFields(validations []func() ValidationResult) []ValidationR
 	for _, validate := range validations {
 		result := validate()
 		results = append(results, result)
-		
+
 		// Stop early if we hit the max validation errors
 		if len(results) >= MaxValidationErrors {
 			break

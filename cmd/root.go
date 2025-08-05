@@ -69,7 +69,7 @@ var rootCmd = &cobra.Command{
 		  -R, --repo string   Repository (owner/repo format)
 		      --dry-run       Show what would be commented without executing
 		  -v, --verbose       Show detailed API interactions
-		      --validate      Validate line exists in diff before commenting (default true)
+		      --validate      Validate line exists in diff before commenting (default false)
 
 		Filtering Flags (list command):
 		      --author string     Filter by author (supports wildcards: 'user*')
@@ -171,7 +171,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&repo, "repo", "R", "", "Repository in owner/repo format (default: auto-detect from current directory)")
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", "", "Configuration file path (default: search standard locations)")
 
-	rootCmd.PersistentFlags().BoolVar(&validateDiff, "validate", true, "Validate line exists in diff before commenting (default: true)")
+	rootCmd.PersistentFlags().BoolVar(&validateDiff, "validate", false, "Validate line exists in diff before commenting (default: false)")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Show what would be commented without executing (default: false)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Show detailed API interactions (default: false)")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output (default: false)")
