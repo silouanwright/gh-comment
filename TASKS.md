@@ -15,7 +15,8 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 ### 🐛 **Critical Help Text Issues** - Fix non-working examples discovered during integration testing
 **Context**: Integration testing on 2025-08-04 revealed that many help text examples don't work when copy/pasted
 **Impact**: Poor user experience, frustration when following documentation
-**Test PR**: #12 remains open with test files for verification
+**Test PR**: #12 (https://github.com/silouanwright/gh-comment/pull/12) - Contains test files: `src/api.js`, `src/main.go`, `tests/auth_test.js`
+**Test Branch**: `integration-test-20250804-213410`
 
 #### **1. Fix `list` Command Date Placeholder Issues**
 - [ ] **Locate invalid examples**: Find all instances of placeholder dates in help text
@@ -29,24 +30,33 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - Create a comment block explaining supported date formats
   - Reference Go's time parsing capabilities
   - Include timezone handling examples
-- [ ] **Test the fixes**:
-  - Run each updated example against a real PR
-  - Verify date parsing works correctly
-  - Check edge cases (leap years, timezone boundaries)
+- [ ] **Run integration test on PR #12**:
+  ```bash
+  # Test all list command date examples
+  ./gh-comment list 12 --since "1 week ago"
+  ./gh-comment list 12 --since "2024-01-01" --until "2024-12-31"
+  ./gh-comment list 12 --since "yesterday"
+  # Verify no parsing errors occur
+  ```
 
 #### **2. Fix `review` Command File Path Examples**
 - [ ] **Audit all file references in help text**:
   - Current non-existent files: `auth.go`, `api.js`, `validation.js`, `database.py`
   - These files rarely exist in typical PRs
 - [ ] **Replace with commonly existing files**:
-  - Use generic names: `README.md`, `main.go`, `index.js`, `app.py`
-  - Use path patterns: `src/main.go`, `tests/test.js`, `docs/README.md`
+  - Use files from PR #12: `src/api.js`, `src/main.go`, `tests/auth_test.js`
+  - Use generic names: `README.md`, `main.go`, `index.js`
 - [ ] **Add file existence note**:
   - Add comment: "Note: Replace these file names with actual files from your PR"
   - Consider adding a `--validate=false` example for non-existent files
-- [ ] **Create example file set**:
-  - Document a standard set of example files for testing
-  - Consider adding these to a test fixtures directory
+- [ ] **Run integration test on PR #12**:
+  ```bash
+  # Test review command with actual files from PR #12
+  ./gh-comment review 12 "Test review" \
+    --comment src/api.js:6:"Good use of middleware" \
+    --comment src/main.go:4:"Consider adding error handling" \
+    --comment tests/auth_test.js:2:"Add more test cases"
+  ```
 
 #### **3. Fix `batch` Command Usage Syntax**
 - [ ] **Fix usage line inconsistency**:
@@ -59,10 +69,19 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 - [ ] **Update all examples to match**:
   - Ensure consistency between usage line and examples
   - Add note about PR number source (CLI vs config file)
-- [ ] **Document config file location options**:
-  - Show examples with relative paths: `./configs/review.yaml`
-  - Show examples with absolute paths
-  - Document config file search behavior
+- [ ] **Run integration test on PR #12**:
+  ```bash
+  # Create test batch file
+  cat > test-batch.yaml << 'EOF'
+  comments:
+    - file: src/api.js
+      line: 2
+      message: "Test batch comment"
+  EOF
+  
+  # Test batch command
+  ./gh-comment batch 12 test-batch.yaml
+  ```
 
 #### **4. Fix `batch` Command YAML Field Documentation**
 - [ ] **Document correct field names**:
@@ -72,13 +91,29 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - Document all supported fields
   - Show type requirements (string, int, array)
   - Include validation rules
-- [ ] **Add working YAML examples**:
-  - Create `examples/batch-simple.yaml` with basic structure
-  - Create `examples/batch-review.yaml` with review comments
-  - Create `examples/batch-mixed.yaml` with both types
-- [ ] **Add validation error hints**:
-  - When validation fails, suggest checking field names
-  - Point to documentation or examples
+- [ ] **Run integration test on PR #12**:
+  ```bash
+  # Test with correct field name (message)
+  cat > correct-batch.yaml << 'EOF'
+  pr: 12
+  comments:
+    - file: src/api.js
+      line: 6
+      message: "Correct field name test"
+  EOF
+  ./gh-comment batch correct-batch.yaml
+  
+  # Test with incorrect field name (body) to verify error message
+  cat > incorrect-batch.yaml << 'EOF'
+  pr: 12
+  comments:
+    - file: src/api.js
+      line: 6
+      body: "This should fail with helpful error"
+  EOF
+  ./gh-comment batch incorrect-batch.yaml
+  # Should show clear error about using 'message' not 'body'
+  ```
 
 #### **5. Investigate `review-reply` Command API Issues**
 - [ ] **Debug 404 errors**:
@@ -88,15 +123,22 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 - [ ] **Test API endpoint directly**:
   - Use `gh api` to test the underlying endpoint
   - Compare with GitHub's REST API documentation
-  - Check if GraphQL API works better
-- [ ] **Implement proper error handling**:
-  - Detect 404s and provide helpful error message
-  - Suggest checking if comment ID is from a review comment
-  - Add note about API limitations
-- [ ] **Document limitations**:
-  - If API doesn't support certain operations, document clearly
-  - Provide workarounds if available
-  - Consider removing non-working functionality
+- [ ] **Run integration test on PR #12**:
+  ```bash
+  # First create a review comment to reply to
+  ./gh-comment review 12 "Creating review for reply test" \
+    --comment src/api.js:2:"This needs a reply"
+  
+  # List to get the comment ID
+  ./gh-comment list 12 --type review
+  # Note the comment ID (e.g., 1234567890)
+  
+  # Test review-reply with the actual comment ID
+  ./gh-comment review-reply [COMMENT_ID] "Testing reply functionality"
+  
+  # Test with --resolve flag (this works)
+  ./gh-comment review-reply [COMMENT_ID] --resolve
+  ```
 
 #### **6. Fix `lines` Command for New Files**
 - [ ] **Investigate new file behavior**:
@@ -105,10 +147,17 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 - [ ] **Add new file support if possible**:
   - Research GitHub API capabilities for new files
   - Implement support if API allows
-- [ ] **Document current limitations**:
-  - Add note: "New files may not show commentable lines"
-  - Explain this is expected behavior
-  - Provide workaround (use line numbers directly)
+- [ ] **Run integration test on PR #12**:
+  ```bash
+  # Test with new files (these were added in PR #12)
+  ./gh-comment lines 12 src/api.js
+  ./gh-comment lines 12 src/main.go
+  ./gh-comment lines 12 tests/auth_test.js
+  
+  # Also test with modified files if any exist
+  # Expected: New files may show "No commentable lines found"
+  # Document whether this is API limitation or bug
+  ```
 
 #### **7. Fix `prompts` Command Invalid Example**
 - [ ] **Fix incorrect prompt name**:
@@ -117,58 +166,74 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 - [ ] **Audit all prompt examples**:
   - List actual available prompts with `prompts list`
   - Ensure all examples use valid prompt names
-- [ ] **Add prompt name validation**:
-  - Show available prompts when invalid name used
-  - Implement fuzzy matching for typos
-- [ ] **Update help text**:
-  - Show actual prompt names in examples
-  - Consider adding `prompts list` example first
+- [ ] **Run integration test on PR #12**:
+  ```bash
+  # List all available prompts
+  ./gh-comment prompts list
+  
+  # Test the incorrect example (should fail)
+  ./gh-comment prompts security-comprehensive
+  # Expected: Error message listing available prompts
+  
+  # Test the correct prompt name
+  ./gh-comment prompts security-audit
+  
+  # Test all available prompts
+  ./gh-comment prompts performance
+  ./gh-comment prompts architecture
+  ./gh-comment prompts code-quality
+  ./gh-comment prompts ai-assisted
+  ./gh-comment prompts migration
+  ```
 
 ### 📊 **Help Text Fix Testing Methodology**
 **Goal**: Ensure 100% of help text examples work when copy/pasted
+**Test Environment**: Use PR #12 (https://github.com/silouanwright/gh-comment/pull/12)
 
 #### **Testing Process for Each Fix**:
-1. **Create test PR with required files**:
-   - Include files referenced in examples
-   - Use PR #12 or create new test PR
-   - Ensure PR has both new and modified files
+1. **Use existing test PR #12**:
+   - Already contains: `src/api.js`, `src/main.go`, `tests/auth_test.js`
+   - Branch: `integration-test-20250804-213410`
+   - Keep PR open for ongoing testing
 
-2. **Test each example verbatim**:
-   - Copy example from help text
-   - Replace only PR number (usually 123 → actual PR number)
-   - Execute command exactly as shown
-   - Document any failures
+2. **Test each example after fixes**:
+   - Build binary: `go build`
+   - Replace `gh comment` → `./gh-comment`
+   - Replace PR `123` → `12`
+   - Execute command exactly as shown in help
+   - Document success/failure
 
-3. **Test with variations**:
-   - Try with different file paths
-   - Test with various date formats
-   - Use different comment IDs
-   - Test error conditions
-
-4. **Regression testing**:
-   - Ensure fixes don't break existing functionality
-   - Run full test suite after changes
-   - Test both old and new syntax where applicable
+3. **Regression testing checklist**:
+   ```bash
+   # After each fix, run this test suite on PR #12
+   ./gh-comment list 12
+   ./gh-comment add 12 "Test comment"
+   ./gh-comment review 12 "Test review" --comment src/api.js:2:"Test"
+   ./gh-comment react [COMMENT_ID] +1
+   ./gh-comment prompts list
+   ./gh-comment export 12
+   ```
 
 #### **Success Criteria**:
-- ✅ All examples in help text execute without errors
-- ✅ Error messages are clear when inputs are invalid
-- ✅ Documentation explains any limitations
-- ✅ Common use cases are covered in examples
-- ✅ No regression in existing functionality
+- ✅ All examples in help text execute without errors on PR #12
+- ✅ Error messages clearly explain what went wrong
+- ✅ No regression in working commands
+- ✅ Integration test guide can be followed verbatim
 
 #### **Files to Update**:
-- `cmd/*.go` - Update help text in command files
-- `cmd/root.go` - Update global examples
-- `README.md` - Ensure consistency with help text
-- `docs/` - Update any documentation files
-- Create `examples/` directory with working examples
+- `cmd/*.go` - Fix help text in command files
+- `cmd/root.go` - Fix global examples
+- `README.md` - Ensure consistency with fixed help text
+- `docs/testing/INTEGRATION_TESTING_GUIDE.md` - Update test instructions
 
-#### **Integration Test Verification**:
+#### **Quick Verification Script**:
 ```bash
-# Use this script to verify all help text examples
-./gh-comment --help | grep -E "^\$ " > examples.txt
-# Then test each example in examples.txt
+# Extract and test all examples from help text
+./gh-comment --help | grep -E '^\$ gh comment' | while read -r line; do
+  cmd=$(echo "$line" | sed 's/\$ gh comment/\.\/gh-comment/g' | sed 's/123/12/g')
+  echo "Testing: $cmd"
+  eval "$cmd"
+done
 ```
 
 ---
