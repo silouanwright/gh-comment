@@ -13,12 +13,96 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 - [ ] Update coverage tracking in CLAUDE.md
 
 ### 🐛 **Critical Help Text Issues** - Fix non-working examples discovered during integration testing
-**Context**: Integration testing on 2025-08-04 revealed that many help text examples don't work when copy/pasted
-**Impact**: Poor user experience, frustration when following documentation
-**Test PR**: #12 (https://github.com/silouanwright/gh-comment/pull/12) - Contains test files: `src/api.js`, `src/main.go`, `tests/auth_test.js`
-**Test Branch**: `integration-test-20250804-213410`
+
+#### **Executive Summary**
+Integration testing on 2025-08-04 revealed that **~13% of help text examples fail when copy/pasted** by users, creating significant UX friction. Following the "dogfooding" principle from `docs/testing/INTEGRATION_TESTING_GUIDE.md`, we tested every example from every command's help text and found 7 critical issues.
+
+**Root Causes**:
+- Help text uses placeholder values that aren't valid inputs
+- Examples reference files that rarely exist in real PRs  
+- Documentation inconsistencies between usage syntax and examples
+- API limitations not properly documented
+- Field names in examples don't match actual YAML schema
+
+**User Impact**: 
+- New users get frustrated when examples don't work
+- Copy/paste workflow fails, forcing users to debug instead of using the tool
+- Reduces tool adoption and professional credibility
+- Help text becomes untrusted documentation
+
+**Technical Context**: 
+Help text is embedded in Go code using cobra's example system. Examples are shown in `cmd/*_test.go` files and `cmd/*.go` command definitions. The integration testing process builds the binary and runs every example against a real GitHub PR to verify they work.
+
+**Test Environment**:
+- **Test PR**: #12 (https://github.com/silouanwright/gh-comment/pull/12) 
+- **Test Branch**: `integration-test-20250804-213410`
+- **Test Files**: `src/api.js`, `src/main.go`, `tests/auth_test.js`
+- **Binary**: Built with `go build`, tested as `./gh-comment`
+
+**Priority Rationale**: These fixes are urgent because help text is the first impression users have of the tool. Non-working examples immediately damage credibility and user trust.
+
+#### **Task Priority Guidance**
+**Start with these high-impact, low-effort fixes first**:
+1. **Issue #7 (Prompts)** - 5 min fix, single example
+2. **Issue #1 (List dates)** - 15 min fix, affects multiple examples  
+3. **Issue #2 (Review files)** - 15 min fix, high user impact
+4. **Issue #3 & #4 (Batch)** - 30 min fix, affects advanced users
+
+**Save these complex investigations for later**:
+5. **Issue #5 (Review-reply API)** - May require GitHub API research
+6. **Issue #6 (Lines command)** - May be API limitation, not a code bug
+
+#### **Technical Implementation Notes**
+- **Help text location**: Each command's help text is in `cmd/[command].go` files
+- **Global examples**: Also check `cmd/root.go` for shared examples
+- **Testing approach**: Use PR #12 consistently to avoid test environment drift
+- **Cobra structure**: Examples are in the `Example:` field of cobra.Command structs
+- **Build process**: Always run `go build` before testing changes
+
+#### **🚨 CRITICAL TESTING REQUIREMENT**
+**If you change ANY API, flags, or command behavior, you MUST:**
+
+1. **Update help text first** - Ensure all examples reflect the new API
+2. **Rebuild binary** - `go build` to get latest changes  
+3. **Test ONLY from help docs** - Ignore your existing knowledge of the tool
+4. **Follow help text exactly** - Copy/paste examples verbatim, replace only PR numbers
+5. **Document any remaining failures** - If help text examples still don't work
+
+**Why this matters**: The entire goal is help text accuracy. If you fix code but don't update help text, or test using your prior knowledge instead of the documented API, you'll create new inconsistencies.
+
+#### **🚨 CRITICAL BRANCH WORKFLOW**
+**NEVER commit fixes to the integration branch. ALL fixes go to main.**
+
+**Correct workflow**:
+1. **Stay on main branch** - All development happens on `main`
+2. **Make fixes on main** - Edit code, update help text, commit to main
+3. **Test using integration branch** - Switch to test branch only for testing
+4. **Switch back to main** - Always return to main for next fix
+
+```bash
+# CORRECT: Fix on main, test on integration branch
+git checkout main                    # ✅ Work on main
+# Make fixes, update help text
+git add . && git commit -m "fix: ..."  # ✅ Commit to main
+
+# Test the fix
+git checkout integration-test-20250804-213410  # ✅ Switch to test
+go build && ./gh-comment [test-command] 12     # ✅ Test only
+git checkout main                               # ✅ Back to main
+
+# WRONG: Never do this
+git checkout integration-test-20250804-213410  # ❌ Wrong branch
+# Make fixes
+git commit -m "fix: ..."                       # ❌ Fix on integration branch
+```
+
+**Why this matters**: Integration branches are for testing only. If fixes get committed to integration branches, they get stranded and never make it to main/production.
 
 #### **1. Fix `list` Command Date Placeholder Issues**
+**Issue Type**: Invalid placeholder values  
+**Complexity**: Low (find/replace operation)  
+**User Impact**: High (common filtering operation)  
+**Root Cause**: Help text uses descriptive placeholders instead of valid date formats
 - [ ] **Locate invalid examples**: Find all instances of placeholder dates in help text
   - Current bad examples: `"deployment-date"`, `"sprint-start"`, `"release-date"`
   - Files to check: `cmd/list.go`, `cmd/root.go` (global help)
@@ -40,6 +124,10 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   ```
 
 #### **2. Fix `review` Command File Path Examples**
+**Issue Type**: Non-existent file references  
+**Complexity**: Low (find/replace operation)  
+**User Impact**: High (core review functionality)  
+**Root Cause**: Examples use files that don't exist in typical PRs (`auth.go`, `validation.js`, etc.)
 - [ ] **Audit all file references in help text**:
   - Current non-existent files: `auth.go`, `api.js`, `validation.js`, `database.py`
   - These files rarely exist in typical PRs
