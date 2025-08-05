@@ -90,12 +90,18 @@ extract_examples() {
                 example=$(echo "$example" | sed "s/<pr-number>/\$PR_NUM/g")
                 example=$(echo "$example" | sed "s/<comment-id>/\$COMMENT_ID/g")
 
-                # Replace file placeholders with our test files
+                # Replace file placeholders with our test files (order matters!)
+                # First replace specific patterns, then generic ones
                 example=$(echo "$example" | sed "s/auth\.go/src\/main.go/g")
-                example=$(echo "$example" | sed "s/api\.js/src\/api.js/g")
                 example=$(echo "$example" | sed "s/validation\.js/tests\/auth_test.js/g")
                 example=$(echo "$example" | sed "s/database\.py/src\/main.go/g")
-                example=$(echo "$example" | sed "s/main\.go/src\/main.go/g")
+                # Only replace bare main.go (not already prefixed with src/)
+                example=$(echo "$example" | sed "s/\([^/]\)main\.go/\1src\/main.go/g")
+                # Handle main.go at the beginning of a path
+                example=$(echo "$example" | sed "s/^main\.go/src\/main.go/g")
+                # Handle api.js in any location (already prefixed paths won't match)
+                example=$(echo "$example" | sed "s/\([^/]\)api\.js/\1src\/api.js/g")
+                example=$(echo "$example" | sed "s/^api\.js/src\/api.js/g")
 
                 # Write test case
                 cat >> "$examples_file" << EOF
