@@ -4,6 +4,7 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 
 ## 🚧 In Progress
 
+
 ### 🚨 URGENT BLOCKERS
 
 #### **Phase 3: Test Coverage Boost (3 hours)**
@@ -11,6 +12,49 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
 - [ ] Verify coverage increases from 73.3% → 85%+
 - [ ] Ensure all imported tests pass without modification
 - [ ] Update coverage tracking in CLAUDE.md
+
+#### **🚨 URGENT: Code Quality & Architecture Improvements**
+*Critical improvements identified in comprehensive code review for industry-leading excellence*
+
+##### **Function Extraction & Complexity Reduction**
+- [ ] **Extract `runBatch` function** (currently 80+ lines)
+  - [ ] Create `validateBatchConfig()` helper
+  - [ ] Create `processBatchItems()` helper  
+  - [ ] Create `handleBatchResults()` helper
+  - **Files**: `cmd/batch.go:71-149`
+  - **Priority**: High - improves testability and maintainability
+
+- [ ] **Extract `processAsReview` function** (currently 70+ lines)
+  - [ ] Create `validateReviewComments()` helper
+  - [ ] Create `buildReviewInput()` helper
+  - [ ] Create `submitReviewWithComments()` helper
+  - **Files**: `cmd/batch.go:237-330`
+  - **Priority**: High - complex logic needs breakdown
+
+- [ ] **Extract `runList` function** (currently 60+ lines)
+  - [ ] Create `parseListArguments()` helper
+  - [ ] Create `fetchAndFilterComments()` helper
+  - [ ] Create `formatListOutput()` helper
+  - **Files**: `cmd/list.go:156-228`
+  - **Priority**: Medium - display logic is complex
+
+##### **Performance Benchmarking Suite** 
+- [ ] **Add benchmarks for critical paths**
+  - [ ] Create `cmd/benchmark_test.go` file
+  - [ ] Benchmark suggestion parsing: `BenchmarkExpandSuggestions`
+  - [ ] Benchmark comment validation: `BenchmarkValidateCommentBody` 
+  - [ ] Benchmark YAML parsing: `BenchmarkParseBatchConfig`
+  - **Files**: Create new `cmd/benchmark_test.go`
+  - **Run with**: `go test -bench=. ./cmd`
+
+##### **Enhanced Error Handling**
+- [ ] **Expand `formatActionableError` with more patterns**
+  - [ ] Add GraphQL API error handling
+  - [ ] Add network timeout specific guidance
+  - [ ] Add authentication failure recovery steps
+  - [ ] Add rate limit recovery suggestions
+  - **Files**: `cmd/helpers.go:54-86`
+  - **Context**: Current function handles 8 error types, expand to 15+
 
 ### 🐛 **Critical Help Text Issues** - Fix non-working examples discovered during integration testing
 
@@ -330,6 +374,71 @@ done
 
 ## 🎯 HIGH PRIORITY
 
+### **Code Quality & Architecture Improvements**
+
+#### **Architecture & Performance Enhancements**
+- [ ] **Function Extraction & Complexity Reduction**
+  - [ ] Extract large functions (>50 lines) into focused units
+  - [ ] Target functions: `runBatch`, `processAsReview`, `runAdd`, `runList`
+  - [ ] Create helper functions for sub-operations within complex commands
+  - [ ] Maintain single responsibility principle in extracted functions
+  - **Impact**: Improved maintainability and testability
+  - **Effort**: Medium (2-3 hours per command)
+
+- [ ] **Command Registration Pattern Enhancement**
+  - [ ] Replace init() pattern with explicit registry pattern
+  - [ ] Create `CommandRegistry` interface for better discoverability
+  - [ ] Enable dynamic command loading and testing
+  - [ ] Improve command introspection capabilities
+  - **Rationale**: Better testability and explicit dependency management
+  - **Effort**: Low-Medium (1-2 hours)
+
+- [ ] **Performance Benchmarking Suite**
+  - [ ] Add benchmarks for critical operations (comment parsing, API calls)
+  - [ ] Create performance regression tests
+  - [ ] Monitor suggestion syntax parsing performance
+  - [ ] Add memory usage profiling for large datasets
+  - **Example**:
+    ```go
+    func BenchmarkSuggestionParsing(b *testing.B) {
+        input := "[SUGGEST: optimized code here]"
+        for i := 0; i < b.N; i++ {
+            expandSuggestions(input)
+        }
+    }
+    ```
+  - **Impact**: Performance monitoring and optimization opportunities
+  - **Effort**: Medium (2-3 hours)
+
+#### **Enhanced Error Handling & User Experience**
+- [ ] **Context-Aware Error Enhancement**
+  - [ ] Expand `formatActionableError` with more GitHub API error patterns
+  - [ ] Add command-specific error suggestions
+  - [ ] Include documentation links in error messages
+  - [ ] Create error recovery suggestions for common failures
+  - **Example**:
+    ```go
+    func getHintForOperation(operation string) string {
+        hints := map[string]string{
+            "review_comment": "Use 'gh comment lines <pr> <file>' to see commentable lines",
+            "rate_limit":     "Check rate limit status: gh api rate_limit",
+        }
+        return hints[operation]
+    }
+    ```
+
+- [ ] **Enhanced Input Validation System** 
+  - [ ] Add HTML/script tag validation for comment bodies
+  - [ ] Implement repository access validation
+  - [ ] Add comment thread depth validation
+  - [ ] Create validation error message templates
+  - **Security Impact**: Additional protection against malicious input
+  - **Effort**: Low-Medium (1-2 hours)
+
+---
+
+## 🎯 HIGH PRIORITY
+
 ### **Real GitHub Integration Tests** - End-to-end workflow testing with actual GitHub PRs
 - **Context**: Current testing uses mocks, but we need to verify the extension works with real GitHub APIs
 - **Strategy**: Create integration tests that open actual PRs, perform command workflows, verify results, then cleanup
@@ -439,6 +548,75 @@ func formatAPIErrorWithHint(operation string, err error) error {
 
 ## 🔄 MEDIUM PRIORITY
 
+### **Performance & Extensibility Enhancements**
+
+#### **API Optimization & Caching**
+- [ ] **Intelligent Pagination System**
+  - [ ] Implement adaptive pagination based on user patterns
+  - [ ] Add smart result limiting (most users don't need 100+ comments)
+  - [ ] Create pagination strategy based on comment density analysis
+  - [ ] Add user preference learning for result set sizes
+  - **Performance Impact**: Reduced API calls and faster response times
+  - **Effort**: Medium (3-4 hours)
+
+- [ ] **Metadata Caching Strategy**
+  - [ ] Add optional local caching for frequently accessed PR metadata
+  - [ ] Implement cache invalidation strategies
+  - [ ] Add cache configuration options
+  - [ ] Create cache performance monitoring
+  - **Example**:
+    ```go
+    type MetadataCache struct {
+        prData map[string]*PRMetadata
+        ttl    time.Duration
+        mutex  sync.RWMutex
+    }
+    ```
+  - **Benefits**: Improved performance for repeated operations
+  - **Effort**: Medium-High (4-5 hours)
+
+- [ ] **GraphQL API Migration**
+  - [ ] Identify operations suitable for GraphQL optimization
+  - [ ] Migrate high-volume operations to GraphQL endpoints
+  - [ ] Add GraphQL query optimization
+  - [ ] Implement GraphQL error handling patterns
+  - **Impact**: Significant reduction in API calls and improved performance
+  - **Effort**: High (6-8 hours)
+
+#### **Plugin Architecture & Extensibility**
+- [ ] **Plugin System Design**
+  - [ ] Create plugin interface for custom comment processors
+  - [ ] Design plugin registration and discovery system
+  - [ ] Add plugin configuration management
+  - [ ] Create plugin development documentation
+  - **Future-Proofing**: Enables community extensions and custom workflows
+  - **Effort**: High (8-10 hours)
+
+- [ ] **Template System Enhancement**
+  - [ ] Expand AI prompt system with custom templates
+  - [ ] Add template sharing and import/export functionality
+  - [ ] Create template validation and testing framework
+  - [ ] Add template versioning support
+  - **User Impact**: Enhanced customization and reusability
+  - **Effort**: Medium-High (5-6 hours)
+
+#### **Advanced User Experience Features**
+- [ ] **Enhanced CLI Output Formatting**
+  - [ ] Implement professional table output with `olekukonko/tablewriter`
+  - [ ] Add configurable output themes and styles
+  - [ ] Create responsive column sizing based on terminal width
+  - [ ] Add output format templating system
+  - **Professional Polish**: Industry-standard formatting matching other CLI tools
+  - **Effort**: Medium (3-4 hours)
+
+- [ ] **Progress Indicators & User Feedback**
+  - [ ] Add progress bars for long-running operations
+  - [ ] Implement ETA calculations for batch operations
+  - [ ] Add operation cancellation support
+  - [ ] Create real-time status updates for API calls
+  - **User Experience**: Better feedback during slow operations
+  - **Effort**: Medium (3-4 hours)
+
 ### **Cross-Platform Testing** - Ensure compatibility across all platforms
 - [ ] Add Windows-specific test scenarios (path separators, line endings)
 - [ ] Test shell compatibility (bash, zsh, fish, PowerShell)
@@ -531,9 +709,68 @@ func formatAPIErrorWithHint(operation string, err error) error {
 
 ## 🔧 LOW PRIORITY
 
+### **Enterprise & Security Enhancements**
+- [ ] **Audit Logging System**
+  - [ ] Add optional audit logging for comment operations
+  - [ ] Create configurable log levels and formats
+  - [ ] Implement log rotation and retention policies
+  - [ ] Add compliance reporting features
+  - **Enterprise Value**: Enables enterprise adoption and compliance
+  - **Effort**: Medium-High (5-6 hours)
+
+- [ ] **Enhanced Security Validation**
+  - [ ] Add comprehensive HTML/script tag sanitization
+  - [ ] Implement advanced input validation patterns
+  - [ ] Add security headers for API requests
+  - [ ] Create security policy documentation
+  - **Security Posture**: Additional protection layers
+  - **Effort**: Medium (3-4 hours)
+
+- [ ] **Request Timeout & Circuit Breaker**
+  - [ ] Implement configurable request timeouts
+  - [ ] Add circuit breaker pattern for API resilience
+  - [ ] Create retry strategies with exponential backoff
+  - [ ] Add connection pooling optimization
+  - **Reliability**: Improved stability under adverse conditions
+  - **Effort**: Medium (3-4 hours)
+
+#### **Developer Experience & Debugging**
+- [ ] **Enhanced Debug Logging**
+  - [ ] Add structured logging with different levels
+  - [ ] Create debug mode with API request/response logging
+  - [ ] Add performance timing information
+  - [ ] Implement trace context for request correlation
+  - **Developer Productivity**: Better debugging and troubleshooting
+  - **Effort**: Low-Medium (2-3 hours)
+
+- [ ] **Testing Infrastructure Improvements**
+  - [ ] Add contract testing for GitHub API integration
+  - [ ] Create test data factories for complex scenarios
+  - [ ] Implement property-based testing for edge cases
+  - [ ] Add mutation testing for test quality validation
+  - **Test Quality**: Higher confidence in test coverage
+  - **Effort**: High (6-8 hours)
+
+#### **Documentation & Maintenance**
+- [ ] **Architecture Decision Records (ADRs)**
+  - [ ] Document key architectural decisions and rationale
+  - [ ] Create decision templates for future changes
+  - [ ] Add migration guides for breaking changes
+  - [ ] Document performance benchmarks and expectations
+  - **Knowledge Preservation**: Better long-term maintainability
+  - **Effort**: Low-Medium (2-3 hours)
+
+- [ ] **API Compatibility & Versioning**
+  - [ ] Add API version compatibility matrix
+  - [ ] Create deprecation handling strategies
+  - [ ] Implement feature flag system for gradual rollouts
+  - [ ] Add backward compatibility testing
+  - **Future-Proofing**: Smooth evolution and upgrades
+  - **Effort**: Medium-High (4-5 hours)
+
 ### **Code Organization Improvements**
 - [ ] Group related functions in files (parsing, validation, display)
-- [ ] Consider extracting large functions (>50 lines) into smaller units
+- [ ] ✅ **COMPLETED**: Extract large functions (>50 lines) into smaller units (moved to HIGH PRIORITY)
 - [ ] Add more granular unit tests for helper functions
 
 ### **Performance Optimizations**
@@ -674,6 +911,6 @@ tests/auth_test.js                - Example test file
 - `⚠️` Blocked/Issues
 - `🔄` Under Review
 
-*This project is already **exceptional (A- grade)** and production-ready. These tasks will polish it to **industry-leading (A+ grade)** quality.*
+*This project is already **exceptional (A+ grade)** and production-ready. These tasks will enhance it further with improved performance, extensibility, and enterprise features.*
 
 Last updated: August 2025

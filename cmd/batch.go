@@ -83,18 +83,36 @@ func runBatch(cmd *cobra.Command, args []string) error {
 		batchClient = client
 	}
 
+	// Validate and prepare batch configuration
+	owner, repoName, pr, config, configFile, err := validateBatchConfig(args)
+	if err != nil {
+		return err
+	}
+
+	// Handle verbose output and dry run
+	isDryRun := processBatchItems(config, configFile, pr)
+	if isDryRun {
+		return nil // Dry run completed successfully
+	}
+
+	// Execute the batch processing
+	return handleBatchResults(batchClient, owner, repoName, pr, config)
+}
+
+// validateBatchConfig handles parsing, validation, and setup of batch configuration
+func validateBatchConfig(args []string) (owner, repoName string, pr int, config *BatchConfig, configFile string, err error) {
 	// Parse PR number
 	prArg := args[0]
-	pr, err := strconv.Atoi(prArg)
+	pr, err = strconv.Atoi(prArg)
 	if err != nil {
-		return formatValidationError("PR number", prArg, "must be a valid integer")
+		return "", "", 0, nil, "", formatValidationError("PR number", prArg, "must be a valid integer")
 	}
 
 	// Read and parse configuration file
-	configFile := args[1]
-	config, err := readBatchConfig(configFile)
+	configFile = args[1]
+	config, err = readBatchConfig(configFile)
 	if err != nil {
-		return fmt.Errorf("failed to read config file: %w", err)
+		return "", "", 0, nil, "", fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	// Override PR and repo from config if specified
@@ -111,23 +129,33 @@ func runBatch(cmd *cobra.Command, args []string) error {
 	if repository == "" {
 		repository, pr, err = getPRContext()
 		if err != nil {
-			return err
+			return "", "", 0, nil, "", err
 		}
 	}
 
 	// Validate repository name
 	if err := validateRepositoryName(repository); err != nil {
-		return err
+		return "", "", 0, nil, "", err
 	}
 
 	// Parse owner/repo
 	parts := strings.Split(repository, "/")
 	if len(parts) != 2 {
-		return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+		return "", "", 0, nil, "", fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
 	}
-	owner, repoName := parts[0], parts[1]
+	owner, repoName = parts[0], parts[1]
 
+	return owner, repoName, pr, config, configFile, nil
+}
+
+// processBatchItems handles verbose output and dry run logic
+// Returns true if this is a dry run (caller should exit), false otherwise
+func processBatchItems(config *BatchConfig, configFile string, pr int) bool {
 	if verbose {
+		repository := repo
+		if config.Repo != "" {
+			repository = config.Repo
+		}
 		fmt.Printf("Repository: %s\n", repository)
 		fmt.Printf("PR: %d\n", pr)
 		fmt.Printf("Config file: %s\n", configFile)
@@ -146,11 +174,15 @@ func runBatch(cmd *cobra.Command, args []string) error {
 		if config.Review != nil {
 			fmt.Printf("Would create review with event: %s\n", config.Review.Event)
 		}
-		return nil
+		return true // Indicate dry run was performed
 	}
 
-	// Process comments
-	return processBatchComments(batchClient, owner, repoName, pr, config)
+	return false
+}
+
+// handleBatchResults executes the final batch processing
+func handleBatchResults(client github.GitHubAPI, owner, repoName string, pr int, config *BatchConfig) error {
+	return processBatchComments(client, owner, repoName, pr, config)
 }
 
 func readBatchConfig(configFile string) (*BatchConfig, error) {
@@ -235,10 +267,25 @@ func processBatchComments(client github.GitHubAPI, owner, repo string, pr int, c
 }
 
 func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config *BatchConfig) error {
+	// Validate and prepare review comments
+	reviewComments, err := validateReviewComments(client, owner, repo, pr, config)
+	if err != nil {
+		return err
+	}
+
+	// Build the review input structure
+	reviewInput := buildReviewInput(config, reviewComments)
+
+	// Submit the review and handle results
+	return submitReviewWithComments(client, owner, repo, pr, reviewInput, len(reviewComments))
+}
+
+// validateReviewComments validates review body and converts comments to review comment format
+func validateReviewComments(client github.GitHubAPI, owner, repo string, pr int, config *BatchConfig) ([]github.ReviewCommentInput, error) {
 	// Validate review body if present
 	if config.Review != nil && config.Review.Body != "" {
 		if err := validateCommentBody(config.Review.Body); err != nil {
-			return fmt.Errorf("review body validation failed: %w", err)
+			return nil, fmt.Errorf("review body validation failed: %w", err)
 		}
 	}
 
@@ -248,13 +295,13 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
 	for _, comment := range config.Comments {
 		// Validate comment message
 		if err := validateCommentBody(comment.Message); err != nil {
-			return fmt.Errorf("comment validation failed: %w", err)
+			return nil, fmt.Errorf("comment validation failed: %w", err)
 		}
 
 		// Validate file path if present
 		if comment.File != "" {
 			if err := validateFilePath(comment.File); err != nil {
-				return fmt.Errorf("file path validation failed: %w", err)
+				return nil, fmt.Errorf("file path validation failed: %w", err)
 			}
 		}
 
@@ -265,7 +312,7 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
 			}
 			_, err := client.CreateIssueComment(owner, repo, pr, comment.Message)
 			if err != nil {
-				return fmt.Errorf("failed to create issue comment: %w", err)
+				return nil, fmt.Errorf("failed to create issue comment: %w", err)
 			}
 			continue
 		}
@@ -283,7 +330,7 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
 		if comment.Range != "" {
 			startLine, endLine, err := parseRange(comment.Range)
 			if err != nil {
-				return fmt.Errorf("invalid range %s: %w", comment.Range, err)
+				return nil, fmt.Errorf("invalid range %s: %w", comment.Range, err)
 			}
 			reviewComment.StartLine = startLine
 			reviewComment.Line = endLine
@@ -294,14 +341,18 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
 		// Validate line exists in diff if validation is enabled
 		if validateDiff {
 			if err := validateCommentLine(client, owner, repo, pr, reviewComment); err != nil {
-				return fmt.Errorf("review comment validation failed: %w", err)
+				return nil, fmt.Errorf("review comment validation failed: %w", err)
 			}
 		}
 
 		reviewComments = append(reviewComments, reviewComment)
 	}
 
-	// Create the review
+	return reviewComments, nil
+}
+
+// buildReviewInput creates the ReviewInput structure with default values
+func buildReviewInput(config *BatchConfig, reviewComments []github.ReviewCommentInput) github.ReviewInput {
 	reviewInput := github.ReviewInput{
 		Body:     config.Review.Body,
 		Event:    config.Review.Event,
@@ -312,12 +363,17 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
 		reviewInput.Event = "COMMENT"
 	}
 
+	return reviewInput
+}
+
+// submitReviewWithComments submits the review and handles success reporting
+func submitReviewWithComments(client github.GitHubAPI, owner, repo string, pr int, reviewInput github.ReviewInput, commentCount int) error {
 	err := client.CreateReview(owner, repo, pr, reviewInput)
 	if err != nil {
 		return fmt.Errorf("failed to create review: %w", err)
 	}
 
-	fmt.Printf("%s\n", ColorizeSuccess(fmt.Sprintf("Successfully created review with %d comments", len(reviewComments))))
+	fmt.Printf("%s\n", ColorizeSuccess(fmt.Sprintf("Successfully created review with %d comments", commentCount)))
 	return nil
 }
 
