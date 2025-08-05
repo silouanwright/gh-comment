@@ -94,7 +94,7 @@ func BenchmarkValidateCommentBody(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, testCase := range testCases {
-			_, _ = validateCommentBody(testCase) // Benchmark only
+			_ = validateCommentBody(testCase) // Benchmark only
 		}
 	}
 }
