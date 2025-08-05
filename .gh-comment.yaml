@@ -5,7 +5,7 @@ defaults:
 behavior:
     dry_run: false
     verbose: false
-    validate: true
+    validate: false
     no_expand_suggestions: false
 display:
     format: table
