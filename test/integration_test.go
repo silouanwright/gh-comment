@@ -1,6 +1,7 @@
-package main
+package test
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -13,7 +14,14 @@ var mockServer *cmd.MockGitHubServer
 
 func TestMain(m *testing.M) {
 	os.Exit(testscript.RunMain(m, map[string]func() int{
-		"gh-comment": main1,
+		"gh-comment": func() int {
+			// Execute the root command and return exit code
+			if err := cmd.Execute(); err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				return 1
+			}
+			return 0
+		},
 	}))
 }
 
@@ -75,17 +83,4 @@ func TestEnhancedIntegration(t *testing.T) {
 	})
 }
 
-// main1 is a wrapper around main that returns an exit code
-func main1() int {
-	// Call the actual main function and handle panics
-	defer func() {
-		if r := recover(); r != nil {
-			// If main panics, return error code
-			os.Exit(1)
-		}
-	}()
-
-	// Call the real main function
-	main()
-	return 0
-}
+// No longer needed - main1 function removed as we're using cmd.Execute() directly
