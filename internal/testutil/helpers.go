@@ -53,13 +53,13 @@ func CaptureOutput(fn func()) (stdout, stderr string) {
 
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, rOut)
+		_, _ = io.Copy(&buf, rOut) // Ignore copy errors in test helper
 		outC <- buf.String()
 	}()
 
 	go func() {
 		var buf bytes.Buffer
-		io.Copy(&buf, rErr)
+		_, _ = io.Copy(&buf, rErr) // Ignore copy errors in test helper
 		errC <- buf.String()
 	}()
 
@@ -106,14 +106,14 @@ func mockIssueComments(w http.ResponseWriter, r *http.Request) {
 				"created_at": "2024-01-01T12:00:00Z",
 			},
 		}
-		json.NewEncoder(w).Encode(comments)
+		_ = json.NewEncoder(w).Encode(comments) // Ignore encode errors in test mock
 	} else if r.Method == "POST" {
 		// Mock creating a new comment
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"id":   789012,
 			"body": "New comment",
-		})
+		}) // Ignore encode errors in test mock
 	}
 }
 
@@ -131,14 +131,14 @@ func mockReviewComments(w http.ResponseWriter, r *http.Request) {
 				"line":       42,
 			},
 		}
-		json.NewEncoder(w).Encode(comments)
+		_ = json.NewEncoder(w).Encode(comments) // Ignore encode errors in test mock
 	} else if r.Method == "POST" {
 		// Mock creating a new review comment
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"id":   345678,
 			"body": "New review comment",
-		})
+		}) // Ignore encode errors in test mock
 	}
 }
 
@@ -166,7 +166,7 @@ func mockGraphQL(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	}
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response) // Ignore encode errors in test mock
 }
 
 // TestComment represents a test comment structure

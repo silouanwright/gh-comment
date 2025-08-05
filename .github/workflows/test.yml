@@ -56,7 +56,11 @@ jobs:
         run: go mod download
 
       - name: Run unit tests
-        run: go test -v -race -coverprofile=coverage.out ./...
+        run: |
+          # Run unit tests with race detection (excluding integration tests)
+          go test -v -race -coverprofile=coverage.out ./cmd/... ./internal/...
+          # Run integration tests without race detection (due to testscript limitations)
+          go test -v ./test/...
 
       - name: Check coverage threshold
         if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24'
