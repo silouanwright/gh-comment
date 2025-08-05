@@ -1,0 +1,269 @@
+🧪 Testing: ./gh-comment prompts --list
+📋 **Available Code Review Prompts**
+
+## Workflows
+  **address-review-workflow** - Address Review Comments Workflow (15-25 minutes)
+    response • feedback • resolution • systematic • unified
+  **pr-code-review-workflow** - Comprehensive PR Code Review Workflow (20-30 minutes)
+    workflow • comprehensive • structured • gh-comment
+  **self-review-workflow** - Self-Review Documentation Workflow (10-15 minutes)
+    self-review • documentation • author-comments • proactive
+  **workflow-index** - AI Workflow Prompts for gh-comment (2-3 minutes)
+    index • overview • workflow-guide
+
+## Ai
+  **ai-assistant** - AI Assistant Code Review Template (5-10 minutes)
+    ai • automated • systematic • comprehensive
+
+## Architecture
+  **migration-review** - Code Migration & Refactoring Review (15-20 minutes)
+    migration • refactoring • legacy • modernization
+  **architecture-review** - Architecture & Design Pattern Review (20-25 minutes)
+    architecture • design patterns • scalability • maintainability
+
+## Performance
+  **performance-optimization** - Performance Optimization Review (10-15 minutes)
+    performance • optimization • scaling • efficiency
+
+## Security
+  **security-audit** - Comprehensive Security Audit Review (15-20 minutes)
+    security • vulnerabilities • owasp • comprehensive
+
+## Quality
+  **code-quality** - Code Quality & Best Practices Review (10-15 minutes)
+    quality • best practices • readability • maintainability
+
+## Research
+  **code-review-best-practices** - Human-Centered Code Review Guide (10-15 minutes)
+    psychology • communication • best-practices • creg • suggestions
+
+💡 **Usage**: `gh comment prompts <prompt-name>` to get the full prompt
+✅ SUCCESS: prompts example 1
+
+🧪 Testing: ./gh-comment prompts security-audit
+📋 **Comprehensive Security Audit Review**
+
+🎯 **Category**: security
+⏱️  **Estimated Time**: 15-20 minutes
+
+📝 **Prompt:**
+```
+I need you to perform a comprehensive security audit of this pull request. Please analyze the code changes systematically using the following framework:
+
+## Security Analysis Framework
+
+1. **Authentication & Authorization**
+   🔧 Check for proper authentication mechanisms
+   🔧 Verify authorization controls and role-based access
+   🔧 Look for JWT token handling, session management issues
+
+2. **Input Validation & Sanitization**  
+   🔧 Identify unvalidated user inputs (forms, APIs, query params)
+   🔧 Check for SQL injection, XSS, command injection vulnerabilities
+   🔧 Verify proper data type validation and range checking
+
+3. **Data Protection**
+   🔧 Look for hardcoded secrets, API keys, passwords
+   🔧 Check encryption of sensitive data at rest and in transit
+   🔧 Verify secure random number generation
+
+4. **API Security**
+   🔧 Check for proper rate limiting and DoS protection
+   🔧 Verify CORS configuration
+   🔧 Look for information disclosure in error messages
+
+5. **Infrastructure Security**
+   🔧 Review Docker configurations, environment variables
+   🔧 Check for secure defaults in configuration files
+   🔧 Verify dependency security (package.json, requirements.txt, etc.)
+
+For each issue found, please:
+- Use 🔧 emoji for critical security issues that must be fixed
+- Provide specific line-by-line comments with [SUGGEST: secure_code] alternatives
+- Explain the potential impact and attack vectors
+- Reference OWASP guidelines where applicable
+
+Please be thorough but practical - focus on issues that could realistically be exploited.
+```
+
+💡 **Example Usage:**
+• Use with: gh comment add 123 auth.js 67 "[prompt content for specific security issue]"
+• Great for: Security team reviews, compliance audits, pre-production checks
+
+🏷️  **Tags**: security, vulnerabilities, owasp, comprehensive
+✅ SUCCESS: prompts example 2
+
+🧪 Testing: ./gh-comment prompts --category performance --list
+📋 **Code Review Prompts - Performance Category**
+
+## Performance
+  **performance-optimization** - Performance Optimization Review (10-15 minutes)
+    performance • optimization • scaling • efficiency
+
+💡 **Usage**: `gh comment prompts <prompt-name>` to get the full prompt
+✅ SUCCESS: prompts example 3
+
+🧪 Testing: ./gh-comment prompts performance-optimization
+📋 **Performance Optimization Review**
+
+🎯 **Category**: performance
+⏱️  **Estimated Time**: 10-15 minutes
+
+📝 **Prompt:**
+```
+Please conduct a comprehensive performance review of this pull request, focusing on identifying optimization opportunities and potential bottlenecks.
+
+## Performance Analysis Areas
+
+1. **Database Performance**
+   🤔 Look for N+1 query problems, missing indexes, inefficient queries
+   🤔 Check for proper connection pooling and query optimization
+   🤔 Identify opportunities for caching, batch operations
+
+2. **Memory Management** 
+   🤔 Check for memory leaks, excessive object creation
+   🤔 Look for inefficient data structures, large object retention
+   🤔 Verify proper cleanup of resources, event listeners
+
+3. **Computational Efficiency**
+   🤔 Identify expensive operations in hot paths, loops
+   🤔 Look for redundant calculations, unnecessary processing
+   🤔 Check for proper algorithm complexity (O(n) vs O(n²))
+
+4. **Network & I/O Optimization**
+   🤔 Review API call patterns, bundling opportunities  
+   🤔 Check for proper async/await usage, parallel processing
+   🤔 Look for image optimization, asset compression
+
+5. **Frontend Performance**
+   🤔 Check for unnecessary re-renders, large bundle sizes
+   🤔 Look for lazy loading opportunities, code splitting
+   🤔 Verify proper caching strategies
+
+For each optimization opportunity:
+- Use 🤔 emoji for performance suggestions (not blocking)
+- Provide [SUGGEST: optimized_code] with more efficient alternatives
+- Quantify potential impact where possible (e.g., "reduces database calls by 80%")
+- Consider trade-offs between performance and code readability
+
+Focus on changes that will have measurable impact on user experience.
+```
+
+💡 **Example Usage:**
+• Use with: gh comment add 123 database.py 89 "[performance analysis for specific function]"
+• Great for: Pre-deployment reviews, scalability planning, optimization sprints
+
+🏷️  **Tags**: performance, optimization, scaling, efficiency
+✅ SUCCESS: prompts example 4
+
+🧪 Testing: ./gh-comment prompts security-audit
+📋 **Comprehensive Security Audit Review**
+
+🎯 **Category**: security
+⏱️  **Estimated Time**: 15-20 minutes
+
+📝 **Prompt:**
+```
+I need you to perform a comprehensive security audit of this pull request. Please analyze the code changes systematically using the following framework:
+
+## Security Analysis Framework
+
+1. **Authentication & Authorization**
+   🔧 Check for proper authentication mechanisms
+   🔧 Verify authorization controls and role-based access
+   🔧 Look for JWT token handling, session management issues
+
+2. **Input Validation & Sanitization**  
+   🔧 Identify unvalidated user inputs (forms, APIs, query params)
+   🔧 Check for SQL injection, XSS, command injection vulnerabilities
+   🔧 Verify proper data type validation and range checking
+
+3. **Data Protection**
+   🔧 Look for hardcoded secrets, API keys, passwords
+   🔧 Check encryption of sensitive data at rest and in transit
+   🔧 Verify secure random number generation
+
+4. **API Security**
+   🔧 Check for proper rate limiting and DoS protection
+   🔧 Verify CORS configuration
+   🔧 Look for information disclosure in error messages
+
+5. **Infrastructure Security**
+   🔧 Review Docker configurations, environment variables
+   🔧 Check for secure defaults in configuration files
+   🔧 Verify dependency security (package.json, requirements.txt, etc.)
+
+For each issue found, please:
+- Use 🔧 emoji for critical security issues that must be fixed
+- Provide specific line-by-line comments with [SUGGEST: secure_code] alternatives
+- Explain the potential impact and attack vectors
+- Reference OWASP guidelines where applicable
+
+Please be thorough but practical - focus on issues that could realistically be exploited.
+```
+
+💡 **Example Usage:**
+• Use with: gh comment add 123 auth.js 67 "[prompt content for specific security issue]"
+• Great for: Security team reviews, compliance audits, pre-production checks
+
+🏷️  **Tags**: security, vulnerabilities, owasp, comprehensive
+✅ SUCCESS: prompts example 5
+
+🧪 Testing: ./gh-comment prompts architecture-review
+📋 **Architecture & Design Pattern Review**
+
+🎯 **Category**: architecture
+⏱️  **Estimated Time**: 20-25 minutes
+
+📝 **Prompt:**
+```
+Please provide an architectural review of this pull request, focusing on design patterns, code organization, and long-term maintainability.
+
+## Architecture Analysis Framework
+
+1. **Design Patterns & Principles**
+   ♻️ Evaluate adherence to SOLID principles
+   ♻️ Check for appropriate use of design patterns (Factory, Observer, etc.)
+   ♻️ Look for violations of DRY, KISS, YAGNI principles
+
+2. **Code Organization & Structure**
+   ♻️ Review module boundaries, separation of concerns
+   ♻️ Check for proper layering (presentation, business, data)
+   ♻️ Evaluate package/folder structure, naming conventions
+
+3. **Dependency Management**
+   ♻️ Look for tight coupling, circular dependencies
+   ♻️ Check for proper dependency injection patterns
+   ♻️ Review interface usage, abstraction levels
+
+4. **Scalability & Future Growth**
+   ♻️ Identify potential bottlenecks for scaling
+   ♻️ Check for extensibility points, plugin architectures
+   ♻️ Look for configuration management, feature toggles
+
+5. **Error Handling & Resilience**
+   ♻️ Review error propagation patterns, retry logic
+   ♻️ Check for circuit breakers, graceful degradation
+   ♻️ Evaluate logging, monitoring integration points
+
+6. **API Design**
+   ♻️ Check for consistent API patterns, versioning strategy
+   ♻️ Review request/response schemas, data contracts
+   ♻️ Look for proper HTTP status codes, error responses
+
+For each architectural concern:
+- Use ♻️ emoji for refactoring suggestions
+- Explain the long-term benefits of proposed changes
+- Consider team knowledge and migration complexity
+- Provide [SUGGEST: refactored_code] for structural improvements
+
+Focus on changes that improve maintainability and team productivity.
+```
+
+💡 **Example Usage:**
+• Use with: gh comment add 123 service.go 134:150 "[architectural feedback]"
+• Great for: Major feature reviews, refactoring planning, technical debt reduction
+
+🏷️  **Tags**: architecture, design patterns, scalability, maintainability
+✅ SUCCESS: prompts example 6
+

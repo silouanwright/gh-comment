@@ -1,0 +1,318 @@
+🧪 Testing: ./gh-comment resolve 2246362251
+Error: failed to find review thread for comment: thread not found for comment 2246362251
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 2246362251
+❌ FAILED: resolve example 1
+
+🧪 Testing: ./gh-comment resolve --dry-run 2246362251
+Would resolve conversation for comment #2246362251 in PR #15
+✅ SUCCESS: resolve example 2
+
+🧪 Testing: ./gh-comment list 15 --status open --ids-only | xargs -I {} ./gh-comment resolve {}
+Error: failed to find review thread for comment: thread not found for comment 3155060013
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060013
+Error: failed to find review thread for comment: thread not found for comment 3155060087
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060087
+Error: failed to find review thread for comment: thread not found for comment 3155060167
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060167
+Error: failed to find review thread for comment: thread not found for comment 3155060238
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060238
+Error: failed to find review thread for comment: thread not found for comment 3155060314
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060314
+Error: failed to find review thread for comment: thread not found for comment 3155060389
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060389
+Error: failed to find review thread for comment: thread not found for comment 3155060462
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060462
+Error: failed to find review thread for comment: thread not found for comment 3155060551
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060551
+Error: failed to find review thread for comment: thread not found for comment 3155060610
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060610
+Error: failed to find review thread for comment: thread not found for comment 3155060672
+Usage:
+  gh-comment resolve <comment-id> [flags]
+
+Examples:
+# Resolve a conversation
+$ gh comment resolve 2246362251
+
+# Resolve with dry-run preview
+$ gh comment resolve --dry-run 2246362251
+
+# Resolve multiple conversations (pipe from list)
+$ gh comment list 123 --status open --ids-only | xargs -I {} gh comment resolve {}
+
+
+Flags:
+  -h, --help   help for resolve
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread for comment: thread not found for comment 3155060672
+❌ FAILED: resolve example 3
+
