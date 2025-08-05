@@ -71,6 +71,12 @@ func TestFormatActionableErrorNewPatterns(t *testing.T) {
 			wantContains: []string{"duplicate operation", "already exists", "edit operations"},
 		},
 		{
+			name:         "pending review blocking error",
+			operation:    "review creation",
+			err:          fmt.Errorf("cannot create review - pending review exists"),
+			wantContains: []string{"pending review blocks", "GitHub API Limitation", "close-pending-review", "draft review"},
+		},
+		{
 			name:         "Resource not accessible error",
 			operation:    "create-comment",
 			err:          fmt.Errorf("Resource not accessible by integration"),

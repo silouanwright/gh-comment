@@ -119,6 +119,9 @@ func formatActionableError(operation string, err error) error {
 	case containsAny(errStr, []string{"No subschema in oneOf matched", "invalid request", "malformed"}):
 		return fmt.Errorf("invalid request format during %s: %w\n\n💡 Suggestions:\n  • Check the command syntax in --help\n  • Verify all required arguments are provided\n  • For line comments, ensure the line exists in the PR diff\n  • Check for special characters that need escaping", operation, err)
 
+	case containsAny(errStr, []string{"pending review", "draft review", "cannot create review", "review in progress", "unsubmitted review"}):
+		return fmt.Errorf("pending review blocks new review during %s: %w\n\n💡 GitHub API Limitation:\n  • You have an unsubmitted draft review on this PR\n  • GitHub only allows one review per user at a time\n  • You must submit or abandon your pending review first\n\n🔧 Solution:\n  • Run: gh comment close-pending-review <pr> \"Submitting draft review\" --event COMMENT\n  • This will submit your pending review so you can create new ones\n  • Alternative: Go to GitHub web UI → Review changes → Abandon review", operation, err)
+
 	case containsAny(errStr, []string{"review already submitted", "duplicate"}):
 		return fmt.Errorf("duplicate operation during %s: %w\n\n💡 Suggestions:\n  • This review or comment already exists\n  • Use 'gh comment list' to check existing comments\n  • Use edit operations to modify existing content\n  • Dismiss existing reviews before submitting new ones", operation, err)
 	}
