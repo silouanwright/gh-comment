@@ -70,22 +70,44 @@ gh comment batch 123 review.yaml
 
 ## Commands
 
-```
-add                  Add general PR comments
-review               Create line-specific code reviews  
-list                 List all PR comments
-edit                 Edit existing comments
-react                Add emoji reactions
-batch                Process multiple comments from YAML
-lines                Show which lines can be commented on
-review-reply         Reply to review comments
-prompts              Get code review prompt templates
-export               Export comments to JSON
-config               Manage configuration settings
-close-pending-review Submit pending reviews from GitHub UI
+### Core Commands
+```bash
+# General PR discussion comments
+gh comment add <pr> <message>                    # Add general discussion comment
+gh comment add <pr> <file> <line> <message>      # Add line-specific issue comment
+
+# Line-specific code reviews  
+gh comment review <pr> [body] --comment <file:line:message> --event <APPROVE|REQUEST_CHANGES|COMMENT>
+gh comment review-reply <comment-id> <message>   # Reply to review comments
+
+# Comment management
+gh comment list <pr> [--author] [--since] [--type] [--status] [--quiet]
+gh comment edit <comment-id> <new-message>       # Modify existing comments
+gh comment react <comment-id> <emoji>            # Add/remove emoji reactions
 ```
 
-Run `gh comment --help` for comprehensive documentation and examples.
+### Advanced Features
+```bash
+# Batch operations from YAML
+gh comment batch <pr> <config.yaml> [--dry-run] [--verbose]
+
+# Workflow helpers
+gh comment lines <pr> <file>                     # Show commentable lines
+gh comment close-pending-review <pr> <message>   # Submit pending reviews from GitHub UI
+gh comment prompts [list|<template>]             # AI code review templates
+gh comment export <pr>                           # Export comments to JSON
+```
+
+### Global Flags
+```bash
+-p, --pr <number>        # PR number (auto-detects from branch)
+-R, --repo <owner/repo>  # Repository (auto-detects from current directory)
+    --dry-run            # Preview changes without executing
+-v, --verbose            # Show detailed API interactions  
+    --validate           # Validate lines exist in diff (default: false)
+```
+
+Run `gh comment <command> --help` for detailed examples and options.
 
 ## Key Features
 
