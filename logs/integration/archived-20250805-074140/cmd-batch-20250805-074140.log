@@ -1,0 +1,19 @@
+🧪 Testing: ./gh-comment batch 15 review-config.yaml
+✅ Successfully created review with 0 comments
+✅ SUCCESS: batch example 1
+
+🧪 Testing: ./gh-comment batch 15 review-config.yaml --dry-run
+Would process 0 comments from review-config.yaml on PR #15:
+Would create review with event: COMMENT
+✅ SUCCESS: batch example 2
+
+🧪 Testing: ./gh-comment batch 15 review-config.yaml --verbose
+Repository: 
+PR: 15
+Config file: review-config.yaml
+Comments to process: 0
+Review event: COMMENT
+
+✅ Successfully created review with 0 comments
+✅ SUCCESS: batch example 3
+

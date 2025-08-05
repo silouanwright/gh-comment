@@ -1,0 +1,173 @@
+🧪 Testing: ./gh-comment review-reply 789012 Fixed this issue
+Error: failed to create reply: Error: HTTP 404: Not Found (https://api.github.com/repos/silouanwright/gh-comment/pulls/comments/789012/replies)
+
+🤖 **Intelligent Analysis**:
+   • Comment ID might be for an issue comment (general PR comment), not a review comment
+   • Issue comments appear in the main conversation tab, not 'Files changed'
+   • Run 'gh comment list <PR>' to see all comment types with their IDs
+   • 💡 Reply alternatives from 'gh comment reply --help':
+   •    • Use reactions: --reaction +1, heart, hooray
+   •    • Resolve conversations: --resolve
+   •    • Add suggestions: "[SUGGEST: improved code]"
+   • 📖 See 'gh comment reply --help' for detailed examples and usage
+
+💡 **Auto-correction suggestion**:
+   gh comment reply 789012 --type issue
+
+Usage:
+  gh-comment review-reply <comment-id> [message] [flags]
+
+Examples:
+# Reply to review comment with message
+$ gh comment review-reply 789012 "Fixed this issue"
+
+# Reply and resolve conversation in one operation
+$ gh comment review-reply 789012 "Addressed your feedback" --resolve
+
+# Just resolve conversation without adding message
+$ gh comment review-reply 789012 --resolve
+
+# For general PR discussion, use add command instead:
+# $ gh comment add 123 "Thanks for the review!"
+
+# For emoji reactions, use react command instead:
+# $ gh comment react 789012 +1
+
+
+Flags:
+  -h, --help                    help for review-reply
+      --no-expand-suggestions   Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax
+      --resolve                 Resolve the conversation after replying
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to create reply: Error: HTTP 404: Not Found (https://api.github.com/repos/silouanwright/gh-comment/pulls/comments/789012/replies)
+
+🤖 **Intelligent Analysis**:
+   • Comment ID might be for an issue comment (general PR comment), not a review comment
+   • Issue comments appear in the main conversation tab, not 'Files changed'
+   • Run 'gh comment list <PR>' to see all comment types with their IDs
+   • 💡 Reply alternatives from 'gh comment reply --help':
+   •    • Use reactions: --reaction +1, heart, hooray
+   •    • Resolve conversations: --resolve
+   •    • Add suggestions: "[SUGGEST: improved code]"
+   • 📖 See 'gh comment reply --help' for detailed examples and usage
+
+💡 **Auto-correction suggestion**:
+   gh comment reply 789012 --type issue
+
+❌ FAILED: review-reply example 1
+
+🧪 Testing: ./gh-comment review-reply 789012 Addressed your feedback --resolve
+Error: failed to create reply: Error: HTTP 404: Not Found (https://api.github.com/repos/silouanwright/gh-comment/pulls/comments/789012/replies)
+
+🤖 **Intelligent Analysis**:
+   • Comment ID might be for an issue comment (general PR comment), not a review comment
+   • Issue comments appear in the main conversation tab, not 'Files changed'
+   • Run 'gh comment list <PR>' to see all comment types with their IDs
+   • 💡 Reply alternatives from 'gh comment reply --help':
+   •    • Use reactions: --reaction +1, heart, hooray
+   •    • Resolve conversations: --resolve
+   •    • Add suggestions: "[SUGGEST: improved code]"
+   • 📖 See 'gh comment reply --help' for detailed examples and usage
+
+💡 **Auto-correction suggestion**:
+   gh comment reply 789012 --type issue
+
+Usage:
+  gh-comment review-reply <comment-id> [message] [flags]
+
+Examples:
+# Reply to review comment with message
+$ gh comment review-reply 789012 "Fixed this issue"
+
+# Reply and resolve conversation in one operation
+$ gh comment review-reply 789012 "Addressed your feedback" --resolve
+
+# Just resolve conversation without adding message
+$ gh comment review-reply 789012 --resolve
+
+# For general PR discussion, use add command instead:
+# $ gh comment add 123 "Thanks for the review!"
+
+# For emoji reactions, use react command instead:
+# $ gh comment react 789012 +1
+
+
+Flags:
+  -h, --help                    help for review-reply
+      --no-expand-suggestions   Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax
+      --resolve                 Resolve the conversation after replying
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to create reply: Error: HTTP 404: Not Found (https://api.github.com/repos/silouanwright/gh-comment/pulls/comments/789012/replies)
+
+🤖 **Intelligent Analysis**:
+   • Comment ID might be for an issue comment (general PR comment), not a review comment
+   • Issue comments appear in the main conversation tab, not 'Files changed'
+   • Run 'gh comment list <PR>' to see all comment types with their IDs
+   • 💡 Reply alternatives from 'gh comment reply --help':
+   •    • Use reactions: --reaction +1, heart, hooray
+   •    • Resolve conversations: --resolve
+   •    • Add suggestions: "[SUGGEST: improved code]"
+   • 📖 See 'gh comment reply --help' for detailed examples and usage
+
+💡 **Auto-correction suggestion**:
+   gh comment reply 789012 --type issue
+
+❌ FAILED: review-reply example 2
+
+🧪 Testing: ./gh-comment review-reply 789012 --resolve
+Error: failed to find review thread: thread not found for comment 789012
+Usage:
+  gh-comment review-reply <comment-id> [message] [flags]
+
+Examples:
+# Reply to review comment with message
+$ gh comment review-reply 789012 "Fixed this issue"
+
+# Reply and resolve conversation in one operation
+$ gh comment review-reply 789012 "Addressed your feedback" --resolve
+
+# Just resolve conversation without adding message
+$ gh comment review-reply 789012 --resolve
+
+# For general PR discussion, use add command instead:
+# $ gh comment add 123 "Thanks for the review!"
+
+# For emoji reactions, use react command instead:
+# $ gh comment react 789012 +1
+
+
+Flags:
+  -h, --help                    help for review-reply
+      --no-expand-suggestions   Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax
+      --resolve                 Resolve the conversation after replying
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: failed to find review thread: thread not found for comment 789012
+❌ FAILED: review-reply example 3
+

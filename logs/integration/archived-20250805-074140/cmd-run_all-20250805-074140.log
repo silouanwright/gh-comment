@@ -1,0 +1,5 @@
+🚀 Running all help text examples...
+📊 Test results will be saved to: /Users/silouan.wright/repos/gh-comment/logs/integration/test-results-20250805-074140.txt
+
+❌ ERROR: Please provide test environment file as first argument
+   Usage: /Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-074140/run_all_examples.sh path/to/test-env-TIMESTAMP.sh

@@ -1,0 +1,132 @@
+🧪 Testing: ./gh-comment edit 2246362251 Updated comment with better explanation
+Error: resource not found during comment editing: Operation failed: comment #2246362251 not found
+
+❌ **Comment #2246362251 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #2246362251 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+Usage:
+  gh-comment edit <comment-id> [message] [flags]
+
+Examples:
+# Edit with new message
+$ gh comment edit 2246362251 "Updated comment with better explanation"
+
+# Edit with multi-line content using --message flags (AI-friendly)
+$ gh comment edit 2246362251 --message "First paragraph" --message "Second paragraph"
+
+# Edit with multi-line content (shell native)
+$ gh comment edit 2246362251 "Line 1
+Line 2
+Line 3"
+
+
+Flags:
+  -h, --help                  help for edit
+  -m, --message stringArray   Edit message (can be used multiple times for multi-line comments)
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: resource not found during comment editing: Operation failed: comment #2246362251 not found
+
+❌ **Comment #2246362251 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #2246362251 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+❌ FAILED: edit example 1
+
+🧪 Testing: ./gh-comment edit 2246362251 --message First paragraph --message Second paragraph
+Error: resource not found during comment editing: Operation failed: comment #2246362251 not found
+
+❌ **Comment #2246362251 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #2246362251 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+Usage:
+  gh-comment edit <comment-id> [message] [flags]
+
+Examples:
+# Edit with new message
+$ gh comment edit 2246362251 "Updated comment with better explanation"
+
+# Edit with multi-line content using --message flags (AI-friendly)
+$ gh comment edit 2246362251 --message "First paragraph" --message "Second paragraph"
+
+# Edit with multi-line content (shell native)
+$ gh comment edit 2246362251 "Line 1
+Line 2
+Line 3"
+
+
+Flags:
+  -h, --help                  help for edit
+  -m, --message stringArray   Edit message (can be used multiple times for multi-line comments)
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: resource not found during comment editing: Operation failed: comment #2246362251 not found
+
+❌ **Comment #2246362251 not found**
+
+🔍 **Troubleshooting**:
+   • Run `gh comment list <PR>` to see all available comments
+   • Check that comment #2246362251 exists and you have access
+   • Comment might have been deleted or you're using wrong PR number
+
+💡 **Next step**: `gh comment list <PR>`
+
+
+💡 Suggestions:
+  • Verify the PR number exists and is accessible
+  • Check if the comment ID is valid
+  • Ensure you have permission to access this repository
+❌ FAILED: edit example 2
+
+🧪 Testing: ./gh-comment edit 2246362251 Line 1
+./gh-comment edit 2246362251 Line 1
+✅ SUCCESS: edit example 3
+
