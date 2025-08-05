@@ -73,6 +73,48 @@ gh comment review 123 "Performance optimization opportunities" \
   --event COMMENT
 ```
 
+### `gh comment close-pending-review` - GitHub Review Limitation Workaround
+
+**The Problem:** GitHub's API has a critical limitation - you cannot create a new review if you already have a pending (draft) review open on the same PR. This commonly happens when:
+
+1. You start a review in GitHub's web interface but don't submit it
+2. You use the "Start a review" button and add comments but leave it as draft
+3. A previous review got stuck in pending state due to an error
+
+**The Solution:** Use `close-pending-review` to submit your pending review, then you can create new reviews.
+
+```bash
+# Check if you have a pending review blocking new reviews
+gh comment review 123 "New review" --comment src/api.js:42:"Test comment"
+# ❌ Error: cannot create review - pending review exists
+
+# Submit the pending review first
+gh comment close-pending-review 123 "Submitting previous draft review" --event COMMENT
+
+# Now you can create new reviews
+gh comment review 123 "New review works!" --comment src/api.js:42:"Test comment"
+# ✅ Success
+```
+
+**Common Workflow:**
+```bash
+# 1. Start review in GitHub web UI (accidentally leaves it pending)
+# 2. Try to use CLI - gets blocked
+gh comment review 123 "Security review" --comment src/auth.js:15:"Use bcrypt"
+# Error: Pending review exists
+
+# 3. Submit pending review
+gh comment close-pending-review 123 "Completing web UI review" --event APPROVE
+
+# 4. Now CLI reviews work normally  
+gh comment review 123 "Follow-up security review" --comment src/api.js:42:"Add rate limiting"
+```
+
+**Events you can use:**
+- `COMMENT` - General feedback (default)
+- `APPROVE` - Approve the PR
+- `REQUEST_CHANGES` - Block merge until issues addressed
+
 ### `gh comment add` - Suggestion Syntax
 
 Advanced suggestion patterns:

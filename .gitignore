@@ -1,7 +1,34 @@
+# Compiled binaries
 /gh-comment
 /gh-comment.exe
-repomix-output.xml
 
 # Coverage files
 coverage.html
 coverage.out
+coverage.filtered.out
+*_coverage.html
+*_coverage.out
+cmd_coverage.*
+internal_coverage.*
+internal_github_coverage.*
+
+# Test output files
+test-*.yaml
+test-*.csv
+*.log
+pr-*-review.html
+
+# Development artifacts
+repomix-output.xml
+showcase-example.*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
