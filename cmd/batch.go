@@ -41,7 +41,7 @@ type CommentConfig struct {
 }
 
 var batchCmd = &cobra.Command{
-	Use:   "batch <config-file>",
+	Use:   "batch <pr> <config-file>",
 	Short: "Process multiple comments from a YAML configuration file",
 	Long: heredoc.Doc(`
 		Process multiple comments, reactions, and reviews from a YAML configuration file.
@@ -49,6 +49,11 @@ var batchCmd = &cobra.Command{
 		This is ideal for bulk operations, automated workflows, or complex review
 		scenarios. The config file can specify mixed comment types, create reviews
 		with multiple comments, and set up entire review workflows.
+
+		YAML Configuration:
+		- Review level: Use 'body' field for review summary
+		- Individual comments: Use 'message' field for comment text
+		- PR can be specified in file or via command line (CLI takes precedence)
 	`),
 	Example: heredoc.Doc(`
 		# Process comments from config
