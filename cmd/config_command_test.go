@@ -25,7 +25,7 @@ func TestRunConfigInit(t *testing.T) {
 		// Create temporary directory
 		tempDir := t.TempDir()
 		originalWd, _ := os.Getwd()
-		_ = os.Chdir(tempDir) // Test helper
+		_ = os.Chdir(tempDir)                       // Test helper
 		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Run the command
@@ -52,7 +52,7 @@ func TestRunConfigInit(t *testing.T) {
 		// Create temporary directory
 		tempDir := t.TempDir()
 		originalWd, _ := os.Getwd()
-		_ = os.Chdir(tempDir) // Test helper
+		_ = os.Chdir(tempDir)                       // Test helper
 		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Run the command
@@ -100,7 +100,7 @@ func TestRunConfigInit(t *testing.T) {
 		// Create temporary directory with existing config file
 		tempDir := t.TempDir()
 		originalWd, _ := os.Getwd()
-		_ = os.Chdir(tempDir) // Test helper
+		_ = os.Chdir(tempDir)                       // Test helper
 		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Create existing config file
@@ -203,7 +203,7 @@ func TestRunConfigShow(t *testing.T) {
 
 		// Change to temp directory so findConfigFile() finds the file
 		originalWd, _ := os.Getwd()
-		_ = os.Chdir(tempDir) // Test helper
+		_ = os.Chdir(tempDir)                       // Test helper
 		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Clear global config so it loads from file
@@ -235,7 +235,7 @@ display:
 
 		// Change to temp directory
 		originalWd, _ := os.Getwd()
-		_ = os.Chdir(tempDir) // Test helper
+		_ = os.Chdir(tempDir)                       // Test helper
 		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Run the command
@@ -284,7 +284,7 @@ filters:
 
 		// Change to temp directory
 		originalWd, _ := os.Getwd()
-		_ = os.Chdir(tempDir) // Test helper
+		_ = os.Chdir(tempDir)                       // Test helper
 		defer func() { _ = os.Chdir(originalWd) }() // Test cleanup
 
 		// Run validation

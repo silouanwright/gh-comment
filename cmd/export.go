@@ -406,9 +406,9 @@ func exportMarkdown(w io.Writer, comments []ExportComment, repo string, pr int) 
 			}
 			fmt.Fprintf(w, "\n%s\n\n", comment.Body)
 			if comment.DiffHunk != "" {
-				_, _ = fmt.Fprintln(w, "```diff") // Export output
+				_, _ = fmt.Fprintln(w, "```diff")        // Export output
 				_, _ = fmt.Fprintln(w, comment.DiffHunk) // Export output
-				_, _ = fmt.Fprintln(w, "```") // Export output
+				_, _ = fmt.Fprintln(w, "```")            // Export output
 			}
 			_, _ = fmt.Fprintln(w, "---") // Export output
 		}

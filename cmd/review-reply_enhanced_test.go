@@ -9,11 +9,11 @@ import (
 
 func TestHandleReviewReplyError(t *testing.T) {
 	tests := []struct {
-		name         string
-		inputError   error
-		commentID    int
-		message      string
-		expectedMsg  string
+		name        string
+		inputError  error
+		commentID   int
+		message     string
+		expectedMsg string
 	}{
 		{
 			name:        "404 GitHub API limitation",
@@ -41,7 +41,7 @@ func TestHandleReviewReplyError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := handleReviewReplyError(tt.inputError, tt.commentID, tt.message, "owner", "repo", 123)
-			
+
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), tt.expectedMsg)
 		})
@@ -50,27 +50,27 @@ func TestHandleReviewReplyError(t *testing.T) {
 
 func TestReviewReplyIntelligentErrorHandling(t *testing.T) {
 	// Test the specific error patterns that the enhanced error handler recognizes
-	
+
 	t.Run("GitHub API 404 threading limitation", func(t *testing.T) {
 		err := fmt.Errorf("404 Not Found: pulls/comments/12345/replies")
 		result := handleReviewReplyError(err, 12345, "Test message", "owner", "repo", 123)
-		
+
 		assert.Error(t, result)
 		assert.Contains(t, result.Error(), "review comment threading not supported")
 	})
-	
+
 	t.Run("Issue comment type mismatch", func(t *testing.T) {
 		err := fmt.Errorf("404 Not Found: issues/comments/67890")
 		result := handleReviewReplyError(err, 67890, "Test message", "owner", "repo", 123)
-		
+
 		assert.Error(t, result)
 		assert.Contains(t, result.Error(), "is an issue comment")
 	})
-	
+
 	t.Run("Unrecognized error passes through", func(t *testing.T) {
 		err := fmt.Errorf("some other API error")
 		result := handleReviewReplyError(err, 111, "Test message", "owner", "repo", 123)
-		
+
 		assert.Error(t, result)
 		assert.Contains(t, result.Error(), "failed to create reply")
 	})

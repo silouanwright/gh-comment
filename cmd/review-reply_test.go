@@ -126,7 +126,7 @@ func TestReviewReplyErrorHandling(t *testing.T) {
 			// Set up fresh mock client for each test
 			mockClient := github.NewMockClient()
 			reviewReplyClient = mockClient
-			
+
 			// This test documents the limitation - real implementation would handle the error
 			err := runReviewReply(nil, []string{tt.commentID, tt.message})
 
