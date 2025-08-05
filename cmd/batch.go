@@ -125,11 +125,11 @@ func validateBatchConfig(args []string) (owner, repoName string, pr int, config 
 		repository = config.Repo
 	}
 
-	// Get repository and PR context if not specified
+	// Get repository context if not specified (but keep PR from argument/config)
 	if repository == "" {
-		repository, pr, err = getPRContext()
+		repository, err = getCurrentRepo()
 		if err != nil {
-			return "", "", 0, nil, "", err
+			return "", "", 0, nil, "", fmt.Errorf("failed to get repository: %w", err)
 		}
 	}
 
