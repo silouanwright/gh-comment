@@ -74,6 +74,12 @@ func runPrompts(cmd *cobra.Command, args []string) error {
 	}
 
 	promptName := args[0]
+
+	// Handle "list" as an argument (user-friendly alias for --list flag)
+	if promptName == "list" {
+		return listAvailablePrompts()
+	}
+
 	prompt, exists := getPrompt(promptName)
 	if !exists {
 		fmt.Printf("❌ Prompt '%s' not found.\n\n", promptName)

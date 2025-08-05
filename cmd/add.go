@@ -27,7 +27,11 @@ var addCmd = &cobra.Command{
 		not attached to specific code lines. These comments support threaded replies
 		and are perfect for general discussion, approval, or high-level feedback.
 
-		For line-specific code review comments, use: 'gh comment review'
+		⚠️  IMPORTANT: This command does NOT create line-specific comments.
+		    For line-specific code review comments, use: 'gh comment review'
+
+		    Wrong: gh comment add 123 file.js 42 "comment"  ❌
+		    Right: gh comment review 123 --comment file.js:42:"comment" ✅
 
 		The comment message supports GitHub markdown formatting and can include
 		code suggestions using the [SUGGEST: code] syntax. Use offset syntax
