@@ -25,25 +25,25 @@ type CommandInfo struct {
 type CommandRegistry interface {
 	// Register adds a command to the registry
 	Register(info CommandInfo) error
-	
+
 	// GetCommand returns a specific command by name
 	GetCommand(name string) (*cobra.Command, error)
-	
+
 	// GetAllCommands returns all registered commands
 	GetAllCommands() map[string]*cobra.Command
-	
+
 	// GetCommandsByCategory returns commands grouped by category
 	GetCommandsByCategory() map[string][]*CommandInfo
-	
+
 	// ListCommands returns a sorted list of command names
 	ListCommands() []string
-	
+
 	// BuildAll builds all registered commands and adds them to the root command
 	BuildAll(rootCmd *cobra.Command) error
-	
+
 	// GetCommandInfo returns metadata for a command
 	GetCommandInfo(name string) (*CommandInfo, error)
-	
+
 	// GetRegisteredCount returns the number of registered commands
 	GetRegisteredCount() int
 }
@@ -65,15 +65,15 @@ func (r *DefaultCommandRegistry) Register(info CommandInfo) error {
 	if info.Name == "" {
 		return fmt.Errorf("command name cannot be empty")
 	}
-	
+
 	if info.Builder == nil {
 		return fmt.Errorf("command builder cannot be nil for command %s", info.Name)
 	}
-	
+
 	if _, exists := r.commands[info.Name]; exists {
 		return fmt.Errorf("command %s is already registered", info.Name)
 	}
-	
+
 	// Set defaults
 	if info.Category == "" {
 		info.Category = "general"
@@ -81,7 +81,7 @@ func (r *DefaultCommandRegistry) Register(info CommandInfo) error {
 	if info.Description == "" {
 		info.Description = "No description available"
 	}
-	
+
 	r.commands[info.Name] = &info
 	return nil
 }
@@ -92,7 +92,7 @@ func (r *DefaultCommandRegistry) GetCommand(name string) (*cobra.Command, error)
 	if !exists {
 		return nil, fmt.Errorf("command %s not found", name)
 	}
-	
+
 	// Build command if not already cached
 	if info.Command == nil {
 		info.Command = info.Builder()
@@ -100,14 +100,14 @@ func (r *DefaultCommandRegistry) GetCommand(name string) (*cobra.Command, error)
 			return nil, fmt.Errorf("command builder for %s returned nil", name)
 		}
 	}
-	
+
 	return info.Command, nil
 }
 
 // GetAllCommands returns all registered commands
 func (r *DefaultCommandRegistry) GetAllCommands() map[string]*cobra.Command {
 	result := make(map[string]*cobra.Command)
-	
+
 	for name, info := range r.commands {
 		if info.Command == nil {
 			info.Command = info.Builder()
@@ -116,18 +116,18 @@ func (r *DefaultCommandRegistry) GetAllCommands() map[string]*cobra.Command {
 			result[name] = info.Command
 		}
 	}
-	
+
 	return result
 }
 
 // GetCommandsByCategory returns commands grouped by category
 func (r *DefaultCommandRegistry) GetCommandsByCategory() map[string][]*CommandInfo {
 	result := make(map[string][]*CommandInfo)
-	
+
 	for _, info := range r.commands {
 		result[info.Category] = append(result[info.Category], info)
 	}
-	
+
 	// Sort each category by priority, then by name
 	for category := range result {
 		sort.Slice(result[category], func(i, j int) bool {
@@ -137,7 +137,7 @@ func (r *DefaultCommandRegistry) GetCommandsByCategory() map[string][]*CommandIn
 			return result[category][i].Name < result[category][j].Name
 		})
 	}
-	
+
 	return result
 }
 
@@ -154,24 +154,24 @@ func (r *DefaultCommandRegistry) ListCommands() []string {
 // BuildAll builds all registered commands and adds them to the root command
 func (r *DefaultCommandRegistry) BuildAll(rootCmd *cobra.Command) error {
 	var errors []string
-	
+
 	for name, info := range r.commands {
 		if info.Command == nil {
 			info.Command = info.Builder()
 		}
-		
+
 		if info.Command == nil {
 			errors = append(errors, fmt.Sprintf("command %s builder returned nil", name))
 			continue
 		}
-		
+
 		rootCmd.AddCommand(info.Command)
 	}
-	
+
 	if len(errors) > 0 {
 		return fmt.Errorf("failed to build commands: %s", strings.Join(errors, "; "))
 	}
-	
+
 	return nil
 }
 
@@ -181,7 +181,7 @@ func (r *DefaultCommandRegistry) GetCommandInfo(name string) (*CommandInfo, erro
 	if !exists {
 		return nil, fmt.Errorf("command %s not found", name)
 	}
-	
+
 	// Return a copy to prevent modification
 	infoCopy := *info
 	return &infoCopy, nil

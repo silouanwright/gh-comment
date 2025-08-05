@@ -12,7 +12,7 @@ func TestNewCommandRegistry(t *testing.T) {
 	if registry == nil {
 		t.Error("NewCommandRegistry() returned nil")
 	}
-	
+
 	count := registry.GetRegisteredCount()
 	if count != 0 {
 		t.Errorf("NewCommandRegistry() should start with 0 commands, got %d", count)
@@ -76,7 +76,7 @@ func TestCommandRegistryRegister(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			registry := NewCommandRegistry()
 			err := registry.Register(tt.info)
-			
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("Register() expected error but got nil")
@@ -91,7 +91,7 @@ func TestCommandRegistryRegister(t *testing.T) {
 					if registry.GetRegisteredCount() != 1 {
 						t.Errorf("Register() should have 1 command, got %d", registry.GetRegisteredCount())
 					}
-					
+
 					// Test defaults were applied
 					if tt.info.Name == "test-cmd-defaults" {
 						info, err := registry.GetCommandInfo(tt.info.Name)
@@ -114,20 +114,20 @@ func TestCommandRegistryRegister(t *testing.T) {
 
 func TestCommandRegistryDuplicateRegistration(t *testing.T) {
 	registry := NewCommandRegistry()
-	
+
 	info := CommandInfo{
 		Name: "duplicate-test",
 		Builder: func() *cobra.Command {
 			return &cobra.Command{Use: "duplicate-test"}
 		},
 	}
-	
+
 	// First registration should succeed
 	err := registry.Register(info)
 	if err != nil {
 		t.Errorf("First Register() unexpected error = %v", err)
 	}
-	
+
 	// Second registration should fail
 	err = registry.Register(info)
 	if err == nil {
@@ -139,7 +139,7 @@ func TestCommandRegistryDuplicateRegistration(t *testing.T) {
 
 func TestCommandRegistryGetCommand(t *testing.T) {
 	registry := NewCommandRegistry()
-	
+
 	info := CommandInfo{
 		Name: "get-test",
 		Builder: func() *cobra.Command {
@@ -149,13 +149,13 @@ func TestCommandRegistryGetCommand(t *testing.T) {
 			}
 		},
 	}
-	
+
 	// Register the command
 	err := registry.Register(info)
 	if err != nil {
 		t.Errorf("Register() unexpected error = %v", err)
 	}
-	
+
 	// Get existing command
 	cmd, err := registry.GetCommand("get-test")
 	if err != nil {
@@ -166,7 +166,7 @@ func TestCommandRegistryGetCommand(t *testing.T) {
 	} else if cmd.Use != "get-test" {
 		t.Errorf("GetCommand() returned command with wrong Use: got %s, want get-test", cmd.Use)
 	}
-	
+
 	// Test command caching - second call should return same instance
 	cmd2, err := registry.GetCommand("get-test")
 	if err != nil {
@@ -175,7 +175,7 @@ func TestCommandRegistryGetCommand(t *testing.T) {
 	if cmd != cmd2 {
 		t.Error("GetCommand() should return cached instance on second call")
 	}
-	
+
 	// Get non-existent command
 	_, err = registry.GetCommand("non-existent")
 	if err == nil {
@@ -187,7 +187,7 @@ func TestCommandRegistryGetCommand(t *testing.T) {
 
 func TestCommandRegistryGetAllCommands(t *testing.T) {
 	registry := NewCommandRegistry()
-	
+
 	// Register multiple commands
 	commands := []string{"cmd1", "cmd2", "cmd3"}
 	for _, name := range commands {
@@ -204,12 +204,12 @@ func TestCommandRegistryGetAllCommands(t *testing.T) {
 			t.Errorf("Register(%s) unexpected error = %v", name, err)
 		}
 	}
-	
+
 	allCommands := registry.GetAllCommands()
 	if len(allCommands) != len(commands) {
 		t.Errorf("GetAllCommands() returned %d commands, want %d", len(allCommands), len(commands))
 	}
-	
+
 	for _, name := range commands {
 		if cmd, exists := allCommands[name]; !exists {
 			t.Errorf("GetAllCommands() missing command %s", name)
@@ -221,7 +221,7 @@ func TestCommandRegistryGetAllCommands(t *testing.T) {
 
 func TestCommandRegistryGetCommandsByCategory(t *testing.T) {
 	registry := NewCommandRegistry()
-	
+
 	// Register commands in different categories
 	testCases := []struct {
 		name     string
@@ -235,7 +235,7 @@ func TestCommandRegistryGetCommandsByCategory(t *testing.T) {
 		{"export", "utility", 1},
 		{"lines", "utility", 2},
 	}
-	
+
 	for _, tc := range testCases {
 		info := CommandInfo{
 			Name:     tc.name,
@@ -252,9 +252,9 @@ func TestCommandRegistryGetCommandsByCategory(t *testing.T) {
 			t.Errorf("Register(%s) unexpected error = %v", tc.name, err)
 		}
 	}
-	
+
 	categories := registry.GetCommandsByCategory()
-	
+
 	// Check expected categories exist
 	expectedCategories := []string{"core", "admin", "utility"}
 	for _, category := range expectedCategories {
@@ -262,7 +262,7 @@ func TestCommandRegistryGetCommandsByCategory(t *testing.T) {
 			t.Errorf("GetCommandsByCategory() missing category %s", category)
 		}
 	}
-	
+
 	// Check core category has correct commands in priority order
 	coreCommands := categories["core"]
 	if len(coreCommands) != 3 {
@@ -279,7 +279,7 @@ func TestCommandRegistryGetCommandsByCategory(t *testing.T) {
 
 func TestCommandRegistryListCommands(t *testing.T) {
 	registry := NewCommandRegistry()
-	
+
 	// Register commands in random order
 	commands := []string{"zebra", "alpha", "beta", "gamma"}
 	for _, name := range commands {
@@ -296,14 +296,14 @@ func TestCommandRegistryListCommands(t *testing.T) {
 			t.Errorf("Register(%s) unexpected error = %v", name, err)
 		}
 	}
-	
+
 	commandList := registry.ListCommands()
 	expectedOrder := []string{"alpha", "beta", "gamma", "zebra"} // Alphabetical order
-	
+
 	if len(commandList) != len(expectedOrder) {
 		t.Errorf("ListCommands() returned %d commands, want %d", len(commandList), len(expectedOrder))
 	}
-	
+
 	for i, expected := range expectedOrder {
 		if i >= len(commandList) || commandList[i] != expected {
 			t.Errorf("ListCommands()[%d] = %s, want %s", i, commandList[i], expected)
@@ -314,7 +314,7 @@ func TestCommandRegistryListCommands(t *testing.T) {
 func TestCommandRegistryBuildAll(t *testing.T) {
 	registry := NewCommandRegistry()
 	rootCmd := &cobra.Command{Use: "root"}
-	
+
 	// Register test commands
 	commands := []string{"build1", "build2", "build3"}
 	for _, name := range commands {
@@ -334,18 +334,18 @@ func TestCommandRegistryBuildAll(t *testing.T) {
 			t.Errorf("Register(%s) unexpected error = %v", name, err)
 		}
 	}
-	
+
 	// Test BuildAll
 	err := registry.BuildAll(rootCmd)
 	if err != nil {
 		t.Errorf("BuildAll() unexpected error = %v", err)
 	}
-	
+
 	// Verify commands were added to root
 	if len(rootCmd.Commands()) != len(commands) {
 		t.Errorf("BuildAll() added %d commands to root, want %d", len(rootCmd.Commands()), len(commands))
 	}
-	
+
 	// Verify each command was added correctly
 	for _, expectedName := range commands {
 		found := false
@@ -364,7 +364,7 @@ func TestCommandRegistryBuildAll(t *testing.T) {
 func TestCommandRegistryBuildAllWithFailingBuilder(t *testing.T) {
 	registry := NewCommandRegistry()
 	rootCmd := &cobra.Command{Use: "root"}
-	
+
 	// Register a command with a failing builder
 	info := CommandInfo{
 		Name: "failing-cmd",
@@ -376,7 +376,7 @@ func TestCommandRegistryBuildAllWithFailingBuilder(t *testing.T) {
 	if err != nil {
 		t.Errorf("Register() unexpected error = %v", err)
 	}
-	
+
 	// BuildAll should fail
 	err = registry.BuildAll(rootCmd)
 	if err == nil {
@@ -388,7 +388,7 @@ func TestCommandRegistryBuildAllWithFailingBuilder(t *testing.T) {
 
 func TestCommandRegistryGetCommandInfo(t *testing.T) {
 	registry := NewCommandRegistry()
-	
+
 	originalInfo := CommandInfo{
 		Name:        "info-test",
 		Category:    "testing",
@@ -398,12 +398,12 @@ func TestCommandRegistryGetCommandInfo(t *testing.T) {
 			return &cobra.Command{Use: "info-test"}
 		},
 	}
-	
+
 	err := registry.Register(originalInfo)
 	if err != nil {
 		t.Errorf("Register() unexpected error = %v", err)
 	}
-	
+
 	// Get command info
 	info, err := registry.GetCommandInfo("info-test")
 	if err != nil {
@@ -425,7 +425,7 @@ func TestCommandRegistryGetCommandInfo(t *testing.T) {
 			t.Errorf("GetCommandInfo() Priority = %d, want %d", info.Priority, originalInfo.Priority)
 		}
 	}
-	
+
 	// Test non-existent command
 	_, err = registry.GetCommandInfo("non-existent")
 	if err == nil {
@@ -439,31 +439,31 @@ func TestGlobalRegistryFunctions(t *testing.T) {
 	// Save original registry
 	originalRegistry := defaultRegistry
 	defer func() { defaultRegistry = originalRegistry }()
-	
+
 	// Reset to ensure clean state
 	defaultRegistry = nil
-	
+
 	// Test GetRegistry creates a new registry
 	registry := GetRegistry()
 	if registry == nil {
 		t.Error("GetRegistry() returned nil")
 	}
-	
+
 	// Second call should return same instance
 	registry2 := GetRegistry()
 	if registry != registry2 {
 		t.Error("GetRegistry() should return same instance on subsequent calls")
 	}
-	
+
 	// Test SetRegistry
 	customRegistry := NewCommandRegistry()
 	SetRegistry(customRegistry)
-	
+
 	registry3 := GetRegistry()
 	if registry3 != customRegistry {
 		t.Error("GetRegistry() should return custom registry after SetRegistry()")
 	}
-	
+
 	// Test RegisterCommand convenience function
 	info := CommandInfo{
 		Name: "global-test",
@@ -471,24 +471,24 @@ func TestGlobalRegistryFunctions(t *testing.T) {
 			return &cobra.Command{Use: "global-test"}
 		},
 	}
-	
+
 	err := RegisterCommand(info)
 	if err != nil {
 		t.Errorf("RegisterCommand() unexpected error = %v", err)
 	}
-	
+
 	// Verify command was registered
 	if customRegistry.GetRegisteredCount() != 1 {
 		t.Errorf("RegisterCommand() should register 1 command, got %d", customRegistry.GetRegisteredCount())
 	}
-	
+
 	// Test BuildAllCommands convenience function
 	rootCmd := &cobra.Command{Use: "root"}
 	err = BuildAllCommands(rootCmd)
 	if err != nil {
 		t.Errorf("BuildAllCommands() unexpected error = %v", err)
 	}
-	
+
 	if len(rootCmd.Commands()) != 1 {
 		t.Errorf("BuildAllCommands() should add 1 command to root, got %d", len(rootCmd.Commands()))
 	}

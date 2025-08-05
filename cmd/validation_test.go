@@ -455,7 +455,7 @@ func TestValidationResult(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.validationFunc()
-			
+
 			if result.Field != tt.wantField {
 				t.Errorf("ValidationResult.Field = %v, want %v", result.Field, tt.wantField)
 			}
@@ -489,7 +489,7 @@ func TestValidateMultipleFields(t *testing.T) {
 			name: "some validations fail",
 			validations: []func() ValidationResult{
 				createFieldValidator("field1", "value1", func() error { return nil }),
-				createFieldValidator("field2", "value2", func() error { 
+				createFieldValidator("field2", "value2", func() error {
 					return formatValidationError("field2", "value2", "invalid")
 				}),
 			},
@@ -507,11 +507,11 @@ func TestValidateMultipleFields(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			results := validateMultipleFields(tt.validations)
-			
+
 			if len(results) != tt.wantResultsLen {
 				t.Errorf("validateMultipleFields() returned %d results, want %d", len(results), tt.wantResultsLen)
 			}
-			
+
 			allValid := true
 			for _, result := range results {
 				if !result.Valid {
@@ -519,7 +519,7 @@ func TestValidateMultipleFields(t *testing.T) {
 					break
 				}
 			}
-			
+
 			if allValid != tt.wantAllValid {
 				t.Errorf("validateMultipleFields() allValid = %v, want %v", allValid, tt.wantAllValid)
 			}

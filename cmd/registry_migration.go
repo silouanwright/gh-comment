@@ -9,11 +9,11 @@ import (
 
 // CommandCategories defines standard command categories for consistent organization
 const (
-	CategoryCore    = "core"      // Primary commenting operations (add, review, list)
-	CategoryManage  = "manage"    // Comment management (edit, resolve, react)
-	CategoryAdmin   = "admin"     // Administrative tasks (config, export)
-	CategoryUtility = "utility"   // Helper commands (lines, prompts)
-	CategoryTest    = "test"      // Testing and integration commands
+	CategoryCore    = "core"    // Primary commenting operations (add, review, list)
+	CategoryManage  = "manage"  // Comment management (edit, resolve, react)
+	CategoryAdmin   = "admin"   // Administrative tasks (config, export)
+	CategoryUtility = "utility" // Helper commands (lines, prompts)
+	CategoryTest    = "test"    // Testing and integration commands
 )
 
 // CommandPriorities defines standard priority levels for help display ordering
@@ -55,13 +55,13 @@ func RegisterCoreCommands(registry CommandRegistry) error {
 			Builder:     buildBatchCommand,
 		},
 	}
-	
+
 	for _, info := range coreCommands {
 		if err := registry.Register(info); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -104,13 +104,13 @@ func RegisterManagementCommands(registry CommandRegistry) error {
 			Builder:     buildClosePendingReviewCommand,
 		},
 	}
-	
+
 	for _, info := range managementCommands {
 		if err := registry.Register(info); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -132,13 +132,13 @@ func RegisterAdminCommands(registry CommandRegistry) error {
 			Builder:     buildExportCommand,
 		},
 	}
-	
+
 	for _, info := range adminCommands {
 		if err := registry.Register(info); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -160,13 +160,13 @@ func RegisterUtilityCommands(registry CommandRegistry) error {
 			Builder:     buildPromptsCommand,
 		},
 	}
-	
+
 	for _, info := range utilityCommands {
 		if err := registry.Register(info); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -181,13 +181,13 @@ func RegisterTestCommands(registry CommandRegistry) error {
 			Builder:     buildTestIntegrationCommand,
 		},
 	}
-	
+
 	for _, info := range testCommands {
 		if err := registry.Register(info); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -200,13 +200,13 @@ func RegisterAllCommands(registry CommandRegistry) error {
 		RegisterUtilityCommands,
 		RegisterTestCommands,
 	}
-	
+
 	for _, registerFunc := range registrationFunctions {
 		if err := registerFunc(registry); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -293,7 +293,7 @@ func buildConfigCommand() *cobra.Command {
 		Use:   "config",
 		Short: "Manage configuration files and settings",
 	}
-	
+
 	// Add subcommands (in a real implementation, these would be built from the original)
 	// For now, returning the parent command structure
 	return cmd
