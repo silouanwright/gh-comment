@@ -163,34 +163,53 @@ func runList(cmd *cobra.Command, args []string) error {
 		listClient = client
 	}
 
-	// Validate and parse filtering flags
-	if err := validateAndParseFilters(); err != nil {
+	// Parse and validate command arguments
+	repository, pr, err := parseListArguments(args)
+	if err != nil {
 		return err
 	}
 
-	var pr int
-	var repository string
-	var err error
+	// Fetch and filter comments based on criteria
+	filteredComments, err := fetchAndFilterComments(listClient, repository, pr)
+	if err != nil {
+		return err
+	}
+
+	// Format and display the output
+	return formatListOutput(filteredComments, pr)
+}
+
+// parseListArguments handles validation and parsing of command arguments and flags
+func parseListArguments(args []string) (repository string, pr int, err error) {
+	// Validate and parse filtering flags
+	if err := validateAndParseFilters(); err != nil {
+		return "", 0, err
+	}
 
 	// Parse PR argument using centralized function
 	if len(args) == 1 {
 		pr, err = parsePositiveInt(args[0], "PR number")
 		if err != nil {
-			return err
+			return "", 0, err
 		}
 		// Get repository for explicitly provided PR
 		repository, err = getCurrentRepo()
 		if err != nil {
-			return err
+			return "", 0, err
 		}
 	} else {
 		// Auto-detect PR and repository using centralized function
 		repository, pr, err = getPRContext()
 		if err != nil {
-			return err
+			return "", 0, err
 		}
 	}
 
+	return repository, pr, nil
+}
+
+// fetchAndFilterComments handles verbose output, comment fetching, and filtering
+func fetchAndFilterComments(client github.GitHubAPI, repository string, pr int) ([]Comment, error) {
 	if verbose {
 		fmt.Printf("Repository: %s\n", repository)
 		fmt.Printf("PR: %d\n", pr)
@@ -205,14 +224,18 @@ func runList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Fetch comments
-	comments, err := fetchAllComments(listClient, repository, pr)
+	comments, err := fetchAllComments(client, repository, pr)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Filter comments
 	filteredComments := filterComments(comments)
+	return filteredComments, nil
+}
 
+// formatListOutput handles different output formats and display
+func formatListOutput(filteredComments []Comment, pr int) error {
 	// Handle different output formats
 	if idsOnly {
 		displayIDsOnly(filteredComments)
