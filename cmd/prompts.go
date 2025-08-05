@@ -48,7 +48,7 @@ var promptsCmd = &cobra.Command{
 		$ gh comment prompts performance-optimization
 
 		# Security-focused review prompt
-		$ gh comment prompts security-comprehensive
+		$ gh comment prompts security-audit
 
 		# Architecture review prompt
 		$ gh comment prompts architecture-review

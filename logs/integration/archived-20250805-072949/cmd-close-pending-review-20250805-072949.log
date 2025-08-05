@@ -1,0 +1,168 @@
+🧪 Testing: ./gh-comment close-pending-review 14 LGTM! Great work --event APPROVE
+Error: no pending review found on PR #14
+
+Note: This command only works with pending reviews created in GitHub's web interface.
+Use 'gh comment review' to create and submit reviews via CLI.
+Usage:
+  gh-comment close-pending-review [pr] [body] [flags]
+
+Examples:
+# Submit GUI-created pending review with approval
+$ gh comment close-pending-review 123 "LGTM! Great work" --event APPROVE
+
+# Submit with change requests
+$ gh comment close-pending-review 123 "Please address the comments" --event REQUEST_CHANGES
+
+# Submit as general comment
+$ gh comment close-pending-review 123 "Thanks for the updates" --event COMMENT
+
+# Submit with minimal body (auto-detect PR)
+$ gh comment close-pending-review "Looks good" --event APPROVE
+
+
+Flags:
+      --body string    Review summary body (default: empty)
+      --event string   Review event (APPROVE|REQUEST_CHANGES|COMMENT) (default: COMMENT) (default "COMMENT")
+  -h, --help           help for close-pending-review
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: no pending review found on PR #14
+
+Note: This command only works with pending reviews created in GitHub's web interface.
+Use 'gh comment review' to create and submit reviews via CLI.
+❌ FAILED: close-pending-review example 1
+
+🧪 Testing: ./gh-comment close-pending-review 14 Please address the comments --event REQUEST_CHANGES
+Error: no pending review found on PR #14
+
+Note: This command only works with pending reviews created in GitHub's web interface.
+Use 'gh comment review' to create and submit reviews via CLI.
+Usage:
+  gh-comment close-pending-review [pr] [body] [flags]
+
+Examples:
+# Submit GUI-created pending review with approval
+$ gh comment close-pending-review 123 "LGTM! Great work" --event APPROVE
+
+# Submit with change requests
+$ gh comment close-pending-review 123 "Please address the comments" --event REQUEST_CHANGES
+
+# Submit as general comment
+$ gh comment close-pending-review 123 "Thanks for the updates" --event COMMENT
+
+# Submit with minimal body (auto-detect PR)
+$ gh comment close-pending-review "Looks good" --event APPROVE
+
+
+Flags:
+      --body string    Review summary body (default: empty)
+      --event string   Review event (APPROVE|REQUEST_CHANGES|COMMENT) (default: COMMENT) (default "COMMENT")
+  -h, --help           help for close-pending-review
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: no pending review found on PR #14
+
+Note: This command only works with pending reviews created in GitHub's web interface.
+Use 'gh comment review' to create and submit reviews via CLI.
+❌ FAILED: close-pending-review example 2
+
+🧪 Testing: ./gh-comment close-pending-review 14 Thanks for the updates --event COMMENT
+Error: no pending review found on PR #14
+
+Note: This command only works with pending reviews created in GitHub's web interface.
+Use 'gh comment review' to create and submit reviews via CLI.
+Usage:
+  gh-comment close-pending-review [pr] [body] [flags]
+
+Examples:
+# Submit GUI-created pending review with approval
+$ gh comment close-pending-review 123 "LGTM! Great work" --event APPROVE
+
+# Submit with change requests
+$ gh comment close-pending-review 123 "Please address the comments" --event REQUEST_CHANGES
+
+# Submit as general comment
+$ gh comment close-pending-review 123 "Thanks for the updates" --event COMMENT
+
+# Submit with minimal body (auto-detect PR)
+$ gh comment close-pending-review "Looks good" --event APPROVE
+
+
+Flags:
+      --body string    Review summary body (default: empty)
+      --event string   Review event (APPROVE|REQUEST_CHANGES|COMMENT) (default: COMMENT) (default "COMMENT")
+  -h, --help           help for close-pending-review
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: no pending review found on PR #14
+
+Note: This command only works with pending reviews created in GitHub's web interface.
+Use 'gh comment review' to create and submit reviews via CLI.
+❌ FAILED: close-pending-review example 3
+
+🧪 Testing: ./gh-comment close-pending-review Looks good --event APPROVE
+Error: no pending review found on PR #14
+
+Note: This command only works with pending reviews created in GitHub's web interface.
+Use 'gh comment review' to create and submit reviews via CLI.
+Usage:
+  gh-comment close-pending-review [pr] [body] [flags]
+
+Examples:
+# Submit GUI-created pending review with approval
+$ gh comment close-pending-review 123 "LGTM! Great work" --event APPROVE
+
+# Submit with change requests
+$ gh comment close-pending-review 123 "Please address the comments" --event REQUEST_CHANGES
+
+# Submit as general comment
+$ gh comment close-pending-review 123 "Thanks for the updates" --event COMMENT
+
+# Submit with minimal body (auto-detect PR)
+$ gh comment close-pending-review "Looks good" --event APPROVE
+
+
+Flags:
+      --body string    Review summary body (default: empty)
+      --event string   Review event (APPROVE|REQUEST_CHANGES|COMMENT) (default: COMMENT) (default "COMMENT")
+  -h, --help           help for close-pending-review
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: no pending review found on PR #14
+
+Note: This command only works with pending reviews created in GitHub's web interface.
+Use 'gh comment review' to create and submit reviews via CLI.
+❌ FAILED: close-pending-review example 4
+

@@ -1,0 +1,14 @@
+🧪 Testing: ./gh-comment review 14 Security audit complete - critical issues found "
+./gh-comment review 14 Security audit complete - critical issues found if [[ 0 -eq 0 ]]; then
+    echo ✅ SUCCESS: review example 1
+    echo review:example_1:SUCCESS >> /Users/silouan.wright/repos/gh-comment/logs/integration/test-results-20250805-072949.txt
+else
+    echo ❌ FAILED: review example 1
+    echo review:example_1:FAILED >> /Users/silouan.wright/repos/gh-comment/logs/integration/test-results-20250805-072949.txt
+fi
+echo 
+
+# Example 2 from review help text
+echo 🧪 Testing: ./gh-comment review 14 Performance review - optimization opportunities identified "
+/Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-072949/review_examples.sh: line 19: syntax error near unexpected token `then'
+/Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-072949/review_examples.sh: line 19: `if [[ $? -eq 0 ]]; then'

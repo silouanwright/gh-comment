@@ -1,0 +1,14 @@
+pr: 14
+review:
+  body: "Integration test review - comprehensive analysis"
+  event: "COMMENT"
+  comments:
+    - file: "src/api.js"
+      line: 6
+      message: "🔧 Good use of middleware pattern for rate limiting"
+    - file: "src/main.go"
+      line: 4
+      message: "📝 Consider adding error handling for empty arguments"
+    - file: "tests/auth_test.js"
+      line: 2
+      message: "♻️ Add more comprehensive test coverage"

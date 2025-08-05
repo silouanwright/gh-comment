@@ -96,12 +96,12 @@ var rootCmd = &cobra.Command{
 		# Review Comments (Line-Specific Code Feedback)
 		$ gh comment review 123 "Code review complete" \
 		  --comment src/api.js:42:"Add rate limiting middleware" \
-		  --comment auth.go:15:25:"Refactor for OAuth2 compliance" \
+		  --comment src/main.go:3:4:"Refactor for OAuth2 compliance" \
 		  --event REQUEST_CHANGES
 
 		# Advanced Filtering (Power User Features)
 		$ gh comment list 123 --author "senior-dev*" --status open --since "1 week ago"
-		$ gh comment list 123 --type review --author "*@company.com" --since "deployment-date"
+		$ gh comment list 123 --type review --author "*@company.com" --since "2024-01-01"
 		$ gh comment list 123 --status resolved --until "2024-01-01" --quiet
 
 		# Review Workflows (Professional Code Review)
@@ -112,7 +112,7 @@ var rootCmd = &cobra.Command{
 		  --event REQUEST_CHANGES
 
 		$ gh comment review 123 "Security audit findings" \
-		  --comment auth.go:67:"Use crypto.randomBytes(32) for tokens" \
+		  --comment src/api.js:8:"Use crypto.randomBytes(32) for tokens" \
 		  --comment api.js:134:140:"Extract business logic to service layer"
 
 		# Batch Operations (Systematic Reviews)
@@ -137,7 +137,7 @@ var rootCmd = &cobra.Command{
 		$ gh comment add 123 src/api.js 42 "[SUGGEST:+2: const timeout = 5000;]"
 		$ gh comment add 123 src/utils.js 15 "[SUGGEST:-1: import { validateInput } from './validators';]"
 		$ for file in $(git diff --name-only); do gh comment add 123 "$file" 1 "Auto-generated security scan results"; done
-		$ gh comment list --since "deployment-date" --type review --status open | review-blocker-analysis.sh
+		$ gh comment list --since "1 week ago" --type review --status open | review-blocker-analysis.sh
 
 		# Advanced Comment Management
 		$ gh comment edit 2246362251 "Updated: This rate limiting logic handles concurrent requests properly"

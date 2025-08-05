@@ -1,0 +1,136 @@
+🧪 Testing: ./gh-comment list 14                           List all comments on PR #14
+Error: accepts at most 1 arg(s), received 6
+Usage:
+  gh-comment list [pr] [flags]
+
+Examples:
+# Review team analysis and metrics
+$ gh comment list 123 --author "senior-dev*" --status open --since "1 week ago"
+$ gh comment list 123 --type review --author "*@company.com" --since "2024-01-01"
+
+# Security audit and compliance tracking
+$ gh comment list 123 --author "security-team*" --since "2024-01-01" --type review
+$ gh comment list 123 --author "bot*" --since "3 days ago" --quiet
+
+# Structured output for automation
+$ gh comment list 123 --format json | jq '.comments[].id'
+$ gh comment list 123 --ids-only | xargs -I {} gh comment resolve {}
+$ gh comment list 123 --format json --author "security*" > security-comments.json
+
+# Code review workflow optimization
+$ gh comment list 123 --status open --since "1 month ago" --author "lead*"
+$ gh comment list 123 --until "2024-12-31" --type issue --status resolved
+
+# Team communication patterns
+$ gh comment list 123 --author "qa*" --since "3 days ago" --type review
+$ gh comment list 123 --author "*@contractor.com" --status open --since "1 month ago"
+
+# Blocker identification and resolution tracking
+$ gh comment list 123 --author "architect*" --status open --type review
+$ gh comment list 123 --since "critical-bug-report" --author "oncall*" --status resolved
+
+# Performance review analysis
+$ gh comment list 123 --author "performance-team" --since "load-test-date" --type review
+$ gh comment list 123 --status open --author "*perf*" --since "1 week ago"
+
+# Export for further analysis and automation
+$ gh comment list 123 --author "all-reviewers*" --since "quarter-start" --quiet | process-review-data.sh
+$ gh comment list 123 --ids-only --type review --status open | review-metrics.sh
+
+
+Flags:
+      --author string            Filter comments by author (supports wildcards: 'user*', '*@company.com') (default: all authors)
+      --format string            Output format (default|json) (default: default) (default "default")
+  -h, --help                     help for list
+      --hide-authors             Hide author names for privacy (default: false)
+      --ids-only                 Output only comment IDs (one per line) (default: false)
+  -q, --quiet                    Minimal output without URLs and IDs (default: false, shows full context)
+      --resolved                 Include resolved comments (legacy, use --status instead) (default: false)
+      --resolved-status string   Filter by resolution status (pending|resolved|dismissed) (default: all)
+      --since string             Show comments created after date (e.g., '2024-01-01', '1 week ago', '3 days ago') (default: all dates)
+      --status string            Filter by comment status (open|resolved|all) (default: all) (default "all")
+      --type string              Filter by comment type (issue|review|all) (default: all) (default "all")
+      --unresolved               Show only unresolved comments (legacy, use --status instead) (default: false)
+      --until string             Show comments created before date (e.g., '2024-12-31', '1 day ago') (default: all dates)
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: accepts at most 1 arg(s), received 6
+❌ FAILED: -R, example 1
+
+🧪 Testing: ./gh-comment add 14 Looks good overall!     Add general discussion comment
+Error: accepts between 1 and 2 arg(s), received 6
+Usage:
+  gh-comment add [pr] <comment> [flags]
+
+Examples:
+# General PR discussion comments
+$ gh comment add 123 "LGTM! Just a few minor suggestions below"
+$ gh comment add 123 "Thanks for addressing the security concerns"
+$ gh comment add 123 "This looks great - ready to merge after CI passes"
+
+# Multi-line comments with --message flags
+$ gh comment add 123 -m "Overall this is excellent work!" -m "The architecture is clean and the tests are comprehensive"
+
+# Auto-detect PR from current branch
+$ gh comment add "Looks good to merge!"
+
+# Approval with context
+$ gh comment add 123 "Approved! The performance improvements in this PR will make a huge difference"
+
+# Request for changes with discussion
+$ gh comment add 123 "Could you address the failing tests? Otherwise looks good to go"
+
+# Comments with suggestion syntax (auto-expands to GitHub suggestion blocks)
+$ gh comment add 123 "Consider using async/await: [SUGGEST: const result = await fetchData();]"
+$ gh comment add 123 "Add error handling above: [SUGGEST:-1: try {]"
+$ gh comment add 123 "Add timeout below: [SUGGEST:+2: const timeout = 5000;]"
+
+
+Flags:
+  -h, --help                    help for add
+  -m, --message stringArray     Add message (can be used multiple times for multi-line comments) (default: empty)
+      --no-expand-suggestions   Disable automatic expansion of [SUGGEST:] and <<<SUGGEST>>> syntax (default: false)
+
+Global Flags:
+      --config string   Configuration file path (default: search standard locations)
+      --dry-run         Show what would be commented without executing (default: false)
+      --no-color        Disable colored output (default: false)
+  -p, --pr int          PR number (default: auto-detect from branch)
+  -R, --repo string     Repository in owner/repo format (default: auto-detect from current directory)
+      --validate        Validate line exists in diff before commenting (default: true) (default true)
+  -v, --verbose         Show detailed API interactions (default: false)
+
+Error: accepts between 1 and 2 arg(s), received 6
+❌ FAILED: -R, example 2
+
+🧪 Testing: ./gh-comment add 14 LGTM! Just waiting for CI to pass
+✓ Added comment to PR #14 (ID: 3155021876)
+✅ SUCCESS: -R, example 3
+
+🧪 Testing: ./gh-comment add 14 Thanks for addressing the security concerns
+✓ Added comment to PR #14 (ID: 3155021945)
+✅ SUCCESS: -R, example 4
+
+🧪 Testing: ./gh-comment review-reply  Good point, Ill make those changes""
+./gh-comment review-reply $PR_NUM45 "Good point, Ill make those changes
+if [[ 0 -eq 0 ]]; then
+    echo ✅ SUCCESS: -R, example 5
+    echo -R,:example_5:SUCCESS >> /Users/silouan.wright/repos/gh-comment/logs/integration/test-results-20250805-072949.txt
+else
+    echo ❌ FAILED: -R, example 5
+    echo -R,:example_5:FAILED >> /Users/silouan.wright/repos/gh-comment/logs/integration/test-results-20250805-072949.txt
+fi
+echo 
+
+# Example 6 from -R, help text
+echo 🧪 Testing: ./gh-comment review 14 Code review complete "
+/Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-072949/-R,_examples.sh: line 67: syntax error near unexpected token `then'
+/Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-072949/-R,_examples.sh: line 67: `if [[ $? -eq 0 ]]; then'
