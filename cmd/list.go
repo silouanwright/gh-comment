@@ -57,7 +57,7 @@ var listCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		# Review team analysis and metrics
 		$ gh comment list 123 --author "senior-dev*" --status open --since "1 week ago"
-		$ gh comment list 123 --type review --author "*@company.com" --since "deployment-date"
+		$ gh comment list 123 --type review --author "*@company.com" --since "2024-01-01"
 
 		# Security audit and compliance tracking
 		$ gh comment list 123 --author "security-team*" --since "2024-01-01" --type review
@@ -69,11 +69,11 @@ var listCmd = &cobra.Command{
 		$ gh comment list 123 --format json --author "security*" > security-comments.json
 
 		# Code review workflow optimization
-		$ gh comment list 123 --status open --since "sprint-start" --author "lead*"
-		$ gh comment list 123 --until "release-date" --type issue --status resolved
+		$ gh comment list 123 --status open --since "1 month ago" --author "lead*"
+		$ gh comment list 123 --until "2024-12-31" --type issue --status resolved
 
 		# Team communication patterns
-		$ gh comment list 123 --author "qa*" --since "last-deployment" --type review
+		$ gh comment list 123 --author "qa*" --since "3 days ago" --type review
 		$ gh comment list 123 --author "*@contractor.com" --status open --since "1 month ago"
 
 		# Blocker identification and resolution tracking
