@@ -54,59 +54,59 @@
 		<div id="topbar">
 			<div id="nav">
 				<select id="files">
-
+				
 				<option value="file0">github.com/silouanwright/gh-comment/cmd/add.go (66.2%)</option>
-
-				<option value="file1">github.com/silouanwright/gh-comment/cmd/batch.go (81.4%)</option>
-
+				
+				<option value="file1">github.com/silouanwright/gh-comment/cmd/batch.go (82.2%)</option>
+				
 				<option value="file2">github.com/silouanwright/gh-comment/cmd/client_helper.go (100.0%)</option>
-
+				
 				<option value="file3">github.com/silouanwright/gh-comment/cmd/close-pending-review.go (90.4%)</option>
-
+				
 				<option value="file4">github.com/silouanwright/gh-comment/cmd/colors.go (96.9%)</option>
-
+				
 				<option value="file5">github.com/silouanwright/gh-comment/cmd/config.go (91.0%)</option>
-
+				
 				<option value="file6">github.com/silouanwright/gh-comment/cmd/config_command.go (88.3%)</option>
-
+				
 				<option value="file7">github.com/silouanwright/gh-comment/cmd/edit.go (80.5%)</option>
-
+				
 				<option value="file8">github.com/silouanwright/gh-comment/cmd/export.go (84.9%)</option>
-
-				<option value="file9">github.com/silouanwright/gh-comment/cmd/helpers.go (98.5%)</option>
-
+				
+				<option value="file9">github.com/silouanwright/gh-comment/cmd/helpers.go (88.2%)</option>
+				
 				<option value="file10">github.com/silouanwright/gh-comment/cmd/integration_testing.go (65.0%)</option>
-
+				
 				<option value="file11">github.com/silouanwright/gh-comment/cmd/lines.go (89.2%)</option>
-
-				<option value="file12">github.com/silouanwright/gh-comment/cmd/list.go (88.7%)</option>
-
+				
+				<option value="file12">github.com/silouanwright/gh-comment/cmd/list.go (88.9%)</option>
+				
 				<option value="file13">github.com/silouanwright/gh-comment/cmd/prompts.go (92.9%)</option>
-
+				
 				<option value="file14">github.com/silouanwright/gh-comment/cmd/react.go (68.0%)</option>
-
+				
 				<option value="file15">github.com/silouanwright/gh-comment/cmd/resolve.go (84.4%)</option>
-
+				
 				<option value="file16">github.com/silouanwright/gh-comment/cmd/review-reply.go (59.0%)</option>
-
+				
 				<option value="file17">github.com/silouanwright/gh-comment/cmd/review.go (81.7%)</option>
-
+				
 				<option value="file18">github.com/silouanwright/gh-comment/cmd/root.go (76.2%)</option>
-
+				
 				<option value="file19">github.com/silouanwright/gh-comment/cmd/suggestions.go (98.0%)</option>
-
+				
 				</select>
 			</div>
 			<div id="legend">
 				<span>not tracked</span>
-
+			
 				<span class="cov0">not covered</span>
 				<span class="cov8">covered</span>
-
+			
 			</div>
 		</div>
 		<div id="content">
-
+		
 		<pre class="file" id="file0" style="display: none">package cmd
 
 import (
@@ -311,7 +311,7 @@ func runAdd(cmd *cobra.Command, args []string) error <span class="cov8" title="1
         return nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file1" style="display: none">package cmd
 
 import (
@@ -397,18 +397,36 @@ func runBatch(cmd *cobra.Command, args []string) error <span class="cov8" title=
                 <span class="cov0" title="0">batchClient = client</span>
         }
 
-        // Parse PR number
-        <span class="cov8" title="1">prArg := args[0]
-        pr, err := strconv.Atoi(prArg)
+        // Validate and prepare batch configuration
+        <span class="cov8" title="1">owner, repoName, pr, config, configFile, err := validateBatchConfig(args)
         if err != nil </span><span class="cov8" title="1">{
-                return formatValidationError("PR number", prArg, "must be a valid integer")
+                return err
+        }</span>
+
+        // Handle verbose output and dry run
+        <span class="cov8" title="1">isDryRun := processBatchItems(config, configFile, pr)
+        if isDryRun </span><span class="cov8" title="1">{
+                return nil // Dry run completed successfully
+        }</span>
+
+        // Execute the batch processing
+        <span class="cov8" title="1">return handleBatchResults(batchClient, owner, repoName, pr, config)</span>
+}
+
+// validateBatchConfig handles parsing, validation, and setup of batch configuration
+func validateBatchConfig(args []string) (owner, repoName string, pr int, config *BatchConfig, configFile string, err error) <span class="cov8" title="1">{
+        // Parse PR number
+        prArg := args[0]
+        pr, err = strconv.Atoi(prArg)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", "", 0, nil, "", formatValidationError("PR number", prArg, "must be a valid integer")
         }</span>
 
         // Read and parse configuration file
-        <span class="cov8" title="1">configFile := args[1]
-        config, err := readBatchConfig(configFile)
+        <span class="cov8" title="1">configFile = args[1]
+        config, err = readBatchConfig(configFile)
         if err != nil </span><span class="cov8" title="1">{
-                return fmt.Errorf("failed to read config file: %w", err)
+                return "", "", 0, nil, "", fmt.Errorf("failed to read config file: %w", err)
         }</span>
 
         // Override PR and repo from config if specified
@@ -425,24 +443,34 @@ func runBatch(cmd *cobra.Command, args []string) error <span class="cov8" title=
         <span class="cov8" title="1">if repository == "" </span><span class="cov0" title="0">{
                 repository, pr, err = getPRContext()
                 if err != nil </span><span class="cov0" title="0">{
-                        return err
+                        return "", "", 0, nil, "", err
                 }</span>
         }
 
         // Validate repository name
         <span class="cov8" title="1">if err := validateRepositoryName(repository); err != nil </span><span class="cov8" title="1">{
-                return err
+                return "", "", 0, nil, "", err
         }</span>
 
         // Parse owner/repo
         <span class="cov8" title="1">parts := strings.Split(repository, "/")
         if len(parts) != 2 </span><span class="cov0" title="0">{
-                return fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
+                return "", "", 0, nil, "", fmt.Errorf("invalid repository format: %s (expected owner/repo)", repository)
         }</span>
-        <span class="cov8" title="1">owner, repoName := parts[0], parts[1]
+        <span class="cov8" title="1">owner, repoName = parts[0], parts[1]
 
+        return owner, repoName, pr, config, configFile, nil</span>
+}
+
+// processBatchItems handles verbose output and dry run logic
+// Returns true if this is a dry run (caller should exit), false otherwise
+func processBatchItems(config *BatchConfig, configFile string, pr int) bool <span class="cov8" title="1">{
         if verbose </span><span class="cov8" title="1">{
-                fmt.Printf("Repository: %s\n", repository)
+                repository := repo
+                if config.Repo != "" </span><span class="cov0" title="0">{
+                        repository = config.Repo
+                }</span>
+                <span class="cov8" title="1">fmt.Printf("Repository: %s\n", repository)
                 fmt.Printf("PR: %d\n", pr)
                 fmt.Printf("Config file: %s\n", configFile)
                 fmt.Printf("Comments to process: %d\n", len(config.Comments))
@@ -460,12 +488,16 @@ func runBatch(cmd *cobra.Command, args []string) error <span class="cov8" title=
                 <span class="cov8" title="1">if config.Review != nil </span><span class="cov0" title="0">{
                         fmt.Printf("Would create review with event: %s\n", config.Review.Event)
                 }</span>
-                <span class="cov8" title="1">return nil</span>
+                <span class="cov8" title="1">return true</span> // Indicate dry run was performed
         }
 
-        // Process comments
-        <span class="cov8" title="1">return processBatchComments(batchClient, owner, repoName, pr, config)</span>
+        <span class="cov8" title="1">return false</span>
 }
+
+// handleBatchResults executes the final batch processing
+func handleBatchResults(client github.GitHubAPI, owner, repoName string, pr int, config *BatchConfig) error <span class="cov8" title="1">{
+        return processBatchComments(client, owner, repoName, pr, config)
+}</span>
 
 func readBatchConfig(configFile string) (*BatchConfig, error) <span class="cov8" title="1">{
         // Read file
@@ -549,10 +581,25 @@ func processBatchComments(client github.GitHubAPI, owner, repo string, pr int, c
 }
 
 func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config *BatchConfig) error <span class="cov8" title="1">{
+        // Validate and prepare review comments
+        reviewComments, err := validateReviewComments(client, owner, repo, pr, config)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Build the review input structure
+        <span class="cov8" title="1">reviewInput := buildReviewInput(config, reviewComments)
+
+        // Submit the review and handle results
+        return submitReviewWithComments(client, owner, repo, pr, reviewInput, len(reviewComments))</span>
+}
+
+// validateReviewComments validates review body and converts comments to review comment format
+func validateReviewComments(client github.GitHubAPI, owner, repo string, pr int, config *BatchConfig) ([]github.ReviewCommentInput, error) <span class="cov8" title="1">{
         // Validate review body if present
         if config.Review != nil &amp;&amp; config.Review.Body != "" </span><span class="cov8" title="1">{
                 if err := validateCommentBody(config.Review.Body); err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("review body validation failed: %w", err)
+                        return nil, fmt.Errorf("review body validation failed: %w", err)
                 }</span>
         }
 
@@ -562,13 +609,13 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
         for _, comment := range config.Comments </span><span class="cov8" title="1">{
                 // Validate comment message
                 if err := validateCommentBody(comment.Message); err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("comment validation failed: %w", err)
+                        return nil, fmt.Errorf("comment validation failed: %w", err)
                 }</span>
 
                 // Validate file path if present
                 <span class="cov8" title="1">if comment.File != "" </span><span class="cov8" title="1">{
                         if err := validateFilePath(comment.File); err != nil </span><span class="cov0" title="0">{
-                                return fmt.Errorf("file path validation failed: %w", err)
+                                return nil, fmt.Errorf("file path validation failed: %w", err)
                         }</span>
                 }
 
@@ -579,7 +626,7 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
                         }</span>
                         <span class="cov8" title="1">_, err := client.CreateIssueComment(owner, repo, pr, comment.Message)
                         if err != nil </span><span class="cov0" title="0">{
-                                return fmt.Errorf("failed to create issue comment: %w", err)
+                                return nil, fmt.Errorf("failed to create issue comment: %w", err)
                         }</span>
                         <span class="cov8" title="1">continue</span>
                 }
@@ -597,7 +644,7 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
                 if comment.Range != "" </span><span class="cov0" title="0">{
                         startLine, endLine, err := parseRange(comment.Range)
                         if err != nil </span><span class="cov0" title="0">{
-                                return fmt.Errorf("invalid range %s: %w", comment.Range, err)
+                                return nil, fmt.Errorf("invalid range %s: %w", comment.Range, err)
                         }</span>
                         <span class="cov0" title="0">reviewComment.StartLine = startLine
                         reviewComment.Line = endLine</span>
@@ -608,15 +655,19 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
                 // Validate line exists in diff if validation is enabled
                 <span class="cov8" title="1">if validateDiff </span><span class="cov0" title="0">{
                         if err := validateCommentLine(client, owner, repo, pr, reviewComment); err != nil </span><span class="cov0" title="0">{
-                                return fmt.Errorf("review comment validation failed: %w", err)
+                                return nil, fmt.Errorf("review comment validation failed: %w", err)
                         }</span>
                 }
 
                 <span class="cov8" title="1">reviewComments = append(reviewComments, reviewComment)</span>
         }
 
-        // Create the review
-        <span class="cov8" title="1">reviewInput := github.ReviewInput{
+        <span class="cov8" title="1">return reviewComments, nil</span>
+}
+
+// buildReviewInput creates the ReviewInput structure with default values
+func buildReviewInput(config *BatchConfig, reviewComments []github.ReviewCommentInput) github.ReviewInput <span class="cov8" title="1">{
+        reviewInput := github.ReviewInput{
                 Body:     config.Review.Body,
                 Event:    config.Review.Event,
                 Comments: reviewComments,
@@ -626,12 +677,17 @@ func processAsReview(client github.GitHubAPI, owner, repo string, pr int, config
                 reviewInput.Event = "COMMENT"
         }</span>
 
-        <span class="cov8" title="1">err := client.CreateReview(owner, repo, pr, reviewInput)
+        <span class="cov8" title="1">return reviewInput</span>
+}
+
+// submitReviewWithComments submits the review and handles success reporting
+func submitReviewWithComments(client github.GitHubAPI, owner, repo string, pr int, reviewInput github.ReviewInput, commentCount int) error <span class="cov8" title="1">{
+        err := client.CreateReview(owner, repo, pr, reviewInput)
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to create review: %w", err)
         }</span>
 
-        <span class="cov8" title="1">fmt.Printf("%s\n", ColorizeSuccess(fmt.Sprintf("Successfully created review with %d comments", len(reviewComments))))
+        <span class="cov8" title="1">fmt.Printf("%s\n", ColorizeSuccess(fmt.Sprintf("Successfully created review with %d comments", commentCount)))
         return nil</span>
 }
 
@@ -748,7 +804,7 @@ func parseRange(rangeStr string) (startLine, endLine int, err error) <span class
         <span class="cov8" title="1">return startLine, endLine, nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file2" style="display: none">package cmd
 
 import (
@@ -768,7 +824,7 @@ func createGitHubClient() (github.GitHubAPI, error) <span class="cov8" title="1"
         <span class="cov8" title="1">return github.NewRealClient()</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file3" style="display: none">package cmd
 
 import (
@@ -955,7 +1011,7 @@ func runClosePendingReview(cmd *cobra.Command, args []string) error <span class=
         return nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file4" style="display: none">package cmd
 
 import (
@@ -1184,7 +1240,7 @@ func ColorizeWarning(text string) string <span class="cov8" title="1">{
         <span class="cov8" title="1">return ColorWarning.Sprintf("⚠️ %s", text)</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file5" style="display: none">package cmd
 
 import (
@@ -1541,7 +1597,7 @@ func LoadGlobalConfig(configPath string) error <span class="cov8" title="1">{
         return nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file6" style="display: none">package cmd
 
 import (
@@ -1840,7 +1896,7 @@ func showConfigWarnings(config *Config) <span class="cov8" title="1">{
         }
 }
 </pre>
-
+		
 		<pre class="file" id="file7" style="display: none">package cmd
 
 import (
@@ -1968,7 +2024,7 @@ func runEdit(cmd *cobra.Command, args []string) error <span class="cov8" title="
         return nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file8" style="display: none">package cmd
 
 import (
@@ -2476,7 +2532,7 @@ func exportHTML(w io.Writer, comments []ExportComment, repo string, pr int) erro
         return err</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file9" style="display: none">package cmd
 
 import (
@@ -2541,27 +2597,51 @@ func formatActionableError(operation string, err error) error <span class="cov8"
         case containsAny(errStr, []string{"404", "Not Found"}):<span class="cov8" title="1">
                 return fmt.Errorf("resource not found during %s: %w\n\n💡 Suggestions:\n  • Verify the PR number exists and is accessible\n  • Check if the comment ID is valid\n  • Ensure you have permission to access this repository", operation, err)</span>
 
-        case containsAny(errStr, []string{"403", "Forbidden"}):<span class="cov8" title="1">
-                return fmt.Errorf("permission denied during %s: %w\n\n💡 Suggestions:\n  • Check if you have write access to the repository\n  • Verify your GitHub authentication with 'gh auth status'\n  • You cannot approve your own PR or comment on private repos without access", operation, err)</span>
+        case containsAny(errStr, []string{"403", "Forbidden", "Resource not accessible by integration"}):<span class="cov8" title="1">
+                return fmt.Errorf("permission denied during %s: %w\n\n💡 Suggestions:\n  • Check if you have write access to the repository\n  • Verify your GitHub authentication with 'gh auth status'\n  • You cannot approve your own PR or comment on private repos without access\n  • For organization repos, check if your token has the required scopes", operation, err)</span>
 
-        case containsAny(errStr, []string{"401", "Unauthorized"}):<span class="cov8" title="1">
-                return fmt.Errorf("authentication failed during %s: %w\n\n💡 Suggestions:\n  • Run 'gh auth login' to authenticate with GitHub\n  • Check if your token has expired\n  • Verify you're authenticated with the correct GitHub account", operation, err)</span>
+        case containsAny(errStr, []string{"401", "Unauthorized", "Bad credentials"}):<span class="cov8" title="1">
+                return fmt.Errorf("authentication failed during %s: %w\n\n💡 Suggestions:\n  • Run 'gh auth login' to authenticate with GitHub\n  • Check if your token has expired with 'gh auth status'\n  • Verify you're authenticated with the correct GitHub account\n  • For personal access tokens, ensure they haven't been revoked", operation, err)</span>
 
-        case containsAny(errStr, []string{"rate limit", "rate_limit", "too many requests"}):<span class="cov8" title="1">
-                return fmt.Errorf("rate limit exceeded during %s: %w\n\n💡 Suggestions:\n  • Wait a few minutes before trying again\n  • Use authenticated requests (ensure 'gh auth status' shows logged in)\n  • Consider reducing the frequency of API calls", operation, err)</span>
+        case containsAny(errStr, []string{"rate limit", "rate_limit", "too many requests", "API rate limit exceeded"}):<span class="cov8" title="1">
+                return fmt.Errorf("rate limit exceeded during %s: %w\n\n💡 Suggestions:\n  • Wait until your rate limit resets (check headers or try in 1 hour)\n  • Use authenticated requests (ensure 'gh auth status' shows logged in)\n  • Consider reducing the frequency of API calls\n  • Check current rate limit: gh api rate_limit", operation, err)</span>
 
-        case containsAny(errStr, []string{"500", "502", "503", "Internal Server Error", "Bad Gateway", "Service Unavailable"}):<span class="cov8" title="1">
-                return fmt.Errorf("GitHub server error during %s: %w\n\n💡 Suggestions:\n  • This is a temporary GitHub server issue\n  • Try again in a few minutes\n  • Check GitHub's status page at https://status.github.com", operation, err)</span>
+        case containsAny(errStr, []string{"500", "502", "503", "504", "Internal Server Error", "Bad Gateway", "Service Unavailable", "Gateway Timeout"}):<span class="cov8" title="1">
+                return fmt.Errorf("GitHub server error during %s: %w\n\n💡 Suggestions:\n  • This is a temporary GitHub server issue\n  • Try again in a few minutes with exponential backoff\n  • Check GitHub's status page at https://status.github.com\n  • For 504 errors, try smaller batch sizes if applicable", operation, err)</span>
 
-        case containsAny(errStr, []string{"network", "timeout", "connection"}):<span class="cov8" title="1">
-                return fmt.Errorf("network error during %s: %w\n\n💡 Suggestions:\n  • Check your internet connection\n  • Try again in a moment\n  • Verify GitHub is accessible from your network", operation, err)</span>
+        case containsAny(errStr, []string{"timeout", "context deadline exceeded", "request timeout"}):<span class="cov8" title="1">
+                return fmt.Errorf("network timeout during %s: %w\n\n💡 Suggestions:\n  • Check your internet connection stability\n  • Try again with a more stable network connection\n  • For large operations, consider breaking them into smaller chunks\n  • Increase timeout settings if configurable", operation, err)</span>
 
-        case containsAny(errStr, []string{"No subschema in oneOf matched", "invalid request"}):<span class="cov8" title="1">
-                return fmt.Errorf("invalid request format during %s: %w\n\n💡 Suggestions:\n  • Check the command syntax in --help\n  • Verify all required arguments are provided\n  • For line comments, ensure the line exists in the PR diff", operation, err)</span>
+        case containsAny(errStr, []string{"connection refused", "connection reset", "network unreachable"}):<span class="cov0" title="0">
+                return fmt.Errorf("network connection error during %s: %w\n\n💡 Suggestions:\n  • Check your internet connection\n  • Verify GitHub is accessible from your network\n  • Check if you're behind a corporate firewall\n  • Try using a different network or VPN", operation, err)</span>
+
+        case containsAny(errStr, []string{"GraphQL", "Field", "doesn't exist", "Unknown field", "syntax error"}):<span class="cov0" title="0">
+                return fmt.Errorf("GraphQL API error during %s: %w\n\n💡 Suggestions:\n  • This is likely a bug in the tool's GraphQL queries\n  • Try using the REST API fallback if available\n  • Update to the latest version of the tool\n  • Report this issue to the tool maintainers", operation, err)</span>
+
+        case containsAny(errStr, []string{"secondary rate limit", "abuse detection"}):<span class="cov0" title="0">
+                return fmt.Errorf("GitHub abuse detection triggered during %s: %w\n\n💡 Suggestions:\n  • You're making requests too rapidly\n  • Wait at least 1 minute before retrying\n  • Implement delays between requests\n  • Reduce concurrent operations", operation, err)</span>
+
+        case containsAny(errStr, []string{"repository archived", "read-only", "archived"}):<span class="cov0" title="0">
+                return fmt.Errorf("repository is archived during %s: %w\n\n💡 Suggestions:\n  • You cannot modify archived repositories\n  • Ask the repository owner to unarchive it\n  • Fork the repository if you need to make changes", operation, err)</span>
+
+        case containsAny(errStr, []string{"token does not have", "insufficient scope", "scope"}):<span class="cov0" title="0">
+                return fmt.Errorf("insufficient token permissions during %s: %w\n\n💡 Suggestions:\n  • Your token lacks required scopes for this operation\n  • Re-authenticate with 'gh auth login' with broader scopes\n  • For personal access tokens, check required scopes in GitHub settings\n  • Ensure token has 'repo' scope for private repositories", operation, err)</span>
+
+        case containsAny(errStr, []string{"branch protection", "required status checks", "protected branch"}):<span class="cov0" title="0">
+                return fmt.Errorf("branch protection rules violated during %s: %w\n\n💡 Suggestions:\n  • The target branch has protection rules enabled\n  • Required status checks may need to pass first\n  • Ask a repository administrator for required permissions\n  • Check branch protection settings in repository settings", operation, err)</span>
+
+        case containsAny(errStr, []string{"pull request closed", "issue closed", "locked conversation"}):<span class="cov0" title="0">
+                return fmt.Errorf("target is closed or locked during %s: %w\n\n💡 Suggestions:\n  • You cannot comment on closed/locked issues or PRs\n  • Ask a maintainer to reopen if necessary\n  • Create a new issue or PR if appropriate", operation, err)</span>
+
+        case containsAny(errStr, []string{"No subschema in oneOf matched", "invalid request", "malformed"}):<span class="cov8" title="1">
+                return fmt.Errorf("invalid request format during %s: %w\n\n💡 Suggestions:\n  • Check the command syntax in --help\n  • Verify all required arguments are provided\n  • For line comments, ensure the line exists in the PR diff\n  • Check for special characters that need escaping", operation, err)</span>
+
+        case containsAny(errStr, []string{"review already submitted", "duplicate"}):<span class="cov0" title="0">
+                return fmt.Errorf("duplicate operation during %s: %w\n\n💡 Suggestions:\n  • This review or comment already exists\n  • Use 'gh comment list' to check existing comments\n  • Use edit operations to modify existing content\n  • Dismiss existing reviews before submitting new ones", operation, err)</span>
         }
 
         // Default case - provide general guidance
-        <span class="cov8" title="1">return fmt.Errorf("error during %s: %w\n\n💡 Suggestions:\n  • Check 'gh comment --help' for correct usage\n  • Verify PR number and file paths are correct\n  • Run with --verbose for more details", operation, err)</span>
+        <span class="cov8" title="1">return fmt.Errorf("error during %s: %w\n\n💡 Suggestions:\n  • Check 'gh comment --help' for correct usage\n  • Verify PR number and file paths are correct\n  • Run with --verbose for more details\n  • Check GitHub's API status at https://status.github.com", operation, err)</span>
 }
 
 // containsAny checks if a string contains any of the provided substrings (case-insensitive)
@@ -2681,7 +2761,7 @@ func groupConsecutiveLines(lines []int) []lineRange <span class="cov8" title="1"
         return ranges</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file10" style="display: none">package cmd
 
 import (
@@ -3012,7 +3092,7 @@ func (s *MockGitHubServer) handleCreateReview(w http.ResponseWriter, r *http.Req
         json.NewEncoder(w).Encode(review)</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file11" style="display: none">package cmd
 
 import (
@@ -3184,7 +3264,7 @@ func runLines(cmd *cobra.Command, args []string) error <span class="cov8" title=
         <span class="cov8" title="1">return nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file12" style="display: none">package cmd
 
 import (
@@ -3350,35 +3430,54 @@ func runList(cmd *cobra.Command, args []string) error <span class="cov8" title="
                 <span class="cov8" title="1">listClient = client</span>
         }
 
-        // Validate and parse filtering flags
-        <span class="cov8" title="1">if err := validateAndParseFilters(); err != nil </span><span class="cov8" title="1">{
+        // Parse and validate command arguments
+        <span class="cov8" title="1">repository, pr, err := parseListArguments(args)
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
-        <span class="cov8" title="1">var pr int
-        var repository string
-        var err error
+        // Fetch and filter comments based on criteria
+        <span class="cov8" title="1">filteredComments, err := fetchAndFilterComments(listClient, repository, pr)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        // Format and display the output
+        <span class="cov8" title="1">return formatListOutput(filteredComments, pr)</span>
+}
+
+// parseListArguments handles validation and parsing of command arguments and flags
+func parseListArguments(args []string) (repository string, pr int, err error) <span class="cov8" title="1">{
+        // Validate and parse filtering flags
+        if err := validateAndParseFilters(); err != nil </span><span class="cov8" title="1">{
+                return "", 0, err
+        }</span>
 
         // Parse PR argument using centralized function
-        if len(args) == 1 </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if len(args) == 1 </span><span class="cov8" title="1">{
                 pr, err = parsePositiveInt(args[0], "PR number")
                 if err != nil </span><span class="cov8" title="1">{
-                        return err
+                        return "", 0, err
                 }</span>
                 // Get repository for explicitly provided PR
                 <span class="cov8" title="1">repository, err = getCurrentRepo()
                 if err != nil </span><span class="cov0" title="0">{
-                        return err
+                        return "", 0, err
                 }</span>
         } else<span class="cov0" title="0"> {
                 // Auto-detect PR and repository using centralized function
                 repository, pr, err = getPRContext()
                 if err != nil </span><span class="cov0" title="0">{
-                        return err
+                        return "", 0, err
                 }</span>
         }
 
-        <span class="cov8" title="1">if verbose </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">return repository, pr, nil</span>
+}
+
+// fetchAndFilterComments handles verbose output, comment fetching, and filtering
+func fetchAndFilterComments(client github.GitHubAPI, repository string, pr int) ([]Comment, error) <span class="cov8" title="1">{
+        if verbose </span><span class="cov8" title="1">{
                 fmt.Printf("Repository: %s\n", repository)
                 fmt.Printf("PR: %d\n", pr)
                 fmt.Printf("Show resolved: %v\n", showResolved)
@@ -3392,14 +3491,18 @@ func runList(cmd *cobra.Command, args []string) error <span class="cov8" title="
         }
 
         // Fetch comments
-        <span class="cov8" title="1">comments, err := fetchAllComments(listClient, repository, pr)
+        <span class="cov8" title="1">comments, err := fetchAllComments(client, repository, pr)
         if err != nil </span><span class="cov8" title="1">{
-                return err
+                return nil, err
         }</span>
 
         // Filter comments
         <span class="cov8" title="1">filteredComments := filterComments(comments)
+        return filteredComments, nil</span>
+}
 
+// formatListOutput handles different output formats and display
+func formatListOutput(filteredComments []Comment, pr int) error <span class="cov8" title="1">{
         // Handle different output formats
         if idsOnly </span><span class="cov0" title="0">{
                 displayIDsOnly(filteredComments)
@@ -3901,7 +4004,7 @@ func displayCommentsJSON(comments []Comment, pr int) error <span class="cov8" ti
         return encoder.Encode(output)
 }</span>
 </pre>
-
+		
 		<pre class="file" id="file13" style="display: none">package cmd
 
 import (
@@ -4124,7 +4227,7 @@ func parseMarkdownPrompt(content []byte) (Prompt, error) <span class="cov8" titl
         }, nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file14" style="display: none">package cmd
 
 import (
@@ -4268,7 +4371,7 @@ func validateReaction(reaction string) bool <span class="cov8" title="1">{
         <span class="cov8" title="1">return false</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file15" style="display: none">package cmd
 
 import (
@@ -4372,7 +4475,7 @@ func runResolve(cmd *cobra.Command, args []string) error <span class="cov8" titl
         return nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file16" style="display: none">package cmd
 
 import (
@@ -4548,7 +4651,7 @@ func runReviewReply(cmd *cobra.Command, args []string) error <span class="cov8" 
         <span class="cov8" title="1">return nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file17" style="display: none">package cmd
 
 import (
@@ -5017,7 +5120,7 @@ func validateCommentLine(client github.GitHubAPI, owner, repo string, pr int, co
         <span class="cov8" title="1">return nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file18" style="display: none">package cmd
 
 import (
@@ -5277,7 +5380,7 @@ func getCurrentPR() (int, error) <span class="cov8" title="1">{
         <span class="cov0" title="0">return pr, nil</span>
 }
 </pre>
-
+		
 		<pre class="file" id="file19" style="display: none">package cmd
 
 import (
@@ -5399,7 +5502,7 @@ func expandMultilineSuggestions(message string) string <span class="cov8" title=
         })
 }
 </pre>
-
+		
 		</div>
 	</body>
 	<script>
