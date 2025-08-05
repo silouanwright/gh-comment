@@ -1,0 +1,31 @@
+defaults:
+    repository: ""
+    author: ""
+    pr: 0
+behavior:
+    dry_run: false
+    verbose: false
+    validate: true
+    no_expand_suggestions: false
+display:
+    format: table
+    color: auto
+    quiet: false
+filters:
+    status: all
+    type: all
+    since: ""
+    until: ""
+review:
+    event: COMMENT
+api:
+    timeout: 30
+    retry_count: 3
+    rate_limit_buffer: 10
+suggestions:
+    expand_by_default: true
+    max_offset: 999
+aliases: {}
+templates:
+    default_review_body: Code review complete
+    default_approval_message: LGTM! Ready to merge

@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	exportFormat   string
-	exportOutput   string
-	exportInclude  []string
+	exportFormat    string
+	exportOutput    string
+	exportInclude   []string
 	includeResolved bool
 
 	// Client for dependency injection (tests can override)
@@ -73,19 +73,19 @@ func init() {
 }
 
 type ExportComment struct {
-	ID         int       `json:"id"`
-	Type       string    `json:"type"`
-	Author     string    `json:"author"`
-	Body       string    `json:"body"`
-	File       string    `json:"file,omitempty"`
-	Line       int       `json:"line,omitempty"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at,omitempty"`
-	URL        string    `json:"url"`
-	DiffHunk   string    `json:"diff_hunk,omitempty"`
-	CommitID   string    `json:"commit_id,omitempty"`
-	InReplyTo  int       `json:"in_reply_to,omitempty"`
-	Resolved   bool      `json:"resolved,omitempty"`
+	ID        int       `json:"id"`
+	Type      string    `json:"type"`
+	Author    string    `json:"author"`
+	Body      string    `json:"body"`
+	File      string    `json:"file,omitempty"`
+	Line      int       `json:"line,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	URL       string    `json:"url"`
+	DiffHunk  string    `json:"diff_hunk,omitempty"`
+	CommitID  string    `json:"commit_id,omitempty"`
+	InReplyTo int       `json:"in_reply_to,omitempty"`
+	Resolved  bool      `json:"resolved,omitempty"`
 }
 
 func runExport(cmd *cobra.Command, args []string) error {
@@ -495,7 +495,7 @@ func exportHTML(w io.Writer, comments []ExportComment, repo string, pr int) erro
 %s
     </div>
 `, comment.Author, comment.File, comment.Line, comment.CreatedAt.Format("Jan 2, 2006 15:04"),
-   resolvedTag, strings.ReplaceAll(comment.Body, "\n", "<br>"), diffSection)
+				resolvedTag, strings.ReplaceAll(comment.Body, "\n", "<br>"), diffSection)
 		}
 	}
 

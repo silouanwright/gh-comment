@@ -62,11 +62,11 @@ func TestApplyListConfigDefaults(t *testing.T) {
 	originalOutputFormat := outputFormat
 	originalQuiet := quiet
 	originalConfig := globalConfig
-	
+
 	defer func() {
 		author = originalAuthor
 		status = originalStatus
-		listType = originalListType  
+		listType = originalListType
 		since = originalSince
 		until = originalUntil
 		outputFormat = originalOutputFormat
@@ -81,7 +81,7 @@ func TestApplyListConfigDefaults(t *testing.T) {
 		},
 		Filters: FiltersConfig{
 			Status: "open",
-			Type:   "review", 
+			Type:   "review",
 			Since:  "1 week ago",
 			Until:  "now",
 		},
@@ -94,7 +94,7 @@ func TestApplyListConfigDefaults(t *testing.T) {
 
 	// Use the actual listCmd which is already a *cobra.Command
 	cmd := listCmd
-	
+
 	// Reset variables to empty
 	author = ""
 	status = ""
@@ -122,7 +122,7 @@ func TestApplyListConfigDefaults(t *testing.T) {
 		// Simulate flags being explicitly set
 		cmd.Flags().Set("author", "explicit-author")
 		cmd.Flags().Set("status", "closed")
-		
+
 		// Reset variables to empty again
 		author = "explicit-author"
 		status = "closed"
@@ -146,12 +146,12 @@ func TestApplyListConfigDefaults(t *testing.T) {
 		// Test quiet format specifically
 		testConfig.Display.Format = "quiet"
 		testConfig.Display.Quiet = false // Set to false to test the quiet format logic
-		
+
 		// Reset variables
 		outputFormat = ""
 		quiet = false
 
-		// Apply defaults  
+		// Apply defaults
 		applyListConfigDefaults(cmd, []string{})
 
 		// Should set quiet = true when format is "quiet"

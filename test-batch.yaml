@@ -1,0 +1,6 @@
+pr: 12
+comments:
+  - type: issue
+    message: "This is a test comment from batch processing"
+  - type: issue
+    message: "Another batch comment with multiple lines\nThis is the second line"
