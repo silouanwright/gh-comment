@@ -36,16 +36,16 @@ var reviewCmd = &cobra.Command{
 	Example: heredoc.Doc(`
 		# Security-focused comprehensive review
 		$ gh comment review 123 "Security audit complete - critical issues found" \
-		  --comment auth.go:67:"Use crypto.randomBytes(32) instead of Math.random() for token generation" \
-		  --comment api.js:134:140:"This endpoint lacks rate limiting - vulnerable to DoS attacks" \
-		  --comment validation.js:25:"Input sanitization missing - SQL injection risk" \
+		  --comment src/api.js:6:"Use crypto.randomBytes(32) instead of Math.random() for token generation" \
+		  --comment src/api.js:8:10:"This endpoint lacks rate limiting - vulnerable to DoS attacks" \
+		  --comment tests/auth_test.js:2:"Input sanitization missing - SQL injection risk" \
 		  --event REQUEST_CHANGES
 
 		# Performance optimization review
 		$ gh comment review 123 "Performance review - optimization opportunities identified" \
-		  --comment database.py:89:95:"Extract this N+1 query to a single batch operation" \
-		  --comment cache.js:156:"Consider Redis clustering for this high-traffic endpoint" \
-		  --comment monitoring.go:78:"Add performance metrics for this critical path" \
+		  --comment src/main.go:3:4:"Extract this N+1 query to a single batch operation" \
+		  --comment src/api.js:4:"Consider Redis clustering for this high-traffic endpoint" \
+		  --comment src/main.go:4:"Add performance metrics for this critical path" \
 		  --event COMMENT
 
 		# Architecture migration approval

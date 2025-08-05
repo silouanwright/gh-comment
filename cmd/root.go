@@ -96,7 +96,7 @@ var rootCmd = &cobra.Command{
 		# Review Comments (Line-Specific Code Feedback)
 		$ gh comment review 123 "Code review complete" \
 		  --comment src/api.js:42:"Add rate limiting middleware" \
-		  --comment auth.go:15:25:"Refactor for OAuth2 compliance" \
+		  --comment src/main.go:3:4:"Refactor for OAuth2 compliance" \
 		  --event REQUEST_CHANGES
 
 		# Advanced Filtering (Power User Features)
@@ -112,7 +112,7 @@ var rootCmd = &cobra.Command{
 		  --event REQUEST_CHANGES
 
 		$ gh comment review 123 "Security audit findings" \
-		  --comment auth.go:67:"Use crypto.randomBytes(32) for tokens" \
+		  --comment src/api.js:8:"Use crypto.randomBytes(32) for tokens" \
 		  --comment api.js:134:140:"Extract business logic to service layer"
 
 		# Batch Operations (Systematic Reviews)
