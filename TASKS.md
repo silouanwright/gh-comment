@@ -54,28 +54,57 @@ This file tracks ongoing development tasks, features, and improvements for `gh-c
   - ✅ Comprehensive test suite with 400+ lines covering all registry functionality
 - **Impact**: **EXCEEDED EXPECTATIONS** - Better maintainability, extensibility, and professional architecture
 
-##### **2. 🎯 HIGH PRIORITY: Implement Optional Review Body Enhancement**
-**Status**: **APPROVED BY USER** - Ready for implementation (Option 3: make body optional)
+##### **2. ✅ COMPLETED: Implement Optional Review Body Enhancement** 
+**Status**: **COMPLETED & INTEGRATION TESTED** - Major UX improvement delivered
 - **Context**: GitHub API accepts review comments without meaningful root review body text
 - **User Requirement**: "Do you think we should enhance our review command so that the empty review, so allow for empty review body?"
-- **Approved Solution**: Make review body parameter optional instead of required
-- **Implementation Plan**: 
-  - [ ] Modify `cmd/review.go` to make body argument optional
-  - [ ] Update help text and examples to reflect optional body
-  - [ ] Add validation to ensure at least one comment exists when body is empty
-  - [ ] Test with real GitHub API to verify functionality
-- **User Rating**: A+ ("let's go with that")
-- **Effort**: Low-Medium (1-2 hours)
+- **Approved Solution**: Make review body parameter optional instead of required (Option 3: rated A+)
+- **Implementation Delivered**:
+  - [x] ✅ Modified `cmd/review.go` - body argument now optional with `[body]` syntax
+  - [x] ✅ Updated help text with new example showing comments-only reviews
+  - [x] ✅ Enhanced argument parsing to handle PR-only case with empty body
+  - [x] ✅ Improved error messaging for better user guidance
+- **Integration Testing Results**:
+  - [x] ✅ **Review with comments only**: `./gh-comment review 17 --comment README.md:9:"comment"` - Works perfectly
+  - [x] ✅ **Review with body + comments**: `./gh-comment review 17 "body" --comment file:line:"comment"` - Works perfectly  
+- **Files Modified**: `cmd/review.go` (enhanced argument parsing and help text)
+- **User Impact**: ✅ **MAJOR** - Flexible review creation matching GitHub's actual API capabilities
 
-##### **3. 🔧 FUTURE IMPROVEMENT: Fix FetchPRDiff Function Validation Bug**
-**Status**: **IDENTIFIED** - Lower priority enhancement
-- **Context**: `FetchPRDiff` returns empty `Lines` map, preventing accurate line validation
-- **Current Workaround**: Validation disabled by default (works perfectly)
-- **Future Enhancement**: Fix diff parsing to enable accurate validation when desired
-- **Files**: `cmd/review.go:376-467` contains `validateCommentLine` function
-- **Priority**: Low - current solution works flawlessly for all user scenarios
+##### **3. ✅ COMPLETED: Fix FetchPRDiff Function - Enhanced Diff Parser**
+**Status**: **COMPLETED & MAJOR IMPROVEMENT DELIVERED** - Lines command now shows accurate results
+- **Root Cause Fixed**: `parseDiff()` function was only extracting filenames, not line numbers from Git diffs
+- **Technical Problem**: `Lines` map remained empty, causing `lines` command to show "No commentable lines"
+- **Enhanced Implementation**:
+  - [x] ✅ Parse hunk headers (`@@ -old +new @@`) to extract starting line numbers
+  - [x] ✅ Track added lines (`+`) as commentable in the new file version
+  - [x] ✅ Track context lines (` `) as commentable (unchanged lines visible in diff)
+  - [x] ✅ Ignore deleted lines (`-`) from new file line count
+  - [x] ✅ Proper filename extraction from "diff --git a/file b/file" headers
+- **Integration Testing Results**:
+  - [x] ✅ **Lines command accuracy**: `./gh-comment lines 17 README.md` shows "Lines 6-13" (accurate)
+  - [x] ✅ **Lines command detail**: `./gh-comment lines 17 cmd/helpers.go` shows multiple accurate ranges
+  - [x] ✅ **Validation works**: `--validate` flag now correctly validates line numbers when enabled
+  - [x] ✅ **Validation rejects invalid**: Line 50 in README.md properly rejected with helpful error
+- **Files Modified**: `internal/github/real_client.go` (enhanced parseDiff function + strconv import)
+- **User Impact**: ✅ **MAJOR** - `lines` command provides accurate information, validation works correctly
 
-##### **4. ⚠️ CRITICAL: Branch Management Policy Implementation**
+##### **4. ✅ COMPLETED: UX Enhancement - Clear Command Guidance & Error Messaging**
+**Status**: **COMPLETED & USER FEEDBACK ADDRESSED** - Major UX improvements delivered
+- **User Feedback**: "you continue to use the add command and trying and you can and you continue to try to make line numbers on it... you need to use a review comment"
+- **Problem Identified**: Users confused about when to use `add` vs `review` commands for different comment types
+- **UX Improvements Delivered**:
+  - [x] ✅ **Add Command Help Text**: Added prominent ⚠️ IMPORTANT warning about line-specific comments
+  - [x] ✅ **Visual Examples**: Clear wrong ❌ vs right ✅ usage patterns in help text  
+  - [x] ✅ **Consistent Error Messages**: Maintains standard cobra format for consistency across commands
+  - [x] ✅ **Prompts Enhancement**: Added user-friendly `prompts list` alias (was only `--list` flag)
+- **Error Message Testing**:
+  - [x] ✅ **Standard Format**: Uses "accepts between 1 and 2 arg(s), received X" for consistency
+  - [x] ✅ **Help Text Display**: Error automatically shows usage examples and guidance
+  - [x] ✅ **All Tests Pass**: Maintains expected error message format across test suite
+- **Files Modified**: `cmd/add.go` (help text + examples), `cmd/prompts.go` (user-friendly alias)
+- **User Impact**: ✅ **MAJOR** - Clear guidance prevents command confusion, better user onboarding
+
+##### **5. ⚠️ CRITICAL: Branch Management Policy Implementation**
 **Status**: **DOCUMENTED** - Policy added to prevent future issues
 - **Lesson Learned**: "We just recovered critical help text fixes and features that were accidentally committed to integration branch instead of main"
 - **Policy Added**: **NEVER commit development work to integration branches**
@@ -506,6 +535,39 @@ done
 - [x] ✅ **Implement Complete Fix** - Changed default + config file to disable overly strict validation
 - [x] ✅ **Verify Resolution** - Line comments work perfectly on PR #17 with default settings
 - [x] ✅ **Document Branch Policy** - Added critical warning to CLAUDE.md about development workflow
+
+---
+
+## 🚨 CURRENT SESSION PRIORITIES - **AUGUST 5, 2025 (ONGOING)**
+
+### **🔧 Active Integration Issues Being Resolved**
+
+#### **1. 🔍 INVESTIGATING: Batch Command PR Number Detection Issue**
+**Status**: **IN PROGRESS** - Discovered during integration testing
+- **Issue**: `./gh-comment batch 17 test-batch.yaml --dry-run` fails with "failed to detect PR number"
+- **Root Cause**: Command expects PR as CLI argument but still tries to auto-detect instead of using provided value
+- **Error**: "failed to get current PR: gh execution failed: exit status 1 (try specifying --pr)"
+- **Analysis**: Inconsistency between CLI argument (PR=17) and internal PR detection logic
+- **Priority**: Medium - affects batch operation workflows
+- **Files**: `cmd/batch.go` - argument parsing logic needs investigation
+
+#### **2. 🛠️ CONTINUING: Integration Testing of Remaining Commands**
+**Status**: **IN PROGRESS** - Systematic command validation
+- **Completed Testing**: `add`, `review`, `lines`, `prompts`, `export` ✅
+- **Current Focus**: `batch`, `config`, `react`, `close-pending-review`, etc.
+- **Method**: Testing each command with real GitHub PRs to identify issues
+- **Goal**: Ensure 100% of commands work correctly in real-world scenarios
+
+#### **3. 📋 TASKS.MD UPDATE: Comprehensive Progress Documentation**
+**Status**: **IN PROGRESS** - Capturing all session achievements
+- **Major Breakthroughs to Document**:
+  - ✅ Line comment validation bug resolution
+  - ✅ Optional review body enhancement
+  - ✅ Enhanced diff parser (lines command fix)
+  - ✅ UX improvements with command guidance
+  - ✅ Prompts command enhancement
+- **Cross-Context Memory**: Adding tasks to TodoWrite for context preservation
+- **Priority**: High - prevents progress loss across conversation contexts
 
 ---
 
