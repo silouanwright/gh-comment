@@ -226,7 +226,7 @@ echo ""
 
 echo "💾 Committing test files..."
 git add .
-git commit --no-verify -m "feat: add test files for gh-comment integration testing
+git commit -m "feat: add test files for gh-comment integration testing
 
 - src/api.js: Express middleware with auth and rate limiting
 - src/main.go: Go CLI application with command processing
