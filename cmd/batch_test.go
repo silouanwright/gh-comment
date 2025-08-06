@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -160,12 +159,12 @@ comments:
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create temporary config file
-			tempDir, err := ioutil.TempDir("", "batch_test")
+			tempDir, err := os.MkdirTemp("", "batch_test")
 			assert.NoError(t, err)
 			defer os.RemoveAll(tempDir)
 
 			configFile := filepath.Join(tempDir, "config.yaml")
-			err = ioutil.WriteFile(configFile, []byte(tt.configContent), 0644)
+			err = os.WriteFile(configFile, []byte(tt.configContent), 0644)
 			assert.NoError(t, err)
 
 			// Update args to use the temp file
@@ -209,7 +208,7 @@ func TestBatchDryRun(t *testing.T) {
 	dryRun = true
 
 	// Create temporary config file
-	tempDir, err := ioutil.TempDir("", "batch_test")
+	tempDir, err := os.MkdirTemp("", "batch_test")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -222,7 +221,7 @@ comments:
 `
 
 	configFile := filepath.Join(tempDir, "config.yaml")
-	err = ioutil.WriteFile(configFile, []byte(configContent), 0644)
+	err = os.WriteFile(configFile, []byte(configContent), 0644)
 	assert.NoError(t, err)
 
 	err = runBatch(nil, []string{"123", configFile})
@@ -253,7 +252,7 @@ func TestBatchVerbose(t *testing.T) {
 	validateDiff = false // Disable validation for tests
 
 	// Create temporary config file
-	tempDir, err := ioutil.TempDir("", "batch_test")
+	tempDir, err := os.MkdirTemp("", "batch_test")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -266,7 +265,7 @@ comments:
 `
 
 	configFile := filepath.Join(tempDir, "config.yaml")
-	err = ioutil.WriteFile(configFile, []byte(configContent), 0644)
+	err = os.WriteFile(configFile, []byte(configContent), 0644)
 	assert.NoError(t, err)
 
 	err = runBatch(nil, []string{"123", configFile})
@@ -336,12 +335,12 @@ comments:
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create temporary config file
-			tempDir, err := ioutil.TempDir("", "config_test")
+			tempDir, err := os.MkdirTemp("", "config_test")
 			assert.NoError(t, err)
 			defer os.RemoveAll(tempDir)
 
 			configFile := filepath.Join(tempDir, "config.yaml")
-			err = ioutil.WriteFile(configFile, []byte(tt.configContent), 0644)
+			err = os.WriteFile(configFile, []byte(tt.configContent), 0644)
 			assert.NoError(t, err)
 
 			config, err := readBatchConfig(configFile)
@@ -469,7 +468,7 @@ func TestBatchRepositoryParsing(t *testing.T) {
 			repo = tt.setupRepo
 
 			// Create temporary config file
-			tempDir, err := ioutil.TempDir("", "batch_test")
+			tempDir, err := os.MkdirTemp("", "batch_test")
 			assert.NoError(t, err)
 			defer os.RemoveAll(tempDir)
 
@@ -481,7 +480,7 @@ comments:
 `
 
 			configFile := filepath.Join(tempDir, "config.yaml")
-			err = ioutil.WriteFile(configFile, []byte(configContent), 0644)
+			err = os.WriteFile(configFile, []byte(configContent), 0644)
 			assert.NoError(t, err)
 
 			err = runBatch(nil, []string{"123", configFile})
@@ -526,7 +525,7 @@ func TestBatchWithClientInitialization(t *testing.T) {
 	batchClient = mockClient
 
 	// Create temporary config file
-	tempDir, err := ioutil.TempDir("", "batch_test")
+	tempDir, err := os.MkdirTemp("", "batch_test")
 	assert.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -538,7 +537,7 @@ comments:
 `
 
 	configFile := filepath.Join(tempDir, "config.yaml")
-	err = ioutil.WriteFile(configFile, []byte(configContent), 0644)
+	err = os.WriteFile(configFile, []byte(configContent), 0644)
 	assert.NoError(t, err)
 
 	err = runBatch(nil, []string{"123", configFile})

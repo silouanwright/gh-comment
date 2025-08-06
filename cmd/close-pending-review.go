@@ -84,25 +84,22 @@ func runClosePendingReview(cmd *cobra.Command, args []string) error {
 		body = args[1]
 	} else if len(args) == 1 {
 		// Check if it's a PR number or review body
-		if prNum, err := strconv.Atoi(args[0]); err == nil {
-			// It's a PR number
-			pr = prNum
+		if pr, err = strconv.Atoi(args[0]); err == nil {
+			// It's a PR number - pr is already assigned
 		} else {
 			// It's a review body, auto-detect PR
-			_, prNum, err := getPRContext()
+			_, pr, err = getPRContext()
 			if err != nil {
 				return err
 			}
-			pr = prNum
 			body = args[0]
 		}
 	} else {
 		// Auto-detect PR
-		_, prNum, err := getPRContext()
+		_, pr, err = getPRContext()
 		if err != nil {
 			return err
 		}
-		pr = prNum
 	}
 
 	// Use --body flag if provided, otherwise use positional arg
@@ -123,8 +120,8 @@ func runClosePendingReview(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid event type: %s (must be APPROVE, REQUEST_CHANGES, or COMMENT)", closePendingEvent)
 	}
 
-	// Get repository and PR context
-	repository, pr, err := getPRContext()
+	// Get repository context
+	repository, _, err := getPRContext()
 	if err != nil {
 		return err
 	}

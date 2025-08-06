@@ -19,9 +19,9 @@ repos:
   - repo: https://github.com/golangci/golangci-lint
     rev: v1.64.8  # Same version as CI
     hooks:
-      - id: golangci-lint
+      - id: golangci-lint-full
         name: ' Go Lint & Format'
-        args: ['--timeout=5m']
+        args: ['--timeout=5m', '--fix']
 
   # Additional Go tools for comprehensive pre-commit checks  
   - repo: https://github.com/tekwizely/pre-commit-golang

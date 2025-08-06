@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -131,7 +130,7 @@ comments:
 	// Create temporary files for benchmarking
 	var tempFiles []string
 	for _, config := range testConfigs {
-		tmpFile, err := ioutil.TempFile("", "benchmark_config_*.yaml")
+		tmpFile, err := os.CreateTemp("", "benchmark_config_*.yaml")
 		if err != nil {
 			b.Fatalf("Failed to create temp file: %v", err)
 		}

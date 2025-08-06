@@ -14,16 +14,15 @@ import (
 var mockServer *cmd.MockGitHubServer
 
 func TestMain(m *testing.M) {
-	os.Exit(testscript.RunMain(m, map[string]func() int{
-		"gh-comment": func() int {
-			// Execute the root command and return exit code
+	testscript.Main(m, map[string]func(){
+		"gh-comment": func() {
+			// Execute the root command and handle errors via os.Exit
 			if err := cmd.Execute(); err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				return 1
+				os.Exit(1)
 			}
-			return 0
 		},
-	}))
+	})
 }
 
 func TestIntegration(t *testing.T) {

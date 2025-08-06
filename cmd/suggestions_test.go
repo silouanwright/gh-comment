@@ -105,7 +105,7 @@ Fix 2:
 		},
 		{
 			name: "multiline with extra whitespace",
-			input: `<<<SUGGEST   
+			input: `<<<SUGGEST
 code with spaces
 SUGGEST>>>`,
 			expected: "\n\n```suggestion\ncode with spaces\n```\n\n",
@@ -241,8 +241,8 @@ func TestExpandSuggestionsEdgeCases(t *testing.T) {
 		},
 		{
 			name:     "very long suggestion",
-			input:    "[SUGGEST: " + string(make([]byte, 1000, 1000)) + "]",
-			expected: "\n\n```suggestion\n" + string(make([]byte, 1000, 1000)) + "\n```\n\n",
+			input:    "[SUGGEST: " + string(make([]byte, 1000)) + "]",
+			expected: "\n\n```suggestion\n" + string(make([]byte, 1000)) + "\n```\n\n",
 		},
 		{
 			name:     "unicode in suggestions",

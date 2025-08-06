@@ -9,6 +9,8 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
 
@@ -139,7 +141,7 @@ func listAvailablePrompts() error {
 	prompts := getAllPrompts()
 
 	if promptCategory != "" {
-		fmt.Printf("📋 **Code Review Prompts - %s Category**\n\n", strings.Title(promptCategory))
+		fmt.Printf("📋 **Code Review Prompts - %s Category**\n\n", cases.Title(language.English).String(promptCategory))
 	} else {
 		fmt.Print("📋 **Available Code Review Prompts**\n\n")
 	}
@@ -153,7 +155,7 @@ func listAvailablePrompts() error {
 	}
 
 	for category, categoryPrompts := range categories {
-		fmt.Printf("## %s\n", strings.Title(category))
+		fmt.Printf("## %s\n", cases.Title(language.English).String(category))
 		for _, prompt := range categoryPrompts {
 			fmt.Printf("  **%s** - %s (%s)\n", prompt.Name, prompt.Title, prompt.EstimatedTime)
 			fmt.Printf("    %s\n", strings.Join(prompt.Tags, " • "))

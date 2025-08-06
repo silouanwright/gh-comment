@@ -80,9 +80,8 @@ func TestGetCurrentRepo_ValidationIntegration(t *testing.T) {
 				validationErr := validateRepositoryName(gotRepo)
 				if tt.setupRepo == "owner/repo" {
 					assert.NoError(t, validationErr, "Valid repo should pass validation")
-				} else {
-					// Note: validateRepositoryName would catch invalid formats
 				}
+				// Note: validateRepositoryName would catch invalid formats in production
 			}
 		})
 	}

@@ -184,6 +184,10 @@ This is a **finished, production-ready** project. All major features are impleme
 - **Documentation**: Keep help text examples accurate and working
 - **Error Handling**: Follow the established intelligent error pattern
 
+### **Added Insights on Code Review**
+- When manual fixes are required in a PR, do not allow the PR to be merged
+- Pre-commit hooks should not be bypassed and must be strictly enforced
+
 ---
 
 **The project is COMPLETE and ready for production use.** 🎉
