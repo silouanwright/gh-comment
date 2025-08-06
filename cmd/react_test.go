@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/silouanwright/gh-comment/internal/github"
 )
 
 func TestRunReactWithMockClient(t *testing.T) {

@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/silouanwright/gh-comment/internal/github"
+
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
+
+	"github.com/silouanwright/gh-comment/internal/github"
 )
 
 var (

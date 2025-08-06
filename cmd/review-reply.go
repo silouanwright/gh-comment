@@ -5,8 +5,10 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/silouanwright/gh-comment/internal/github"
+
 	"github.com/spf13/cobra"
+
+	"github.com/silouanwright/gh-comment/internal/github"
 )
 
 var (

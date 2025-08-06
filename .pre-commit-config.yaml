@@ -15,7 +15,15 @@ repos:
         args: ['--maxkb=1000']
       - id: check-merge-conflict
 
-  # Go-specific hooks (essential checks only)
+  # Go-specific hooks using official golangci-lint (matches CI)
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.64.8  # Same version as CI
+    hooks:
+      - id: golangci-lint
+        name: ' Go Lint & Format'
+        args: ['--timeout=5m', '--fix']
+
+  # Additional Go tools for comprehensive pre-commit checks  
   - repo: https://github.com/tekwizely/pre-commit-golang
     rev: v1.0.0-rc.2
     hooks:
@@ -30,12 +38,6 @@ repos:
       - id: go-test-repo-mod
         name: ' Go Unit Tests'
         args: ['-short', '-timeout=30s']
-        
-      - id: go-vet-repo-mod
-        name: ' Go Vet'
-        
-      - id: go-fmt-repo
-        name: ' Go Format'
 
   # Commit message linting
   - repo: https://github.com/compilerla/conventional-pre-commit

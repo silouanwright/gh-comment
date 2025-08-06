@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/rogpeppe/go-internal/testscript"
+
 	"github.com/silouanwright/gh-comment/cmd"
 )
 

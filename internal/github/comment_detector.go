@@ -63,10 +63,10 @@ func GetHelpfulErrorMessage(operation, command string, commentID int, commentInf
 	if !commentInfo.Found {
 		msg.WriteString(fmt.Sprintf("❌ **Comment #%d not found**\n\n", commentID))
 		msg.WriteString("🔍 **Troubleshooting**:\n")
-		msg.WriteString(fmt.Sprintf("   • Run `gh comment list <PR>` to see all available comments\n"))
+		msg.WriteString("   • Run `gh comment list <PR>` to see all available comments\n")
 		msg.WriteString(fmt.Sprintf("   • Check that comment #%d exists and you have access\n", commentID))
-		msg.WriteString(fmt.Sprintf("   • Comment might have been deleted or you're using wrong PR number\n\n"))
-		msg.WriteString(fmt.Sprintf("💡 **Next step**: `gh comment list <PR>`\n"))
+		msg.WriteString("   • Comment might have been deleted or you're using wrong PR number\n\n")
+		msg.WriteString("💡 **Next step**: `gh comment list <PR>`\n")
 		return msg.String()
 	}
 
@@ -80,8 +80,8 @@ func GetHelpfulErrorMessage(operation, command string, commentID int, commentInf
 		case "reply":
 			msg.WriteString("💬 **Reply Options**:\n")
 			msg.WriteString(fmt.Sprintf("   • Reactions: `gh comment reply %d --reaction +1`\n", commentID))
-			msg.WriteString(fmt.Sprintf("   • Note: Direct text replies to issue comments create new comments\n"))
-			msg.WriteString(fmt.Sprintf("   • Alternative: `gh comment add <PR> \"Reply message\"`\n"))
+			msg.WriteString("   • Note: Direct text replies to issue comments create new comments\n")
+			msg.WriteString("   • Alternative: `gh comment add <PR> \"Reply message\"`\n")
 		case "edit":
 			msg.WriteString("✏️ **Edit Command**:\n")
 			msg.WriteString(fmt.Sprintf("   • `gh comment edit %d \"Updated message\"`\n", commentID))

@@ -8,10 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/silouanwright/gh-comment/internal/github"
 )
 
 // TestRunListIntegration tests the actual runList function with various scenarios

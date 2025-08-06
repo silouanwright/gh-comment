@@ -10,8 +10,10 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/markusmobius/go-dateparser"
-	"github.com/silouanwright/gh-comment/internal/github"
+
 	"github.com/spf13/cobra"
+
+	"github.com/silouanwright/gh-comment/internal/github"
 )
 
 var (
@@ -494,7 +496,6 @@ func displayComments(comments []Comment, pr int) {
 	// Group comments by type
 	var issueComments, reviewComments, lineComments []Comment
 	for _, comment := range comments {
-
 		if comment.Type == "issue" {
 			issueComments = append(issueComments, comment)
 		} else if comment.Type == "review" {

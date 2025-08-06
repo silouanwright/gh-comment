@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/silouanwright/gh-comment/internal/github"
 )
 
 // TestEdgeCasesAndCornerCases tests various edge cases to improve coverage

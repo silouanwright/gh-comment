@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/silouanwright/gh-comment/internal/github"
 )
 
 func TestAdvancedFiltering(t *testing.T) {

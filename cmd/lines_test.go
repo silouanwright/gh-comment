@@ -4,8 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/silouanwright/gh-comment/internal/github"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/silouanwright/gh-comment/internal/github"
 )
 
 func TestRunLinesWithMockClient(t *testing.T) {
