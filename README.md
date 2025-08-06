@@ -19,6 +19,8 @@ These files contain realistic code examples that match the help text examples in
 - Various file types (.js, .go, .js) for comprehensive testing
 - YAML configuration files for batch operations
 
+## Typo Usage
+
 ## Usage
 
 This repository is automatically created and cleaned up by integration test scripts.
