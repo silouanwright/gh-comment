@@ -21,7 +21,7 @@ repos:
     hooks:
       - id: golangci-lint
         name: ' Go Lint & Format'
-        args: ['--timeout=5m', '--fix']
+        args: ['--timeout=5m']
 
   # Additional Go tools for comprehensive pre-commit checks  
   - repo: https://github.com/tekwizely/pre-commit-golang
@@ -51,11 +51,10 @@ repos:
 default_stages: [pre-commit]
 fail_fast: false
 
-# Exclude patterns - skip test files and generated content
+# Exclude patterns - skip generated content only (include test files)
 exclude: |
   (?x)^(
     testdata/.*|
-    .*_test\.go$|
     .*\.md$|
     go\.sum$|
     \.pre-commit-config\.yaml$
