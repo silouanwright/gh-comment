@@ -19,6 +19,12 @@ func TestCreateGitHubClient(t *testing.T) {
 		clientType  string
 	}{
 		{
+			name:        "creates real client when no mock URL",
+			mockURL:     "",
+			expectError: false, // Allow either success (with creds) or failure (without creds)
+			clientType:  "*github.RealClient",
+		},
+		{
 			name:        "creates test client when mock URL set",
 			mockURL:     "http://localhost:8080",
 			expectError: false,
@@ -41,6 +47,12 @@ func TestCreateGitHubClient(t *testing.T) {
 				if err == nil {
 					t.Errorf("expected error but got none")
 				}
+				return
+			}
+
+			// For real client test, allow both success and failure (depends on credentials)
+			if tt.mockURL == "" && err != nil {
+				t.Logf("Real client creation failed (likely missing credentials): %v", err)
 				return
 			}
 

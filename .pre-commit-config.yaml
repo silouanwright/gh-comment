@@ -34,10 +34,21 @@ repos:
       - id: go-mod-tidy-repo
         name: ' Go Mod Tidy'
         
-      # Fast unit tests only
-      - id: go-test-repo-mod
+      # Unit tests with race detection (exactly matching CI)
+      - id: my-cmd
         name: ' Go Unit Tests'
-        args: ['-short', '-timeout=30s']
+        entry: go test
+        language: system
+        args: ['-v', '-race', '-timeout=2m', './cmd/...', './internal/...']
+        pass_filenames: false
+      
+      # Integration tests without race detection (exactly matching CI)
+      - id: my-cmd
+        name: ' Go Integration Tests'
+        entry: go test
+        language: system
+        args: ['-v', '-timeout=2m', './test/...']
+        pass_filenames: false
 
   # Commit message linting
   - repo: https://github.com/compilerla/conventional-pre-commit
