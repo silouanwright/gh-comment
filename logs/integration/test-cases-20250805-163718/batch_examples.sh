@@ -1,5 +1,5 @@
 # Examples for command: batch
-# Generated from help text on Tue Aug  5 16:37:32 CDT 2025
+# Generated from help text on Wed Aug  6 03:27:54 CDT 2025
 
 # Example 1 from batch help text
 echo "🧪 Testing: ./gh-comment batch $PR_NUM review-config.yaml"
