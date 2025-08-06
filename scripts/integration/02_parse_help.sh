@@ -39,7 +39,8 @@ echo "📝 Extracting examples from help text..."
 
 # Get list of all commands
 echo "🔍 Discovering commands..."
-COMMANDS=$(./gh-comment --help 2>/dev/null | grep -E "^  [a-z-]+" | awk '{print $1}' | grep -v "^help$" || echo "")
+# Look for commands in Available Commands section only, exclude flags starting with -
+COMMANDS=$(./gh-comment --help 2>/dev/null | sed -n '/Available Commands:/,/^$/p' | grep -E "^  [a-z][a-z-]*[[:space:]]+" | awk '{print $1}' | grep -v "^help$" || echo "")
 
 if [[ -z "$COMMANDS" ]]; then
     echo "❌ ERROR: Could not discover commands from help text"
@@ -70,10 +71,12 @@ extract_examples() {
             continue
         fi
 
-        # End of examples section (next section or end of help)
-        if [[ "$in_examples" == true ]] && [[ "$line" =~ ^[[:space:]]*[A-Z][a-z]+:[[:space:]]*$ ]]; then
-            in_examples=false
-            continue
+        # End of examples section (next section header, flags section, or empty line followed by section)
+        if [[ "$in_examples" == true ]]; then
+            if [[ "$line" =~ ^[[:space:]]*[A-Z][a-z]+:[[:space:]]*$ ]] || [[ "$line" =~ ^Flags:[[:space:]]*$ ]] || [[ "$line" =~ ^Global[[:space:]]+Flags:[[:space:]]*$ ]]; then
+                in_examples=false
+                continue
+            fi
         fi
 
         # If we're in examples section, look for command examples
@@ -82,8 +85,14 @@ extract_examples() {
             if [[ "$line" =~ ^[[:space:]]*(\$[[:space:]]+)?(gh[[:space:]]+comment|\.\/gh-comment) ]]; then
                 ((example_count++))
 
-                # Clean up the example
+                # Clean up the example - remove leading $ and whitespace
                 local example=$(echo "$line" | sed -E 's/^[[:space:]]*\$?[[:space:]]*//' | sed 's/gh comment/\.\/gh-comment/g')
+
+                # Remove trailing comments or descriptions (anything after 2+ spaces followed by non-command text)
+                example=$(echo "$example" | sed -E 's/[[:space:]]{2,}[A-Z][^$]*$//')
+
+                # Escape special characters for bash
+                example=$(echo "$example" | sed 's/\[/\\[/g' | sed 's/\]/\\]/g')
 
                 # Replace common placeholders
                 example=$(echo "$example" | sed "s/123/\$PR_NUM/g")
@@ -103,11 +112,15 @@ extract_examples() {
                 example=$(echo "$example" | sed "s/\([^/]\)api\.js/\1src\/api.js/g")
                 example=$(echo "$example" | sed "s/^api\.js/src\/api.js/g")
 
+                # Properly escape the example for both echo and execution
+                local escaped_for_echo=$(echo "$example" | sed 's/"/\\"/g')
+                local escaped_for_exec=$(echo "$example" | sed 's/\\\[/[/g' | sed 's/\\\]/]/g')
+
                 # Write test case
                 cat >> "$examples_file" << EOF
 # Example $example_count from $cmd help text
-echo "🧪 Testing: $example"
-$example
+echo "🧪 Testing: $escaped_for_echo"
+$escaped_for_exec
 if [[ \$? -eq 0 ]]; then
     echo "✅ SUCCESS: $cmd example $example_count"
     echo "$cmd:example_$example_count:SUCCESS" >> "\$TEST_RESULTS_FILE"
