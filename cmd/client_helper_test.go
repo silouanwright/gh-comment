@@ -19,12 +19,6 @@ func TestCreateGitHubClient(t *testing.T) {
 		clientType  string
 	}{
 		{
-			name:        "creates real client when no mock URL",
-			mockURL:     "",
-			expectError: false,
-			clientType:  "*github.RealClient",
-		},
-		{
 			name:        "creates test client when mock URL set",
 			mockURL:     "http://localhost:8080",
 			expectError: false,
@@ -66,15 +60,15 @@ func TestCreateGitHubClient(t *testing.T) {
 	}
 }
 
-func TestCreateGitHubClientWithRealClient(t *testing.T) {
-	// Ensure no mock URL is set
+func TestCreateGitHubClientWithMockOnly(t *testing.T) {
+	// Always use mock - tests should never hit real APIs
 	originalMockURL := os.Getenv("MOCK_SERVER_URL")
-	os.Unsetenv("MOCK_SERVER_URL")
+	os.Setenv("MOCK_SERVER_URL", "http://localhost:8080")
 	defer os.Setenv("MOCK_SERVER_URL", originalMockURL)
 
 	client, err := createGitHubClient()
 	if err != nil {
-		t.Errorf("unexpected error creating real client: %v", err)
+		t.Errorf("unexpected error creating mock client: %v", err)
 		return
 	}
 
