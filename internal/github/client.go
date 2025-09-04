@@ -43,10 +43,12 @@ type Comment struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// Review comment specific fields
-	Path     string `json:"path,omitempty"`
-	Line     int    `json:"line,omitempty"`
-	Position int    `json:"position,omitempty"`
-	CommitID string `json:"commit_id,omitempty"`
+	Path           string `json:"path,omitempty"`
+	Line           int    `json:"line,omitempty"`
+	Position       int    `json:"position,omitempty"`
+	CommitID       string `json:"commit_id,omitempty"`
+	PullRequestURL string `json:"pull_request_url,omitempty"`
+	InReplyToID    int    `json:"in_reply_to_id,omitempty"`
 
 	// Computed fields
 	Type string `json:"-"` // "issue" or "review"

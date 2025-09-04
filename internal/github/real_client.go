@@ -128,11 +128,38 @@ func (c *RealClient) CreateReviewCommentReply(owner, repo string, commentID int,
 		return nil, fmt.Errorf("reply body cannot be empty")
 	}
 
+	// First, get the comment to find the PR number
+	getEndpoint := fmt.Sprintf("repos/%s/%s/pulls/comments/%d", owner, repo, commentID)
+	var originalComment Comment
+	err := c.restClient.Get(getEndpoint, &originalComment)
+	if err != nil {
+		// Provide intelligent error analysis
+		enhancedErr := AnalyzeAndEnhanceError(err, "reply", commentID)
+		return nil, enhancedErr
+	}
+
+	// Extract PR number from pull_request_url
+	if originalComment.PullRequestURL == "" {
+		return nil, fmt.Errorf("comment #%d has no associated pull request", commentID)
+	}
+
+	// Parse PR number from URL like "https://api.github.com/repos/owner/repo/pulls/422"
+	parts := strings.Split(originalComment.PullRequestURL, "/")
+	if len(parts) == 0 {
+		return nil, fmt.Errorf("invalid pull_request_url format")
+	}
+	prNumberStr := parts[len(parts)-1]
+	prNumber, err := strconv.Atoi(prNumberStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse PR number from URL: %w", err)
+	}
+
 	// Use the correct GitHub API endpoint for review comment replies
-	endpoint := fmt.Sprintf("repos/%s/%s/pulls/comments/%d/replies", owner, repo, commentID)
+	endpoint := fmt.Sprintf("repos/%s/%s/pulls/%d/comments", owner, repo, prNumber)
 
 	payload := map[string]interface{}{
-		"body": body,
+		"body":        body,
+		"in_reply_to": commentID,
 	}
 
 	bodyBytes, err := json.Marshal(payload)
