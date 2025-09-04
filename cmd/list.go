@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,10 +22,11 @@ var (
 	hideAuthors bool
 
 	// Filtering flags
-	filter   string // "all", "recent", or "today"
-	since    string
-	until    string
-	listType string
+	showRecent bool   // Show only comments from last 7 days
+	filter     string // "today" or custom filter
+	since      string
+	until      string
+	listType   string
 
 	// Output format flags
 	outputFormat string
@@ -42,8 +44,8 @@ var listCmd = &cobra.Command{
 	Use:   "list [pr]",
 	Short: "List comments with advanced filtering and formatting options",
 	Long: heredoc.Doc(`
-		List comments on a pull request with powerful filtering capabilities.
-		By default, shows recent comments (last 7 days). Use --filter all to see everything.
+		List all comments on a pull request sorted by newest first.
+		By default, shows all comments. Use --recent to see only the last 7 days.
 
 		Comment Types:
 		- Issue comments: General PR discussion, appear in main conversation tab
@@ -56,13 +58,19 @@ var listCmd = &cobra.Command{
 		Perfect for code review workflows, comment analysis, and automation.
 	`),
 	Example: heredoc.Doc(`
+		# Basic usage - list all comments (newest first)
+		$ gh comment list 123
+
+		# Show only recent comments (last 7 days)
+		$ gh comment list 123 --recent
+
 		# Review team analysis and metrics
-		$ gh comment list 123 --author "senior-dev*" --filter recent
+		$ gh comment list 123 --author "senior-dev*" --recent
 		$ gh comment list 123 --type review --author "*@company.com" --since "2024-01-01"
 
 		# Security audit and compliance tracking
 		$ gh comment list 123 --author "security-team*" --since "2024-01-01" --type review
-		$ gh comment list 123 --author "bot*" --filter today --quiet
+		$ gh comment list 123 --author "bot*" --recent --quiet
 
 		# Structured output for automation
 		$ gh comment list 123 --format json | jq '.comments[].id'
@@ -70,24 +78,24 @@ var listCmd = &cobra.Command{
 		$ gh comment list 123 --format json --author "security*" > security-comments.json
 
 		# Code review workflow optimization
-		$ gh comment list 123 --filter all --since "1 month ago" --author "lead*"
+		$ gh comment list 123 --since "1 month ago" --author "lead*"
 		$ gh comment list 123 --until "2024-12-31" --type issue
 
 		# Team communication patterns
 		$ gh comment list 123 --author "qa*" --since "3 days ago" --type review
-		$ gh comment list 123 --author "*@contractor.com" --filter all --since "1 month ago"
+		$ gh comment list 123 --author "*@contractor.com" --since "1 month ago"
 
 		# Blocker identification and recent activity
-		$ gh comment list 123 --author "architect*" --filter recent --type review
+		$ gh comment list 123 --author "architect*" --recent --type review
 		$ gh comment list 123 --since "critical-bug-report" --author "oncall*"
 
 		# Performance review analysis
 		$ gh comment list 123 --author "performance-team" --since "load-test-date" --type review
-		$ gh comment list 123 --filter recent --author "*perf*"
+		$ gh comment list 123 --recent --author "*perf*"
 
 		# Export for further analysis and automation
 		$ gh comment list 123 --author "all-reviewers*" --since "quarter-start" --quiet | process-review-data.sh
-		$ gh comment list 123 --ids-only --type review --filter recent | review-metrics.sh
+		$ gh comment list 123 --ids-only --type review --recent | review-metrics.sh
 	`),
 	Args:   cobra.MaximumNArgs(1),
 	PreRun: applyListConfigDefaults,
@@ -96,7 +104,8 @@ var listCmd = &cobra.Command{
 
 func init() {
 	// Filter flags
-	listCmd.Flags().StringVar(&filter, "filter", "recent", "Filter comments (all|recent|today)")
+	listCmd.Flags().BoolVar(&showRecent, "recent", false, "Show only comments from last 7 days")
+	listCmd.Flags().StringVar(&filter, "filter", "", "Filter comments (today)")
 	listCmd.Flags().StringVar(&author, "author", "", "Filter by author (supports wildcards: 'alice*', '*@company.com')")
 	listCmd.Flags().StringVar(&since, "since", "", "Show comments after this date/time (flexible formats)")
 	listCmd.Flags().StringVar(&until, "until", "", "Show comments before this date/time (flexible formats)")
@@ -122,16 +131,13 @@ func applyListConfigDefaults(cmd *cobra.Command, args []string) {
 	if !cmd.Flags().Changed("author") && config.Defaults.Author != "" {
 		author = config.Defaults.Author
 	}
-	if !cmd.Flags().Changed("filter") && config.Filters.Status != "" {
-		// Map legacy status config to new filter approach
+	if !cmd.Flags().Changed("recent") && config.Filters.Status != "" {
+		// Map legacy status config to new --recent flag
 		switch config.Filters.Status {
-		case "all":
-			filter = "all"
-		case "unresolved", "pending":
-			// Default to recent since we can't actually filter by resolution status
-			filter = "recent"
-		default:
-			filter = "recent"
+		case "recent", "unresolved", "pending":
+			// Show recent comments
+			showRecent = true
+			// case "all": default behavior, show all
 		}
 	}
 	if !cmd.Flags().Changed("type") && config.Filters.Type != "" {
@@ -246,6 +252,9 @@ func fetchAndFilterComments(client github.GitHubAPI, repository string, pr int) 
 	// Filter comments
 	filteredComments := filterComments(comments)
 
+	// Sort by newest first
+	sortCommentsByNewest(filteredComments)
+
 	return filteredComments, nil
 }
 
@@ -343,27 +352,27 @@ func fetchAllComments(client github.GitHubAPI, repo string, pr int) ([]Comment, 
 
 func validateAndParseFilters() error {
 	// Validate filter flag
-	validFilters := []string{"all", "recent", "today"}
+	validFilters := []string{"", "today"}
 	if filter != "" && !containsString(validFilters, filter) {
-		return fmt.Errorf("invalid filter '%s'. Must be one of: %s", filter, strings.Join(validFilters, ", "))
+		return fmt.Errorf("invalid filter '%s'. Must be one of: today", filter)
 	}
 
 	// Apply filter-based date defaults
 	now := time.Now()
-	switch filter {
-	case "recent":
-		// Default to last 7 days if no explicit since/until
-		if since == "" && sinceTime == nil {
-			sevenDaysAgo := now.AddDate(0, 0, -7)
-			sinceTime = &sevenDaysAgo
-		}
-	case "today":
+
+	// Handle --recent flag (last 7 days)
+	if showRecent && since == "" && sinceTime == nil {
+		sevenDaysAgo := now.AddDate(0, 0, -7)
+		sinceTime = &sevenDaysAgo
+	}
+
+	// Handle --filter today
+	if filter == "today" {
 		// Comments from today only
 		if since == "" && sinceTime == nil {
 			startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 			sinceTime = &startOfDay
 		}
-		// case "all": no date filtering
 	}
 
 	// Validate comment type flag
@@ -470,6 +479,27 @@ func matchesAuthorFilter(author, filter string) bool {
 
 	// Case-insensitive partial match
 	return strings.Contains(strings.ToLower(author), strings.ToLower(filter))
+}
+
+// sortCommentsByNewest sorts comments with newest first
+func sortCommentsByNewest(comments []Comment) {
+	sort.Slice(comments, func(i, j int) bool {
+		return comments[i].CreatedAt.After(comments[j].CreatedAt)
+	})
+}
+
+// filterRecentComments filters comments to only include those from the last N days
+func filterRecentComments(comments []Comment, days int) []Comment {
+	cutoff := time.Now().AddDate(0, 0, -days)
+	var filtered []Comment
+
+	for _, comment := range comments {
+		if comment.CreatedAt.After(cutoff) {
+			filtered = append(filtered, comment)
+		}
+	}
+
+	return filtered
 }
 
 func containsString(slice []string, item string) bool {

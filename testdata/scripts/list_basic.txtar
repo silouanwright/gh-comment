@@ -1,6 +1,6 @@
 # Test basic list functionality with help command
 exec gh-comment list --help
-stdout 'List unresolved comments on a pull request'
+stdout 'List all comments on a pull request sorted by newest first'
 stdout 'Usage:'
 ! stderr .
 

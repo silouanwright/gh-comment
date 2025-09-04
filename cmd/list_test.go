@@ -99,13 +99,14 @@ func TestApplyListConfigDefaults(t *testing.T) {
 
 	// Reset variables to empty
 	author = ""
-	filter = "recent" // Default to recent
+	filter = "" // Default to showing all
+	showRecent = false
 	listType = ""
 	since = ""
 	until = ""
 	outputFormat = ""
 	quiet = false
-	// filter defaults to recent
+	// filter defaults to empty (show all)
 
 	t.Run("applies config defaults when flags not set", func(t *testing.T) {
 		// Apply defaults
@@ -113,23 +114,23 @@ func TestApplyListConfigDefaults(t *testing.T) {
 
 		// Check that defaults were applied
 		assert.Equal(t, "default-author", author)
-		assert.Equal(t, "all", filter) // Config overrides default
+		assert.Equal(t, false, showRecent) // ShowAll from config means don't filter to recent
 		assert.Equal(t, "review", listType)
 		assert.Equal(t, "1 week ago", since)
 		assert.Equal(t, "now", until)
 		assert.Equal(t, "json", outputFormat)
 		assert.True(t, quiet)
-		// ShowAll from config should map to filter="all"
 	})
 
 	t.Run("does not override explicitly set flags", func(t *testing.T) {
 		// Simulate flags being explicitly set
 		cmd.Flags().Set("author", "explicit-author")
-		cmd.Flags().Set("filter", "all")
+		// No filter set - defaults to showing all
 
 		// Reset variables to empty again
 		author = "explicit-author"
-		filter = "all"
+		filter = ""
+		showRecent = false
 		listType = ""
 		since = ""
 		until = ""
@@ -140,7 +141,7 @@ func TestApplyListConfigDefaults(t *testing.T) {
 
 		// Check that explicit flags were not overridden
 		assert.Equal(t, "explicit-author", author)
-		assert.Equal(t, "all", filter)
+		assert.Equal(t, "", filter) // No filter set, showing all
 		// But config defaults should still apply to non-explicit flags
 		assert.Equal(t, "review", listType)
 		assert.Equal(t, "1 week ago", since)
@@ -173,32 +174,39 @@ func TestFetchAllCommentsInvalidRepo(t *testing.T) {
 	assert.Contains(t, err.Error(), "invalid repository format")
 }
 
-func TestListDefaultShowsRecent(t *testing.T) {
+func TestListDefaultShowsAll(t *testing.T) {
 	// Save original state
 	originalFilter := filter
+	originalRecent := showRecent
 	defer func() {
 		filter = originalFilter
+		showRecent = originalRecent
 	}()
 
-	t.Run("default behavior shows recent comments", func(t *testing.T) {
+	t.Run("default behavior shows all comments sorted by newest", func(t *testing.T) {
 		// Reset to default state
-		filter = "recent"
+		filter = ""
+		showRecent = false
 
-		// By default, should be configured for recent only
-		assert.Equal(t, "recent", filter)
+		// By default, should show all comments
+		assert.Equal(t, "", filter)
+		assert.Equal(t, false, showRecent)
 	})
 
-	t.Run("filter all overrides default", func(t *testing.T) {
-		// Reset to default state then set to all
-		filter = "all"
+	t.Run("--recent flag shows only last 7 days", func(t *testing.T) {
+		// Reset to default state then enable recent
+		filter = ""
+		showRecent = true
 
-		// Should now show all comments
-		assert.Equal(t, "all", filter)
+		// Should filter to recent comments
+		assert.Equal(t, "", filter)
+		assert.Equal(t, true, showRecent)
 	})
 
-	t.Run("explicit filter flag overrides default", func(t *testing.T) {
+	t.Run("--filter flag overrides default", func(t *testing.T) {
 		// Reset to default state
-		filter = "recent"
+		filter = ""
+		showRecent = false
 
 		// Simulate --filter flag being set explicitly
 		filter = "today"
@@ -206,6 +214,78 @@ func TestListDefaultShowsRecent(t *testing.T) {
 		// Should use the explicit filter
 		assert.Equal(t, "today", filter)
 	})
+}
+
+func TestListCommentsSortedByNewest(t *testing.T) {
+	// Create mock comments with different timestamps
+	now := time.Now()
+	oldComment := Comment{
+		ID:        1,
+		Body:      "Old comment",
+		Author:    "user1",
+		CreatedAt: now.Add(-48 * time.Hour), // 2 days ago
+		Type:      "issue",
+	}
+
+	recentComment := Comment{
+		ID:        2,
+		Body:      "Recent comment",
+		Author:    "user2",
+		CreatedAt: now.Add(-1 * time.Hour), // 1 hour ago
+		Type:      "issue",
+	}
+
+	newestComment := Comment{
+		ID:        3,
+		Body:      "Newest comment",
+		Author:    "user3",
+		CreatedAt: now.Add(-10 * time.Minute), // 10 minutes ago
+		Type:      "review",
+	}
+
+	// Test sorting function
+	comments := []Comment{oldComment, newestComment, recentComment}
+	sortCommentsByNewest(comments)
+
+	// Verify comments are sorted newest first
+	assert.Equal(t, 3, comments[0].ID, "Newest comment should be first")
+	assert.Equal(t, 2, comments[1].ID, "Recent comment should be second")
+	assert.Equal(t, 1, comments[2].ID, "Old comment should be last")
+}
+
+func TestRecentFilter(t *testing.T) {
+	now := time.Now()
+
+	comments := []Comment{
+		{
+			ID:        1,
+			Body:      "Very old comment",
+			CreatedAt: now.Add(-30 * 24 * time.Hour), // 30 days ago
+		},
+		{
+			ID:        2,
+			Body:      "Old comment",
+			CreatedAt: now.Add(-10 * 24 * time.Hour), // 10 days ago
+		},
+		{
+			ID:        3,
+			Body:      "Recent comment",
+			CreatedAt: now.Add(-3 * 24 * time.Hour), // 3 days ago
+		},
+		{
+			ID:        4,
+			Body:      "Very recent comment",
+			CreatedAt: now.Add(-1 * time.Hour), // 1 hour ago
+		},
+	}
+
+	// Apply recent filter (last 7 days)
+	filtered := filterRecentComments(comments, 7)
+
+	// Should only include comments from last 7 days
+	assert.Len(t, filtered, 2, "Should have 2 comments from last 7 days")
+	assert.Equal(t, 3, filtered[0].ID)
+	assert.Equal(t, 4, filtered[1].ID)
 }
 
 // Helper function to capture stdout output

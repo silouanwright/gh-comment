@@ -18,7 +18,8 @@ func TestAdvancedFiltering(t *testing.T) {
 	// Reset global variables before each test
 	resetListFlags := func() {
 		author = ""
-		filter = "all"
+		filter = ""
+		showRecent = false
 		since = ""
 		until = ""
 		listType = ""
@@ -122,7 +123,7 @@ func TestAdvancedFiltering(t *testing.T) {
 			{
 				name: "Valid filter",
 				setupFunc: func() {
-					filter = "recent"
+					filter = "today"
 				},
 				expectError: false,
 			},

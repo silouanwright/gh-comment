@@ -138,7 +138,8 @@ func TestRunListIntegration(t *testing.T) {
 			quiet = false
 			hideAuthors = false
 			author = ""
-			filter = "all"
+			filter = ""
+			showRecent = false
 
 			// Create a mock GitHub client
 			mockClient := &MockGitHubClient{

@@ -71,7 +71,8 @@ func TestRunListComprehensive(t *testing.T) {
 			setupFlags: func() {
 				verbose = true
 				quiet = false
-				filter = "all"
+				filter = ""
+				showRecent = false
 
 				hideAuthors = false
 				author = "testuser"
@@ -203,7 +204,7 @@ func TestRunListComprehensive(t *testing.T) {
 			name: "type filter validation error",
 			args: []string{"123"},
 			setupFlags: func() {
-				filter = "all"
+				filter = ""
 				listType = "invalid-type"
 			},
 			setupClient: func() github.GitHubAPI {
