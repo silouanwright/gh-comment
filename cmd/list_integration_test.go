@@ -138,8 +138,7 @@ func TestRunListIntegration(t *testing.T) {
 			quiet = false
 			hideAuthors = false
 			author = ""
-			showResolved = false
-			onlyUnresolved = false
+			filter = "all"
 
 			// Create a mock GitHub client
 			mockClient := &MockGitHubClient{
@@ -169,8 +168,7 @@ func TestRunListIntegration(t *testing.T) {
 			}
 
 			// Add flags
-			cmd.Flags().BoolVar(&showResolved, "resolved", false, "Include resolved comments")
-			cmd.Flags().BoolVar(&onlyUnresolved, "unresolved", false, "Show only unresolved comments")
+			cmd.Flags().StringVar(&filter, "filter", "all", "Filter comments (all|recent|today)")
 			cmd.Flags().StringVar(&author, "author", "", "Filter comments by author")
 			cmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Minimal output without URLs and IDs")
 			cmd.Flags().BoolVar(&hideAuthors, "hide-authors", false, "Hide author names for privacy")
@@ -267,8 +265,7 @@ func runListWithMock(cmd *cobra.Command, args []string, mockClient *MockGitHubCl
 	if verbose {
 		fmt.Fprintf(output, "Repository: %s\n", repository)
 		fmt.Fprintf(output, "PR: %d\n", pr)
-		fmt.Fprintf(output, "Show resolved: %v\n", showResolved)
-		fmt.Fprintf(output, "Only unresolved: %v\n", onlyUnresolved)
+		fmt.Fprintf(output, "Filter: %v\n", filter)
 		fmt.Fprintf(output, "Quiet mode: %v\n", quiet)
 		fmt.Fprintf(output, "Hide authors: %v\n", hideAuthors)
 		if author != "" {

@@ -48,10 +48,11 @@ type DisplayConfig struct {
 
 // FiltersConfig holds default filter settings
 type FiltersConfig struct {
-	Status string `yaml:"status" json:"status"`
-	Type   string `yaml:"type" json:"type"`
-	Since  string `yaml:"since" json:"since"`
-	Until  string `yaml:"until" json:"until"`
+	Status  string `yaml:"status" json:"status"`
+	Type    string `yaml:"type" json:"type"`
+	Since   string `yaml:"since" json:"since"`
+	Until   string `yaml:"until" json:"until"`
+	ShowAll bool   `yaml:"show_all" json:"show_all"`
 }
 
 // ReviewDefaultsConfig holds review-specific settings
@@ -99,7 +100,7 @@ func NewDefaultConfig() *Config {
 		},
 		Filters: FiltersConfig{
 			Status: "all",
-			Type:   "all",
+			Type:   "",
 			Since:  "",
 			Until:  "",
 		},
@@ -301,9 +302,9 @@ func validateConfig(config *Config) error {
 		return fmt.Errorf("invalid status filter: %s (must be all, open, or resolved)", config.Filters.Status)
 	}
 
-	validTypes := map[string]bool{"all": true, "issue": true, "review": true}
+	validTypes := map[string]bool{"": true, "issue": true, "review": true}
 	if !validTypes[config.Filters.Type] {
-		return fmt.Errorf("invalid type filter: %s (must be all, issue, or review)", config.Filters.Type)
+		return fmt.Errorf("invalid type filter: %s (must be empty, issue, or review)", config.Filters.Type)
 	}
 
 	validEvents := map[string]bool{"APPROVE": true, "REQUEST_CHANGES": true, "COMMENT": true}

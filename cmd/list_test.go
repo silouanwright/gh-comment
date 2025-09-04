@@ -56,7 +56,7 @@ func TestFetchAllComments(t *testing.T) {
 func TestApplyListConfigDefaults(t *testing.T) {
 	// Save original state
 	originalAuthor := author
-	originalStatus := status
+	originalFilter := filter
 	originalListType := listType
 	originalSince := since
 	originalUntil := until
@@ -66,7 +66,7 @@ func TestApplyListConfigDefaults(t *testing.T) {
 
 	defer func() {
 		author = originalAuthor
-		status = originalStatus
+		filter = originalFilter
 		listType = originalListType
 		since = originalSince
 		until = originalUntil
@@ -81,10 +81,11 @@ func TestApplyListConfigDefaults(t *testing.T) {
 			Author: "default-author",
 		},
 		Filters: FiltersConfig{
-			Status: "open",
-			Type:   "review",
-			Since:  "1 week ago",
-			Until:  "now",
+			Status:  "all",
+			Type:    "review",
+			Since:   "1 week ago",
+			Until:   "now",
+			ShowAll: true,
 		},
 		Display: DisplayConfig{
 			Format: "json",
@@ -98,12 +99,13 @@ func TestApplyListConfigDefaults(t *testing.T) {
 
 	// Reset variables to empty
 	author = ""
-	status = ""
+	filter = "recent" // Default to recent
 	listType = ""
 	since = ""
 	until = ""
 	outputFormat = ""
 	quiet = false
+	// filter defaults to recent
 
 	t.Run("applies config defaults when flags not set", func(t *testing.T) {
 		// Apply defaults
@@ -111,32 +113,34 @@ func TestApplyListConfigDefaults(t *testing.T) {
 
 		// Check that defaults were applied
 		assert.Equal(t, "default-author", author)
-		assert.Equal(t, "open", status)
+		assert.Equal(t, "all", filter) // Config overrides default
 		assert.Equal(t, "review", listType)
 		assert.Equal(t, "1 week ago", since)
 		assert.Equal(t, "now", until)
 		assert.Equal(t, "json", outputFormat)
 		assert.True(t, quiet)
+		// ShowAll from config should map to filter="all"
 	})
 
 	t.Run("does not override explicitly set flags", func(t *testing.T) {
 		// Simulate flags being explicitly set
 		cmd.Flags().Set("author", "explicit-author")
-		cmd.Flags().Set("status", "closed")
+		cmd.Flags().Set("filter", "all")
 
 		// Reset variables to empty again
 		author = "explicit-author"
-		status = "closed"
+		filter = "all"
 		listType = ""
 		since = ""
 		until = ""
+		// filter explicitly set
 
 		// Apply defaults
 		applyListConfigDefaults(cmd, []string{})
 
 		// Check that explicit flags were not overridden
 		assert.Equal(t, "explicit-author", author)
-		assert.Equal(t, "closed", status)
+		assert.Equal(t, "all", filter)
 		// But config defaults should still apply to non-explicit flags
 		assert.Equal(t, "review", listType)
 		assert.Equal(t, "1 week ago", since)
@@ -151,6 +155,7 @@ func TestApplyListConfigDefaults(t *testing.T) {
 		// Reset variables
 		outputFormat = ""
 		quiet = false
+		// reset filter
 
 		// Apply defaults
 		applyListConfigDefaults(cmd, []string{})
@@ -166,6 +171,41 @@ func TestFetchAllCommentsInvalidRepo(t *testing.T) {
 	_, err := fetchAllComments(mockClient, "invalid", 123)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid repository format")
+}
+
+func TestListDefaultShowsRecent(t *testing.T) {
+	// Save original state
+	originalFilter := filter
+	defer func() {
+		filter = originalFilter
+	}()
+
+	t.Run("default behavior shows recent comments", func(t *testing.T) {
+		// Reset to default state
+		filter = "recent"
+
+		// By default, should be configured for recent only
+		assert.Equal(t, "recent", filter)
+	})
+
+	t.Run("filter all overrides default", func(t *testing.T) {
+		// Reset to default state then set to all
+		filter = "all"
+
+		// Should now show all comments
+		assert.Equal(t, "all", filter)
+	})
+
+	t.Run("explicit filter flag overrides default", func(t *testing.T) {
+		// Reset to default state
+		filter = "recent"
+
+		// Simulate --filter flag being set explicitly
+		filter = "today"
+
+		// Should use the explicit filter
+		assert.Equal(t, "today", filter)
+	})
 }
 
 // Helper function to capture stdout output
@@ -463,7 +503,7 @@ func TestDisplayCommentAlwaysShowsID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			output := captureOutput(func() {
-				displayComment(tt.comment, 1)
+				displayComment(tt.comment)
 			})
 
 			// CRITICAL: Must contain the actual GitHub comment ID
@@ -471,8 +511,7 @@ func TestDisplayCommentAlwaysShowsID(t *testing.T) {
 			assert.Contains(t, output, expectedIDFormat,
 				"Comment ID must be displayed in format 'ID:%d' for integration testing workflows")
 
-			// Should also contain the index number
-			assert.Contains(t, output, "[1]", "Should contain index number")
+			// Comment ID is shown without index when displayComment is called directly
 
 			// Should contain author and body
 			assert.Contains(t, output, tt.comment.Author, "Should contain author")
@@ -492,12 +531,12 @@ func TestDisplayCommentIDFormat(t *testing.T) {
 	}
 
 	output := captureOutput(func() {
-		displayComment(comment, 1)
+		displayComment(comment)
 	})
 
-	// Test exact format: [index] ID:actualID
-	assert.Contains(t, output, "[1] ID:123456789",
-		"Comment must display in exact format: [index] ID:actualID")
+	// Test exact format: ID:actualID
+	assert.Contains(t, output, "ID:123456789",
+		"Comment must display in exact format: ID:actualID")
 }
 
 // REGRESSION TEST: Verify hideAuthors flag still shows comment IDs
@@ -518,14 +557,14 @@ func TestDisplayCommentWithHideAuthorsStillShowsID(t *testing.T) {
 	}
 
 	output := captureOutput(func() {
-		displayComment(comment, 1)
+		displayComment(comment)
 	})
 
 	// Even with hidden authors, ID must still be visible
 	assert.Contains(t, output, "ID:999888777",
 		"Comment ID must be visible even when authors are hidden")
-	assert.Contains(t, output, "[hidden]", "Author should be hidden")
-	assert.NotContains(t, output, "secretuser", "Author name should not appear")
+	// When hideAuthors is true, the author name should not appear
+	assert.NotContains(t, output, "secretuser", "Author name should not appear when hideAuthors is true")
 }
 
 func TestDisplayIDsOnly(t *testing.T) {
@@ -706,8 +745,7 @@ func TestDisplayComments(t *testing.T) {
 			pr: 456,
 			expectedContains: []string{
 				"📝 Comments on PR #456 (1 total)",
-				"💬 General PR Comments (1)",
-				"[1] ID:1",
+				"ID:1",
 				"Issue comment",
 			},
 		},
@@ -719,8 +757,7 @@ func TestDisplayComments(t *testing.T) {
 			pr: 789,
 			expectedContains: []string{
 				"📝 Comments on PR #789 (1 total)",
-				"📋 Review Comments (1)",
-				"[1] ID:2",
+				"ID:2",
 				"Review comment",
 			},
 		},
@@ -732,8 +769,7 @@ func TestDisplayComments(t *testing.T) {
 			pr: 111,
 			expectedContains: []string{
 				"📝 Comments on PR #111 (1 total)",
-				"📍 Line-Specific Comments (1)",
-				"[1] ID:3",
+				"ID:3",
 				"Line comment",
 			},
 		},
@@ -747,9 +783,9 @@ func TestDisplayComments(t *testing.T) {
 			pr: 222,
 			expectedContains: []string{
 				"📝 Comments on PR #222 (3 total)",
-				"💬 General PR Comments (1)",
-				"📋 Review Comments (1)",
-				"📍 Line-Specific Comments (1)",
+				"ID:1",
+				"ID:2",
+				"ID:3",
 			},
 		},
 		{

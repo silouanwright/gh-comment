@@ -29,7 +29,7 @@ func TestNewDefaultConfig(t *testing.T) {
 	assert.Equal(t, false, config.Display.Quiet)
 
 	assert.Equal(t, "all", config.Filters.Status)
-	assert.Equal(t, "all", config.Filters.Type)
+	assert.Equal(t, "", config.Filters.Type)
 	assert.Equal(t, "", config.Filters.Since)
 	assert.Equal(t, "", config.Filters.Until)
 
@@ -157,7 +157,7 @@ func TestValidateConfig(t *testing.T) {
 				Defaults:    DefaultsConfig{Repository: "invalid-repo"},
 				Behavior:    BehaviorConfig{Validate: true},
 				Display:     DisplayConfig{Format: "table", Color: "auto"},
-				Filters:     FiltersConfig{Status: "all", Type: "all"},
+				Filters:     FiltersConfig{Status: "all", Type: ""},
 				Review:      ReviewDefaultsConfig{Event: "COMMENT"},
 				API:         APIConfig{Timeout: 30, RetryCount: 3},
 				Suggestions: SuggestionsConfig{MaxOffset: 999},
@@ -172,7 +172,7 @@ func TestValidateConfig(t *testing.T) {
 				Defaults:    DefaultsConfig{},
 				Behavior:    BehaviorConfig{Validate: true},
 				Display:     DisplayConfig{Format: "invalid", Color: "auto"},
-				Filters:     FiltersConfig{Status: "all", Type: "all"},
+				Filters:     FiltersConfig{Status: "all", Type: ""},
 				Review:      ReviewDefaultsConfig{Event: "COMMENT"},
 				API:         APIConfig{Timeout: 30, RetryCount: 3},
 				Suggestions: SuggestionsConfig{MaxOffset: 999},
@@ -187,7 +187,7 @@ func TestValidateConfig(t *testing.T) {
 				Defaults:    DefaultsConfig{},
 				Behavior:    BehaviorConfig{Validate: true},
 				Display:     DisplayConfig{Format: "table", Color: "invalid"},
-				Filters:     FiltersConfig{Status: "all", Type: "all"},
+				Filters:     FiltersConfig{Status: "all", Type: ""},
 				Review:      ReviewDefaultsConfig{Event: "COMMENT"},
 				API:         APIConfig{Timeout: 30, RetryCount: 3},
 				Suggestions: SuggestionsConfig{MaxOffset: 999},
@@ -232,7 +232,7 @@ func TestValidateConfig(t *testing.T) {
 				Defaults:    DefaultsConfig{},
 				Behavior:    BehaviorConfig{Validate: true},
 				Display:     DisplayConfig{Format: "table", Color: "auto"},
-				Filters:     FiltersConfig{Status: "all", Type: "all"},
+				Filters:     FiltersConfig{Status: "all", Type: ""},
 				Review:      ReviewDefaultsConfig{Event: "INVALID"},
 				API:         APIConfig{Timeout: 30, RetryCount: 3},
 				Suggestions: SuggestionsConfig{MaxOffset: 999},
@@ -247,7 +247,7 @@ func TestValidateConfig(t *testing.T) {
 				Defaults:    DefaultsConfig{},
 				Behavior:    BehaviorConfig{Validate: true},
 				Display:     DisplayConfig{Format: "table", Color: "auto"},
-				Filters:     FiltersConfig{Status: "all", Type: "all"},
+				Filters:     FiltersConfig{Status: "all", Type: ""},
 				Review:      ReviewDefaultsConfig{Event: "COMMENT"},
 				API:         APIConfig{Timeout: 0, RetryCount: 3},
 				Suggestions: SuggestionsConfig{MaxOffset: 999},
@@ -262,7 +262,7 @@ func TestValidateConfig(t *testing.T) {
 				Defaults:    DefaultsConfig{},
 				Behavior:    BehaviorConfig{Validate: true},
 				Display:     DisplayConfig{Format: "table", Color: "auto"},
-				Filters:     FiltersConfig{Status: "all", Type: "all"},
+				Filters:     FiltersConfig{Status: "all", Type: ""},
 				Review:      ReviewDefaultsConfig{Event: "COMMENT"},
 				API:         APIConfig{Timeout: 30, RetryCount: -1},
 				Suggestions: SuggestionsConfig{MaxOffset: 999},
@@ -277,7 +277,7 @@ func TestValidateConfig(t *testing.T) {
 				Defaults:    DefaultsConfig{},
 				Behavior:    BehaviorConfig{Validate: true},
 				Display:     DisplayConfig{Format: "table", Color: "auto"},
-				Filters:     FiltersConfig{Status: "all", Type: "all"},
+				Filters:     FiltersConfig{Status: "all", Type: ""},
 				Review:      ReviewDefaultsConfig{Event: "COMMENT"},
 				API:         APIConfig{Timeout: 30, RetryCount: 3},
 				Suggestions: SuggestionsConfig{MaxOffset: 10000},

@@ -277,7 +277,7 @@ display:
   quiet: false
 filters:
   status: "all"
-  type: "all"`
+  type: ""`
 
 		err := os.WriteFile(configFile, []byte(configContent), 0644)
 		assert.NoError(t, err)

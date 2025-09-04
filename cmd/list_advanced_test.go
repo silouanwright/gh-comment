@@ -18,17 +18,16 @@ func TestAdvancedFiltering(t *testing.T) {
 	// Reset global variables before each test
 	resetListFlags := func() {
 		author = ""
-		status = "all"
+		filter = "all"
 		since = ""
 		until = ""
-		resolved = ""
-		listType = "all"
+		listType = ""
 		sinceTime = nil
 		untilTime = nil
-		showResolved = false
-		onlyUnresolved = false
 		quiet = false
 		hideAuthors = false
+		outputFormat = "default"
+		idsOnly = false
 	}
 
 	t.Run("Date Filter Parsing", func(t *testing.T) {
@@ -121,19 +120,19 @@ func TestAdvancedFiltering(t *testing.T) {
 			errorMsg    string
 		}{
 			{
-				name: "Valid status",
+				name: "Valid filter",
 				setupFunc: func() {
-					status = "open"
+					filter = "recent"
 				},
 				expectError: false,
 			},
 			{
-				name: "Invalid status",
+				name: "Invalid filter",
 				setupFunc: func() {
-					status = "invalid"
+					filter = "invalid"
 				},
 				expectError: true,
-				errorMsg:    "invalid status",
+				errorMsg:    "invalid filter",
 			},
 			{
 				name: "Valid comment type",

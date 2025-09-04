@@ -16,12 +16,12 @@ func TestRunListComprehensive(t *testing.T) {
 	originalVerbose := verbose
 	originalQuiet := quiet
 	originalAuthor := author
-	originalShowResolved := showResolved
-	originalOnlyUnresolved := onlyUnresolved
+	originalFilter := filter
+
 	originalHideAuthors := hideAuthors
 	originalSince := since
 	originalUntil := until
-	originalStatus := status
+
 	originalListType := listType
 
 	defer func() {
@@ -29,12 +29,12 @@ func TestRunListComprehensive(t *testing.T) {
 		verbose = originalVerbose
 		quiet = originalQuiet
 		author = originalAuthor
-		showResolved = originalShowResolved
-		onlyUnresolved = originalOnlyUnresolved
+		filter = originalFilter
+
 		hideAuthors = originalHideAuthors
 		since = originalSince
 		until = originalUntil
-		status = originalStatus
+
 		listType = originalListType
 	}()
 
@@ -71,8 +71,8 @@ func TestRunListComprehensive(t *testing.T) {
 			setupFlags: func() {
 				verbose = true
 				quiet = false
-				showResolved = true
-				onlyUnresolved = false
+				filter = "all"
+
 				hideAuthors = false
 				author = "testuser"
 			},
@@ -187,7 +187,7 @@ func TestRunListComprehensive(t *testing.T) {
 			setupFlags: func() {
 				since = ""
 				until = ""
-				status = "invalid-status"
+				filter = "invalid-filter"
 			},
 			setupClient: func() github.GitHubAPI {
 				mockClient := &MockGitHubClientForList{}
@@ -197,13 +197,13 @@ func TestRunListComprehensive(t *testing.T) {
 			setupEnv:       func() {},
 			cleanupEnv:     func() {},
 			wantErr:        true,
-			expectedErrMsg: "invalid status",
+			expectedErrMsg: "invalid filter",
 		},
 		{
 			name: "type filter validation error",
 			args: []string{"123"},
 			setupFlags: func() {
-				status = ""
+				filter = "all"
 				listType = "invalid-type"
 			},
 			setupClient: func() github.GitHubAPI {

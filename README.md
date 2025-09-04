@@ -21,8 +21,11 @@ gh comment add 123 "LGTM! Ready to merge"
 # Add a line-specific code review comment  
 gh comment review 123 --comment src/api.js:42:"Add error handling here"
 
-# List all comments on a PR
+# List unresolved comments on a PR (default behavior)
 gh comment list 123
+
+# List ALL comments including resolved ones
+gh comment list 123 --show-all
 
 # React to a comment
 gh comment react 2254752948 +1
@@ -80,8 +83,8 @@ gh comment add <pr> <file> <line> <message>      # Add line-specific issue comme
 gh comment review <pr> [body] --comment <file:line:message> --event <APPROVE|REQUEST_CHANGES|COMMENT>
 gh comment review-reply <comment-id> <message>   # Reply to review comments
 
-# Comment management
-gh comment list <pr> [--author] [--since] [--type] [--status] [--quiet]
+# Comment management (shows unresolved by default, use --show-all for all)
+gh comment list <pr> [--author] [--since] [--type] [--show-all] [--quiet]
 gh comment edit <comment-id> <new-message>       # Modify existing comments
 gh comment react <comment-id> <emoji>            # Add/remove emoji reactions
 ```

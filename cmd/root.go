@@ -76,7 +76,7 @@ var rootCmd = &cobra.Command{
 		      --since string      Show comments after date ('2024-01-01', '1 week ago')
 		      --until string      Show comments before date
 		      --status string     Filter by status: open, resolved, all
-		      --type string       Filter by type: issue, review, all
+		      --type string       Filter by type: issue, review
 		  -q, --quiet            Minimal output for scripts
 
 		Review Flags:
