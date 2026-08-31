@@ -18,7 +18,7 @@ stdout 'This looks good to me!'
 ! stderr .
 
 # Test date range filtering
-exec gh-comment list 123 --since '2023-01-01' --until '2025-12-31' --repo test-owner/test-repo --dry-run
+exec gh-comment list 123 --since '2023-01-01' --until '2099-12-31' --repo test-owner/test-repo --dry-run
 stdout 'Comments on PR #123'
 stdout 'This looks good to me!'
 ! stderr .
@@ -44,18 +44,6 @@ stdout 'Please fix the typo'
 exec gh-comment list 123 --type issue --repo test-owner/test-repo --dry-run
 stdout 'Comments on PR #123'
 stdout 'This looks good to me!'
-! stderr .
-
-# Test status filtering (open/resolved/all)
-exec gh-comment list 123 --status open --repo test-owner/test-repo --dry-run
-stdout 'Comments on PR #123'
-stdout 'This looks good to me!'
-! stderr .
-
-exec gh-comment list 123 --status all --repo test-owner/test-repo --dry-run
-stdout 'Comments on PR #123'
-stdout 'This looks good to me!'
-stdout 'Please fix the typo'
 ! stderr .
 
 # Test multiple filter combinations

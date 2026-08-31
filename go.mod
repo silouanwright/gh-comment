@@ -1,18 +1,18 @@
 module github.com/silouanwright/gh-comment
 
-go 1.24.1
+go 1.25.0
 
-toolchain go1.24.5
+toolchain go1.25.14
 
 require (
 	github.com/MakeNowJust/heredoc v1.0.0
-	github.com/cli/go-gh/v2 v2.12.1
+	github.com/cli/go-gh/v2 v2.13.0
 	github.com/fatih/color v1.18.0
 	github.com/markusmobius/go-dateparser v1.2.4
 	github.com/rogpeppe/go-internal v1.14.1
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/text v0.23.0
+	golang.org/x/text v0.39.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -38,7 +38,7 @@ require (
 	github.com/tetratelabs/wazero v1.2.1 // indirect
 	github.com/thlib/go-timezone-local v0.0.0-20210907160436-ef149e42d28e // indirect
 	github.com/wasilibs/go-re2 v1.3.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/tools v0.26.0 // indirect
+	golang.org/x/tools v0.47.0 // indirect
 )

@@ -144,7 +144,7 @@ func (m *MockClient) GetCreateReviewCalls() []ReviewInput {
 	return m.CreateReviewCalls
 }
 
-// Mock implementations
+// ListIssueComments returns the configured mock issue comments.
 func (m *MockClient) ListIssueComments(owner, repo string, prNumber int) ([]Comment, error) {
 	if m.ListIssueCommentsError != nil {
 		return nil, m.ListIssueCommentsError

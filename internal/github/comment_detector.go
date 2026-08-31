@@ -123,5 +123,5 @@ func CreateSmartError(client GitHubAPI, operation, command string, commentID int
 	// Create enhanced error message
 	helpMsg := GetHelpfulErrorMessage(operation, command, commentID, commentInfo)
 
-	return fmt.Errorf("Operation failed: %v\n\n%s", originalErr, helpMsg)
+	return fmt.Errorf("operation failed: %v\n\n%s", originalErr, helpMsg)
 }

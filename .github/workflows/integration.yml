@@ -37,7 +37,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.25'
 
       - name: Build binary
         run: go build -o gh-comment
@@ -45,7 +45,7 @@ jobs:
       - name: Install gh CLI
         uses: cli/gh-extension-precompile@v2.0.1
         with:
-          go_version: "1.24"
+          go_version: "1.25"
 
       - name: Setup test environment
         run: |

@@ -224,7 +224,7 @@ func (c *TestClient) GetPRDetails(owner, repo string, pr int) (map[string]interf
 	return result, nil
 }
 
-// Stub implementations for methods not needed in tests
+// CreateReviewCommentReply is not implemented by TestClient.
 func (c *TestClient) CreateReviewCommentReply(owner, repo string, commentID int, body string) (*Comment, error) {
 	return nil, fmt.Errorf("not implemented in test client")
 }

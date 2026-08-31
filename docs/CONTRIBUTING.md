@@ -6,7 +6,7 @@ Thank you for your interest in contributing to gh-comment! This guide will help 
 
 ### Prerequisites
 
-1. **Go 1.21+** - Install from [golang.org](https://golang.org/doc/install)
+1. **Go 1.25+** - Install from [go.dev](https://go.dev/doc/install)
 2. **GitHub CLI** - Install from [cli.github.com](https://cli.github.com/)
 3. **Git** - For version control
 

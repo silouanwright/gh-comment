@@ -155,7 +155,7 @@ func runClosePendingReview(cmd *cobra.Command, args []string) error {
 	}
 
 	if reviewID == 0 {
-		return fmt.Errorf("no pending review found on PR #%d\n\nNote: This command only works with pending reviews created in GitHub's web interface.\nUse 'gh comment review' to create and submit reviews via CLI.", pr)
+		return fmt.Errorf("no pending review found on PR #%d\n\nNote: This command only works with pending reviews created in GitHub's web interface.\nUse 'gh comment review' to create and submit reviews via CLI", pr)
 	}
 
 	if verbose {

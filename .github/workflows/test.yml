@@ -17,12 +17,12 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.25'
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: v1.64.8  # Pin version for consistency with pre-commit
+          version: v2.13.2  # Pin version for consistency with pre-commit
           args: --timeout=5m
 
   test:
@@ -30,13 +30,13 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        go-version: ['1.24']
+        go-version: ['1.25']
         include:
-          # Test latest Go on different OS for cross-platform compatibility
+          # Test the minimum supported Go version across platforms
           - os: macos-latest
-            go-version: '1.24'
+            go-version: '1.25'
           - os: windows-latest
-            go-version: '1.24'
+            go-version: '1.25'
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -70,7 +70,7 @@ jobs:
 
 
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24'
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.25'
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.out
@@ -89,7 +89,7 @@ jobs:
   #     - name: Set up Go
   #       uses: actions/setup-go@v5
   #       with:
-  #         go-version: '1.24'
+  #         go-version: '1.25'
   #
   #     - name: Build binary
   #       run: go build -o gh-comment
@@ -111,7 +111,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.25'
 
       - name: Build for multiple platforms
         run: |
@@ -141,7 +141,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.25'
 
       - name: Run benchmarks on PR
         run: |

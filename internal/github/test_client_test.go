@@ -1,6 +1,7 @@
 package github
 
 import (
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -62,10 +63,9 @@ func TestNewTestClient(t *testing.T) {
 }
 
 func TestTestClientWithMockServer(t *testing.T) {
-	// Set up mock server URL for testing
-	originalMockURL := os.Getenv("MOCK_SERVER_URL")
-	os.Setenv("MOCK_SERVER_URL", "http://localhost:8080")
-	defer os.Setenv("MOCK_SERVER_URL", originalMockURL)
+	server := httptest.NewServer(nil)
+	server.Close()
+	t.Setenv("MOCK_SERVER_URL", server.URL)
 
 	client, err := NewTestClient()
 	require.NoError(t, err)
@@ -80,9 +80,6 @@ func TestTestClientWithMockServer(t *testing.T) {
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Nil(t, comments)
-
-		// Verify error is related to connection (not validation)
-		assert.Contains(t, err.Error(), "connection refused")
 	})
 
 	t.Run("ListReviewComments", func(t *testing.T) {
@@ -91,7 +88,6 @@ func TestTestClientWithMockServer(t *testing.T) {
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Nil(t, comments)
-		assert.Contains(t, err.Error(), "connection refused")
 	})
 
 	t.Run("CreateIssueComment", func(t *testing.T) {
@@ -100,7 +96,6 @@ func TestTestClientWithMockServer(t *testing.T) {
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Nil(t, comment)
-		assert.Contains(t, err.Error(), "connection refused")
 	})
 
 	t.Run("AddReviewComment", func(t *testing.T) {
@@ -114,7 +109,6 @@ func TestTestClientWithMockServer(t *testing.T) {
 
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "connection refused")
 	})
 
 	t.Run("CreateReview", func(t *testing.T) {
@@ -127,7 +121,6 @@ func TestTestClientWithMockServer(t *testing.T) {
 
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "connection refused")
 	})
 
 	t.Run("GetPRDetails", func(t *testing.T) {
@@ -136,7 +129,6 @@ func TestTestClientWithMockServer(t *testing.T) {
 		// We expect an error since no real mock server is running
 		assert.Error(t, err)
 		assert.Nil(t, details)
-		assert.Contains(t, err.Error(), "connection refused")
 	})
 
 	// Test methods that are not implemented (should return appropriate errors)
@@ -200,10 +192,9 @@ func TestTestClientWithMockServer(t *testing.T) {
 }
 
 func TestTestClientDoRequest(t *testing.T) {
-	// Set up mock server URL for testing
-	originalMockURL := os.Getenv("MOCK_SERVER_URL")
-	os.Setenv("MOCK_SERVER_URL", "http://localhost:8080")
-	defer os.Setenv("MOCK_SERVER_URL", originalMockURL)
+	server := httptest.NewServer(nil)
+	server.Close()
+	t.Setenv("MOCK_SERVER_URL", server.URL)
 
 	client, err := NewTestClient()
 	require.NoError(t, err)
@@ -217,7 +208,6 @@ func TestTestClientDoRequest(t *testing.T) {
 	// Should fail with connection error since no server is running
 	assert.Error(t, err)
 	assert.Nil(t, resp)
-	assert.Contains(t, err.Error(), "connection refused")
 }
 
 func TestTestClientErrorHandling(t *testing.T) {

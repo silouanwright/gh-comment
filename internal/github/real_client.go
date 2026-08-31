@@ -788,26 +788,3 @@ func (c *RealClient) SubmitReview(owner, repo string, pr, reviewID int, body, ev
 
 	return nil
 }
-
-// getCommitIDFromExistingComments tries to get a commit ID from existing review comments
-// This is more efficient than fetching PR details since we might already have review comments
-func (c *RealClient) getCommitIDFromExistingComments(owner, repo string, pr int) (string, error) {
-	// Get existing review comments
-	comments, err := c.ListReviewComments(owner, repo, pr)
-	if err != nil {
-		return "", err
-	}
-
-	// If we have any review comments, use the commit ID from the most recent one
-	// This assumes that the most recent comment is likely on the latest commit
-	if len(comments) > 0 {
-		// Find the most recent comment with a commit ID
-		for i := len(comments) - 1; i >= 0; i-- {
-			if comments[i].CommitID != "" {
-				return comments[i].CommitID, nil
-			}
-		}
-	}
-
-	return "", nil // No commit ID found
-}

@@ -40,8 +40,7 @@ var (
 	dangerousAttrPattern = regexp.MustCompile(`(?i)\b(on\w+|javascript|vbscript|data|mocha|livescript)\s*=`)
 
 	// Repository validation patterns
-	validRepoPattern  = regexp.MustCompile(`^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$`)
-	validOwnerPattern = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+	validRepoPattern = regexp.MustCompile(`^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$`)
 )
 
 // getPRContext gets the repository and PR number, handling both flag and auto-detection

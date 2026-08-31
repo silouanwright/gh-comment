@@ -1,101 +1,118 @@
+version: "2"
 run:
-  timeout: 5m
   modules-download-mode: readonly
-
-linters-settings:
-  # govet:
-  #   check-shadowing removed - deprecated option
-  gocyclo:
-    min-complexity: 15
-  # maligned:
-  #   suggest-new: true  # maligned linter is deprecated
-  dupl:
-    threshold: 100
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  misspell:
-    locale: US
-  lll:
-    line-length: 140
-  goimports:
-    local-prefixes: github.com/silouanwright/gh-comment
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - whyNoLint
-      - wrapperFunc
-
 linters:
-  disable-all: true
+  default: none
   enable:
     - bodyclose
     - errcheck
-    - gofmt
-    - goimports
-    - gosimple
     - govet
     - ineffassign
     - misspell
     - staticcheck
-    - typecheck
     - unused
     - whitespace
-
+  settings:
+    dupl:
+      threshold: 100
+    goconst:
+      min-len: 2
+      min-occurrences: 2
+    gocritic:
+      disabled-checks:
+        - dupImport
+        - ifElseChain
+        - octalLiteral
+        - whyNoLint
+        - wrapperFunc
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    gocyclo:
+      min-complexity: 15
+    lll:
+      line-length: 140
+    misspell:
+      locale: US
+    staticcheck:
+      checks:
+        - all
+        - -QF*
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - bodyclose
+          - errcheck
+          - unused
+        path: _test\.go
+      - linters:
+          - unused
+        path: testdata/
+      - linters:
+          - bodyclose
+          - errcheck
+          - unused
+        path: internal/testutil/
+      - linters:
+          - bodyclose
+          - errcheck
+        path: test/
+      - linters:
+          - unused
+        path: src/
+      - linters:
+          - bodyclose
+          - errcheck
+        path: cmd/integration_testing.go
+      - linters:
+          - errcheck
+        path: cmd/export.go
+      - path: (.+)\.go$
+        text: Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked
+      - path: (.+)\.go$
+        text: cyclomatic complexity .* of func .* is high
+      - path: (.+)\.go$
+        text: string .* has .* occurrences, make it a constant
+      - path: (.+)\.go$
+        text: 'commentedOutCode: may want to remove commented-out code'
+      - path: (.+)\.go$
+        text: 'appendCombine: can combine chain of .* appends into one'
+      - path: (.+)\.go$
+        text: at least one file in a package should have a package comment
+      - path: (.+)\.go$
+        text: Potential file inclusion via variable
+      - path: (.+)\.go$
+        text: Expect directory permissions to be 0750 or less
+      - path: (.+)\.go$
+        text: Expect WriteFile permissions to be 0600 or less
+      - path: (.+)\.go$
+        text: var .* is unused
+      - path: (.+)\.go$
+        text: func .* is unused
+      - path: (.+)\.go$
+        text: Error return value of.*is not checked
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
-        - bodyclose
-        - unused
-    - path: testdata/
-      linters:
-        - unused
-    - path: internal/testutil/
-      linters:
-        - errcheck
-        - bodyclose
-        - unused
-    - path: test/
-      linters:
-        - errcheck
-        - bodyclose
-    - path: src/
-      linters:
-        - unused
-    - path: cmd/integration_testing.go
-      linters:
-        - errcheck
-        - bodyclose
-    - path: cmd/export.go
-      linters:
-        - errcheck
-
-  exclude-use-default: false
-  exclude:
-    # errcheck: Almost all programs ignore errors on these functions and in most cases it's ok
-    - Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked
-    # Ignore overly strict linting rules for development
-    - "cyclomatic complexity .* of func .* is high"
-    - "string .* has .* occurrences, make it a constant"
-    - "commentedOutCode: may want to remove commented-out code"
-    - "appendCombine: can combine chain of .* appends into one"
-    - "at least one file in a package should have a package comment"
-    - "Potential file inclusion via variable"
-    - "Expect directory permissions to be 0750 or less"
-    - "Expect WriteFile permissions to be 0600 or less"
-    - "var .* is unused"
-    - "func .* is unused"
-    - "Error return value of.*is not checked"
-
   max-issues-per-linter: 0
   max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/silouanwright/gh-comment
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
