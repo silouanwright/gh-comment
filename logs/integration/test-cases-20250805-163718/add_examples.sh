@@ -1,8 +1,8 @@
 # Examples for command: add
-# Generated from help text on Tue Aug  5 16:37:31 CDT 2025
+# Generated from help text on Wed Aug  6 03:27:53 CDT 2025
 
 # Example 1 from add help text
-echo "🧪 Testing: ./gh-comment add $PR_NUM "LGTM! Just a few minor suggestions below""
+echo "🧪 Testing: ./gh-comment add $PR_NUM \"LGTM! Just a few minor suggestions below\""
 ./gh-comment add $PR_NUM "LGTM! Just a few minor suggestions below"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 1"
@@ -14,7 +14,7 @@ fi
 echo ""
 
 # Example 2 from add help text
-echo "🧪 Testing: ./gh-comment add $PR_NUM "Thanks for addressing the security concerns""
+echo "🧪 Testing: ./gh-comment add $PR_NUM \"Thanks for addressing the security concerns\""
 ./gh-comment add $PR_NUM "Thanks for addressing the security concerns"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 2"
@@ -26,7 +26,7 @@ fi
 echo ""
 
 # Example 3 from add help text
-echo "🧪 Testing: ./gh-comment add $PR_NUM "This looks great - ready to merge after CI passes""
+echo "🧪 Testing: ./gh-comment add $PR_NUM \"This looks great - ready to merge after CI passes\""
 ./gh-comment add $PR_NUM "This looks great - ready to merge after CI passes"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 3"
@@ -38,7 +38,7 @@ fi
 echo ""
 
 # Example 4 from add help text
-echo "🧪 Testing: ./gh-comment add $PR_NUM -m "Overall this is excellent work!" -m "The architecture is clean and the tests are comprehensive""
+echo "🧪 Testing: ./gh-comment add $PR_NUM -m \"Overall this is excellent work!\" -m \"The architecture is clean and the tests are comprehensive\""
 ./gh-comment add $PR_NUM -m "Overall this is excellent work!" -m "The architecture is clean and the tests are comprehensive"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 4"
@@ -50,7 +50,7 @@ fi
 echo ""
 
 # Example 5 from add help text
-echo "🧪 Testing: ./gh-comment add "Looks good to merge!""
+echo "🧪 Testing: ./gh-comment add \"Looks good to merge!\""
 ./gh-comment add "Looks good to merge!"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 5"
@@ -62,7 +62,7 @@ fi
 echo ""
 
 # Example 6 from add help text
-echo "🧪 Testing: ./gh-comment add $PR_NUM "Approved! The performance improvements in this PR will make a huge difference""
+echo "🧪 Testing: ./gh-comment add $PR_NUM \"Approved! The performance improvements in this PR will make a huge difference\""
 ./gh-comment add $PR_NUM "Approved! The performance improvements in this PR will make a huge difference"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 6"
@@ -74,7 +74,7 @@ fi
 echo ""
 
 # Example 7 from add help text
-echo "🧪 Testing: ./gh-comment add $PR_NUM "Could you address the failing tests? Otherwise looks good to go""
+echo "🧪 Testing: ./gh-comment add $PR_NUM \"Could you address the failing tests? Otherwise looks good to go\""
 ./gh-comment add $PR_NUM "Could you address the failing tests? Otherwise looks good to go"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 7"
@@ -86,7 +86,7 @@ fi
 echo ""
 
 # Example 8 from add help text
-echo "🧪 Testing: ./gh-comment add $PR_NUM "Consider using async/await: [SUGGEST: const result = await fetchData();]""
+echo "🧪 Testing: ./gh-comment add $PR_NUM \"Consider using async/await: \[SUGGEST: const result = await fetchData();\]\""
 ./gh-comment add $PR_NUM "Consider using async/await: [SUGGEST: const result = await fetchData();]"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 8"
@@ -98,7 +98,7 @@ fi
 echo ""
 
 # Example 9 from add help text
-echo "🧪 Testing: ./gh-comment add $PR_NUM "Add error handling above: [SUGGEST:-1: try {]""
+echo "🧪 Testing: ./gh-comment add $PR_NUM \"Add error handling above: \[SUGGEST:-1: try {\]\""
 ./gh-comment add $PR_NUM "Add error handling above: [SUGGEST:-1: try {]"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 9"
@@ -110,7 +110,7 @@ fi
 echo ""
 
 # Example 10 from add help text
-echo "🧪 Testing: ./gh-comment add $PR_NUM "Add timeout below: [SUGGEST:+2: const timeout = 5000;]""
+echo "🧪 Testing: ./gh-comment add $PR_NUM \"Add timeout below: \[SUGGEST:+2: const timeout = 5000;\]\""
 ./gh-comment add $PR_NUM "Add timeout below: [SUGGEST:+2: const timeout = 5000;]"
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: add example 10"

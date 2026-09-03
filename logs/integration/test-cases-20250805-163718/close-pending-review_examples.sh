@@ -1,8 +1,8 @@
 # Examples for command: close-pending-review
-# Generated from help text on Tue Aug  5 16:37:32 CDT 2025
+# Generated from help text on Wed Aug  6 03:27:54 CDT 2025
 
 # Example 1 from close-pending-review help text
-echo "🧪 Testing: ./gh-comment close-pending-review $PR_NUM "LGTM! Great work" --event APPROVE"
+echo "🧪 Testing: ./gh-comment close-pending-review $PR_NUM \"LGTM! Great work\" --event APPROVE"
 ./gh-comment close-pending-review $PR_NUM "LGTM! Great work" --event APPROVE
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: close-pending-review example 1"
@@ -14,7 +14,7 @@ fi
 echo ""
 
 # Example 2 from close-pending-review help text
-echo "🧪 Testing: ./gh-comment close-pending-review $PR_NUM "Please address the comments" --event REQUEST_CHANGES"
+echo "🧪 Testing: ./gh-comment close-pending-review $PR_NUM \"Please address the comments\" --event REQUEST_CHANGES"
 ./gh-comment close-pending-review $PR_NUM "Please address the comments" --event REQUEST_CHANGES
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: close-pending-review example 2"
@@ -26,7 +26,7 @@ fi
 echo ""
 
 # Example 3 from close-pending-review help text
-echo "🧪 Testing: ./gh-comment close-pending-review $PR_NUM "Thanks for the updates" --event COMMENT"
+echo "🧪 Testing: ./gh-comment close-pending-review $PR_NUM \"Thanks for the updates\" --event COMMENT"
 ./gh-comment close-pending-review $PR_NUM "Thanks for the updates" --event COMMENT
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: close-pending-review example 3"
@@ -38,7 +38,7 @@ fi
 echo ""
 
 # Example 4 from close-pending-review help text
-echo "🧪 Testing: ./gh-comment close-pending-review "Looks good" --event APPROVE"
+echo "🧪 Testing: ./gh-comment close-pending-review \"Looks good\" --event APPROVE"
 ./gh-comment close-pending-review "Looks good" --event APPROVE
 if [[ $? -eq 0 ]]; then
     echo "✅ SUCCESS: close-pending-review example 4"

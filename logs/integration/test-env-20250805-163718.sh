@@ -24,3 +24,9 @@ export TEST_CASES_DIR="/Users/silouan.wright/repos/gh-comment/logs/integration/t
 export MASTER_TEST_SCRIPT="/Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-163718/run_all_examples.sh"
 export TEST_RESULTS_FILE="/Users/silouan.wright/repos/gh-comment/logs/integration/test-results-20250805-163718.txt"
 export TOTAL_EXAMPLES="116"
+
+# Test cases information
+export TEST_CASES_DIR="/Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-163718"
+export MASTER_TEST_SCRIPT="/Users/silouan.wright/repos/gh-comment/logs/integration/test-cases-20250805-163718/run_all_examples.sh"
+export TEST_RESULTS_FILE="/Users/silouan.wright/repos/gh-comment/logs/integration/test-results-20250805-163718.txt"
+export TOTAL_EXAMPLES="17"
