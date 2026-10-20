@@ -12,17 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7.0.0
         with:
-          go-version: '1.25'
+          go-version: '1.26.10'
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@v9.3.0
         with:
-          version: v2.13.2  # Pin version for consistency with pre-commit
+          version: v2.15.0  # Pin version for consistency with pre-commit
           args: --timeout=5m
 
   test:
@@ -30,26 +30,26 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        go-version: ['1.25']
+        go-version: ['1.26.10']
         include:
           # Test the minimum supported Go version across platforms
           - os: macos-latest
-            go-version: '1.25'
+            go-version: '1.26.10'
           - os: windows-latest
-            go-version: '1.25'
+            go-version: '1.26.10'
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7.0.0
         with:
           go-version: ${{ matrix.go-version }}
 
       - name: Cache Go modules
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: |
             ~/.cache/go-build
@@ -70,10 +70,10 @@ jobs:
 
 
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.25'
-        uses: codecov/codecov-action@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.26.10'
+        uses: codecov/codecov-action@v7.1.1
         with:
-          file: ./coverage.out
+          files: ./coverage.out
           flags: unittests
           name: codecov-umbrella
 
@@ -84,12 +84,12 @@ jobs:
   #
   #   steps:
   #     - name: Checkout code
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@v7.0.1
   #
   #     - name: Set up Go
-  #       uses: actions/setup-go@v5
+  #       uses: actions/setup-go@v7.0.0
   #       with:
-  #         go-version: '1.25'
+  #         go-version: '1.26.10'
   #
   #     - name: Build binary
   #       run: go build -o gh-comment
@@ -106,12 +106,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7.0.0
         with:
-          go-version: '1.25'
+          go-version: '1.26.10'
 
       - name: Build for multiple platforms
         run: |
@@ -121,7 +121,7 @@ jobs:
           GOOS=windows GOARCH=amd64 go build -o dist/gh-comment-windows-amd64.exe
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: binaries
           path: dist/
@@ -136,19 +136,19 @@ jobs:
 
     steps:
       - name: Checkout PR code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7.0.0
         with:
-          go-version: '1.25'
+          go-version: '1.26.10'
 
       - name: Run benchmarks on PR
         run: |
           go test -bench=. -benchmem -run=^$ -count=10 ./... > pr-benchmark.txt
 
       - name: Checkout base branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.base_ref }}
 
@@ -174,7 +174,7 @@ jobs:
           fi
 
       - name: Comment PR with results
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         if: github.event_name == 'pull_request'
         with:
           script: |
@@ -191,7 +191,7 @@ jobs:
             });
 
       - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: benchmark-results
           path: |
