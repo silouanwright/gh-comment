@@ -32,20 +32,20 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7.0.0
         with:
-          go-version: '1.25'
+          go-version: '1.26.10'
 
       - name: Build binary
         run: go build -o gh-comment
 
       - name: Install gh CLI
-        uses: cli/gh-extension-precompile@v2.0.1
+        uses: cli/gh-extension-precompile@v2.2.0
         with:
-          go_version: "1.25"
+          go_version: "1.26.10"
 
       - name: Setup test environment
         run: |
@@ -64,7 +64,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: integration-test-results
           path: |
